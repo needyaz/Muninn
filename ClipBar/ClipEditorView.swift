@@ -12,8 +12,17 @@ struct ClipEditorView: View {
                         TextField("Name", text: $clip.name)
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 120)
-                        TextField("Value", text: $clip.value)
-                            .textFieldStyle(.roundedBorder)
+                        if clip.contentType == .text {
+                            TextField("Value", text: Binding(
+                                get: { clip.value ?? "" },
+                                set: { clip.value = $0 }
+                            ))
+                                .textFieldStyle(.roundedBorder)
+                        } else {
+                            Text(clip.preview)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                         Button(role: .destructive) {
                             if let idx = store.clips.firstIndex(where: { $0.id == clip.id }) {
                                 store.delete(at: IndexSet(integer: idx))

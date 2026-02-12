@@ -52,6 +52,9 @@ class ClipStore {
     }
 
     func delete(at offsets: IndexSet) {
+        for idx in offsets {
+            if let blob = clips[idx].blobFile { BlobStorage.delete(blob) }
+        }
         clips.remove(atOffsets: offsets)
         save()
     }

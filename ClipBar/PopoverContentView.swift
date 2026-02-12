@@ -40,13 +40,13 @@ struct PopoverContentView: View {
                         sectionHeader("SNIPPETS")
                         ForEach(filteredClips) { clip in
                             Button {
-                                copyAndPaste(clip.value)
+                                copyAndPaste(clip: clip)
                             } label: {
                                 HStack {
                                     Text(clip.name)
                                         .lineLimit(1)
                                     Spacer()
-                                    Text(clip.value)
+                                    clipPreviewLabel(clip)
                                         .lineLimit(1)
                                         .foregroundStyle(.secondary)
                                         .frame(maxWidth: 160, alignment: .trailing)
@@ -66,9 +66,9 @@ struct PopoverContentView: View {
                         sectionHeader("HISTORY")
                         ForEach(filteredHistory) { item in
                             HistoryRow(item: item) {
-                                copyAndPaste(item.value)
+                                copyAndPaste(item: item)
                             } onPin: {
-                                clipStore.add(Clip(name: String(item.preview.prefix(20)), value: item.value))
+                                pinItem(item)
                             } onDelete: {
                                 historyStore.delete(item)
                             }
@@ -136,14 +136,50 @@ struct PopoverContentView: View {
         if search.isEmpty { return clipStore.clips }
         let q = search.lowercased()
         return clipStore.clips.filter {
-            $0.name.lowercased().contains(q) || $0.value.lowercased().contains(q)
+            $0.name.lowercased().contains(q) || $0.preview.lowercased().contains(q)
         }
     }
 
     private var filteredHistory: [HistoryItem] {
         if search.isEmpty { return historyStore.items }
         let q = search.lowercased()
-        return historyStore.items.filter { $0.value.lowercased().contains(q) }
+        return historyStore.items.filter { item in
+            switch item.contentType {
+            case .text:
+                return item.value?.lowercased().contains(q) ?? false
+            case .fileURL:
+                return item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false
+            default:
+                return item.preview.lowercased().contains(q)
+            }
+        }
+    }
+
+    // MARK: - Clip preview label
+
+    @ViewBuilder
+    private func clipPreviewLabel(_ clip: Clip) -> some View {
+        switch clip.contentType {
+        case .image:
+            Label("Image", systemImage: "photo")
+        case .pdf:
+            Label("PDF", systemImage: "doc.richtext")
+        case .fileURL:
+            Label(clip.preview, systemImage: "doc")
+        case .color:
+            if let comps = clip.colorComponents, comps.count >= 3 {
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
+                        .frame(width: 10, height: 10)
+                    Text("Color")
+                }
+            } else {
+                Text("Color")
+            }
+        case .text:
+            Text(clip.value ?? "")
+        }
     }
 
     // MARK: - Helpers
@@ -158,10 +194,102 @@ struct PopoverContentView: View {
             .padding(.bottom, 4)
     }
 
-    private func copyAndPaste(_ text: String) {
+    private func pinItem(_ item: HistoryItem) {
+        let newID = UUID()
+        var newBlobFile: String?
+        if let blob = item.blobFile {
+            newBlobFile = BlobStorage.copy(blob, newID: newID)
+        }
+        let clip = Clip(
+            id: newID,
+            name: String(item.preview.prefix(20)),
+            value: item.value,
+            contentType: item.contentType,
+            blobFile: newBlobFile,
+            fileURLs: item.fileURLs,
+            colorComponents: item.colorComponents
+        )
+        clipStore.add(clip)
+    }
+
+    private func copyAndPaste(item: HistoryItem) {
+        writeToPasteboard(
+            contentType: item.contentType,
+            value: item.value,
+            blobFile: item.blobFile,
+            fileURLs: item.fileURLs,
+            colorComponents: item.colorComponents
+        )
+    }
+
+    private func copyAndPaste(clip: Clip) {
+        writeToPasteboard(
+            contentType: clip.contentType,
+            value: clip.value,
+            blobFile: clip.blobFile,
+            fileURLs: clip.fileURLs,
+            colorComponents: clip.colorComponents
+        )
+    }
+
+    private func writeToPasteboard(
+        contentType: ClipboardContentType,
+        value: String?,
+        blobFile: String?,
+        fileURLs: [String]?,
+        colorComponents: [Double]?
+    ) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+
+        switch contentType {
+        case .text:
+            if let value {
+                pasteboard.setString(value, forType: .string)
+            }
+            // Restore rich text blob if available
+            if let blob = blobFile, let data = BlobStorage.load(blob) {
+                let ext = (blob as NSString).pathExtension
+                if ext == "rtf" {
+                    pasteboard.setData(data, forType: .rtf)
+                } else if ext == "html" {
+                    pasteboard.setData(data, forType: .html)
+                }
+            }
+
+        case .image:
+            if let blob = blobFile, let data = BlobStorage.load(blob) {
+                let ext = (blob as NSString).pathExtension
+                let type: NSPasteboard.PasteboardType = ext == "png" ? .png : .tiff
+                pasteboard.setData(data, forType: type)
+            }
+
+        case .pdf:
+            if let blob = blobFile, let data = BlobStorage.load(blob) {
+                pasteboard.setData(data, forType: .pdf)
+            }
+
+        case .fileURL:
+            if let paths = fileURLs {
+                let urls = paths.map { URL(fileURLWithPath: $0) as NSURL }
+                pasteboard.writeObjects(urls)
+            }
+
+        case .color:
+            if let comps = colorComponents, comps.count >= 4 {
+                let color = NSColor(
+                    srgbRed: CGFloat(comps[0]),
+                    green: CGFloat(comps[1]),
+                    blue: CGFloat(comps[2]),
+                    alpha: CGFloat(comps[3])
+                )
+                pasteboard.setData(
+                    try? NSKeyedArchiver.archivedData(withRootObject: color, requiringSecureCoding: true),
+                    forType: .color
+                )
+            }
+        }
+
         monitor.didSelfCopy()
 
         // Dismiss popover and refocus previous app so user can Cmd+V
@@ -200,8 +328,7 @@ private struct HistoryRow: View {
             onTap()
         } label: {
             HStack {
-                Text(item.preview)
-                    .lineLimit(1)
+                historyPreviewContent
                 Spacer()
                 if isHovered {
                     Button {
@@ -237,6 +364,43 @@ private struct HistoryRow: View {
                 .fill(isHovered ? Color.primary.opacity(0.1) : Color.clear)
         )
         .onHover { isHovered = $0 }
+    }
+
+    @ViewBuilder
+    private var historyPreviewContent: some View {
+        switch item.contentType {
+        case .image:
+            if let blob = item.blobFile, let data = BlobStorage.load(blob),
+               let nsImage = NSImage(data: data) {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 32)
+            } else {
+                Label("Image", systemImage: "photo")
+                    .lineLimit(1)
+            }
+        case .pdf:
+            Label("PDF Document", systemImage: "doc.richtext")
+                .lineLimit(1)
+        case .fileURL:
+            Label(item.preview, systemImage: "doc")
+                .lineLimit(1)
+        case .color:
+            if let comps = item.colorComponents, comps.count >= 3 {
+                HStack(spacing: 6) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
+                        .frame(width: 16, height: 16)
+                    Text("Color")
+                }
+            } else {
+                Text("Color")
+            }
+        case .text:
+            Text(item.preview)
+                .lineLimit(1)
+        }
     }
 }
 

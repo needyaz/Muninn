@@ -36,24 +36,34 @@ class HistoryStore {
         }
     }
 
-    func add(_ value: String) {
-        // Deduplicate: remove existing entry with same value
-        items.removeAll { $0.value == value }
+    func add(_ item: HistoryItem) {
+        // Deduplicate only text items by value
+        if item.contentType == .text, let value = item.value {
+            items.removeAll { $0.contentType == .text && $0.value == value }
+        }
         // Insert at top
-        items.insert(HistoryItem(value: value), at: 0)
-        // Cap at max
+        items.insert(item, at: 0)
+        // Cap at max, cleaning up blobs for evicted items
         if items.count > Self.maxItems {
+            let evicted = items[Self.maxItems...]
+            for old in evicted {
+                if let blob = old.blobFile { BlobStorage.delete(blob) }
+            }
             items = Array(items.prefix(Self.maxItems))
         }
         save()
     }
 
     func delete(_ item: HistoryItem) {
+        if let blob = item.blobFile { BlobStorage.delete(blob) }
         items.removeAll { $0.id == item.id }
         save()
     }
 
     func clearAll() {
+        for item in items {
+            if let blob = item.blobFile { BlobStorage.delete(blob) }
+        }
         items.removeAll()
         save()
     }
