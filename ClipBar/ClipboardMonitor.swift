@@ -7,11 +7,13 @@ class ClipboardMonitor {
     private var lastChangeCount: Int
     private var selfCopyChangeCount: Int?
     private let historyStore: HistoryStore
+    private let excludedAppsStore: ExcludedAppsStore
 
     private static let maxSize = 50_000 // 50 KB
 
-    init(historyStore: HistoryStore) {
+    init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore) {
         self.historyStore = historyStore
+        self.excludedAppsStore = excludedAppsStore
         self.lastChangeCount = NSPasteboard.general.changeCount
     }
 
@@ -43,6 +45,12 @@ class ClipboardMonitor {
             return
         }
         selfCopyChangeCount = nil
+
+        // Skip if frontmost app is excluded
+        if let bundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+           excludedAppsStore.isExcluded(bundleID) {
+            return
+        }
 
         guard let string = pasteboard.string(forType: .string) else { return }
 

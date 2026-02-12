@@ -4,6 +4,7 @@ import SwiftUI
 struct ClipBarApp: App {
     @State private var store = ClipStore()
     @State private var historyStore = HistoryStore()
+    @State private var excludedAppsStore = ExcludedAppsStore()
     @State private var monitor: ClipboardMonitor?
 
     var body: some Scene {
@@ -11,10 +12,11 @@ struct ClipBarApp: App {
             PopoverContentView()
                 .environment(store)
                 .environment(historyStore)
-                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore))
+                .environment(excludedAppsStore)
+                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore))
                 .onAppear {
                     if monitor == nil {
-                        let m = ClipboardMonitor(historyStore: historyStore)
+                        let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore)
                         m.start()
                         monitor = m
                     }
@@ -27,6 +29,13 @@ struct ClipBarApp: App {
                 .environment(store)
         }
         .defaultSize(width: 450, height: 350)
+        .windowResizability(.contentSize)
+
+        Window("Excluded Apps", id: "excluded-apps") {
+            ExcludedAppsView()
+                .environment(excludedAppsStore)
+        }
+        .defaultSize(width: 400, height: 500)
         .windowResizability(.contentSize)
     }
 }

@@ -106,6 +106,15 @@ struct PopoverContentView: View {
                 }
 
                 Button {
+                    openWindow(id: "excluded-apps")
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+
+                Button {
                     NSApplication.shared.terminate(nil)
                 } label: {
                     Image(systemName: "power")
