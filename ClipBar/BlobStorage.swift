@@ -1,12 +1,7 @@
 import Foundation
 
 enum BlobStorage {
-    private static let blobDir: URL = {
-        let dir = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/clipbar/blobs", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir
-    }()
+    private static let blobDir = StoragePaths.blobs
 
     static func save(_ data: Data, id: UUID, ext: String) -> String {
         let filename = "\(id.uuidString).\(ext)"

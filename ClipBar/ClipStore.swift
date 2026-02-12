@@ -4,12 +4,7 @@ import Foundation
 class ClipStore {
     var clips: [Clip] = []
 
-    private let fileURL: URL = {
-        let dir = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/clipbar", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("clips.json")
-    }()
+    private let fileURL = StoragePaths.base.appendingPathComponent("clips.json")
 
     init() {
         load()

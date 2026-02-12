@@ -4,12 +4,7 @@ import Foundation
 class ExcludedAppsStore {
     var excludedBundleIDs: Set<String> = []
 
-    private let fileURL: URL = {
-        let dir = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/clipbar", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("excluded_apps.json")
-    }()
+    private let fileURL = StoragePaths.base.appendingPathComponent("excluded_apps.json")
 
     init() {
         load()

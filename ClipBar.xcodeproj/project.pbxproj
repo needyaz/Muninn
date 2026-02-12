@@ -19,6 +19,7 @@
 		A1000000C00000000000000C /* ExcludedAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000C00000000000000C; };
 		A1000000D00000000000000D /* ClipboardContentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000D00000000000000D; };
 		A1000000E00000000000000E /* BlobStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000E00000000000000E; };
+		A1000000F00000000000000F /* StoragePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000F00000000000000F; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,8 @@
 		A2000000C00000000000000C /* ExcludedAppsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedAppsView.swift; sourceTree = "<group>"; };
 		A2000000D00000000000000D /* ClipboardContentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentType.swift; sourceTree = "<group>"; };
 		A2000000E00000000000000E /* BlobStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobStorage.swift; sourceTree = "<group>"; };
+		A2000000F00000000000000F /* StoragePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePaths.swift; sourceTree = "<group>"; };
+		A2000000G00000000000000G /* ClipBar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipBar.entitlements; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ClipBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -72,6 +75,8 @@
 				A2000000C00000000000000C /* ExcludedAppsView.swift */,
 				A2000000D00000000000000D /* ClipboardContentType.swift */,
 				A2000000E00000000000000E /* BlobStorage.swift */,
+				A2000000F00000000000000F /* StoragePaths.swift */,
+				A2000000G00000000000000G /* ClipBar.entitlements */,
 				A20000060000000000000006 /* Info.plist */,
 			);
 			path = ClipBar;
@@ -149,6 +154,7 @@
 				A1000000C00000000000000C /* ExcludedAppsView.swift in Sources */,
 				A1000000D00000000000000D /* ClipboardContentType.swift in Sources */,
 				A1000000E00000000000000E /* BlobStorage.swift in Sources */,
+				A1000000F00000000000000F /* StoragePaths.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +165,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ClipBar/ClipBar.entitlements;
 				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -176,6 +183,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ClipBar/ClipBar.entitlements;
 				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;

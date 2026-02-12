@@ -2,10 +2,17 @@ import SwiftUI
 
 @main
 struct ClipBarApp: App {
-    @State private var store = ClipStore()
-    @State private var historyStore = HistoryStore()
-    @State private var excludedAppsStore = ExcludedAppsStore()
+    @State private var store: ClipStore
+    @State private var historyStore: HistoryStore
+    @State private var excludedAppsStore: ExcludedAppsStore
     @State private var monitor: ClipboardMonitor?
+
+    init() {
+        StoragePaths.migrateIfNeeded()
+        _store = State(initialValue: ClipStore())
+        _historyStore = State(initialValue: HistoryStore())
+        _excludedAppsStore = State(initialValue: ExcludedAppsStore())
+    }
 
     var body: some Scene {
         MenuBarExtra("ClipBar", systemImage: "clipboard") {
