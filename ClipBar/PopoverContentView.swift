@@ -94,6 +94,20 @@ struct PopoverContentView: View {
                                         .fill(selectedIndex == globalIdx ? Color.accentColor.opacity(0.2) : Color.clear)
                                 )
                                 .background(HoverBackground())
+                                .if(clip.contentType == .text && clip.value != nil) { view in
+                                    view.contextMenu {
+                                        Button("Copy") {
+                                            copyOnly(text: clip.value!)
+                                        }
+                                        Divider()
+                                        ForEach(TextTransform.allCases, id: \.self) { transform in
+                                            Button(transform.rawValue) {
+                                                let transformed = applyTransform(clip.value!, transform)
+                                                copyAndPasteText(transformed)
+                                            }
+                                        }
+                                    }
+                                }
                                 .id("item-\(globalIdx)")
                             }
                         }
@@ -109,6 +123,9 @@ struct PopoverContentView: View {
                                     pinItem(item)
                                 } onDelete: {
                                     historyStore.delete(item)
+                                } onTransform: { text, transform in
+                                    let transformed = applyTransform(text, transform)
+                                    copyAndPasteText(transformed)
                                 }
                                 .id("item-\(globalIdx)")
                             }
@@ -354,6 +371,22 @@ struct PopoverContentView: View {
         )
     }
 
+    private func copyOnly(text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        monitor.didSelfCopy()
+    }
+
+    private func copyAndPasteText(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        monitor.didSelfCopy()
+        NSApp.keyWindow?.close()
+        previousApp?.activate()
+    }
+
     private func writeToPasteboard(
         contentType: ClipboardContentType,
         value: String?,
@@ -541,6 +574,33 @@ struct PopoverContentView: View {
     }
 }
 
+// MARK: - Text transforms
+
+private enum TextTransform: String, CaseIterable {
+    case uppercase = "UPPERCASE"
+    case lowercase = "lowercase"
+    case capitalize = "Capitalize Words"
+    case trimWhitespace = "Trim Whitespace"
+    case removeBlankLines = "Remove Blank Lines"
+}
+
+private func applyTransform(_ text: String, _ transform: TextTransform) -> String {
+    switch transform {
+    case .uppercase:
+        return text.uppercased()
+    case .lowercase:
+        return text.lowercased()
+    case .capitalize:
+        return text.capitalized
+    case .trimWhitespace:
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    case .removeBlankLines:
+        return text.components(separatedBy: .newlines)
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+            .joined(separator: "\n")
+    }
+}
+
 // MARK: - Filter chip
 
 private struct FilterChip: View {
@@ -587,6 +647,7 @@ private struct HistoryRow: View {
     var onTap: () -> Void
     var onPin: () -> Void
     var onDelete: () -> Void
+    var onTransform: ((_ text: String, _ transform: TextTransform) -> Void)?
 
     @State private var isHovered = false
 
@@ -650,6 +711,21 @@ private struct HistoryRow: View {
                 fileURLs: item.fileURLs,
                 colorComponents: item.colorComponents
             )
+        }
+        .if(item.contentType == .text && item.value != nil) { view in
+            view.contextMenu {
+                Button("Copy") {
+                    let pasteboard = NSPasteboard.general
+                    pasteboard.clearContents()
+                    pasteboard.setString(item.value!, forType: .string)
+                }
+                Divider()
+                ForEach(TextTransform.allCases, id: \.self) { transform in
+                    Button(transform.rawValue) {
+                        onTransform?(item.value!, transform)
+                    }
+                }
+            }
         }
     }
 
@@ -722,5 +798,14 @@ private struct Tooltip: NSViewRepresentable {
 extension View {
     func tooltip(_ text: String) -> some View {
         overlay(Tooltip(text: text))
+    }
+
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
     }
 }
