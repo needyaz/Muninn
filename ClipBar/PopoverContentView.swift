@@ -14,7 +14,6 @@ struct PopoverContentView: View {
     @State private var contentTypeFilter: ClipboardContentType?
     @State private var selectedIndex: Int?
     @State private var eventMonitor: Any?
-    @State private var showClearConfirmation = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -153,11 +152,15 @@ struct PopoverContentView: View {
 
             // Footer
             HStack {
-                Button("Edit Clips…") {
+                Button {
                     openWindow(id: "editor")
                     NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Image(systemName: "square.and.pencil")
                 }
                 .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .tooltip("Edit Clips")
 
                 Spacer()
 
@@ -191,20 +194,12 @@ struct PopoverContentView: View {
 
                 if !historyStore.items.isEmpty {
                     Button {
-                        showClearConfirmation = true
+                        clearHistory()
                     } label: {
                         Image(systemName: "trash")
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
-                    .confirmationDialog(
-                        "Clear all history?",
-                        isPresented: $showClearConfirmation
-                    ) {
-                        Button("Clear All", role: .destructive) {
-                            historyStore.clearAll()
-                        }
-                    }
                     .tooltip("Clear history")
                 }
 
@@ -343,6 +338,28 @@ struct PopoverContentView: View {
             colorComponents: item.colorComponents
         )
         clipStore.add(clip)
+    }
+
+    private func clearHistory() {
+        DispatchQueue.main.async {
+            let previousPolicy = NSApp.activationPolicy()
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+
+            let alert = NSAlert()
+            alert.messageText = "Clear all history?"
+            alert.informativeText = "This cannot be undone."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Clear All")
+            alert.addButton(withTitle: "Cancel")
+            let response = alert.runModal()
+
+            NSApp.setActivationPolicy(previousPolicy)
+
+            if response == .alertFirstButtonReturn {
+                historyStore.clearAll()
+            }
+        }
     }
 
     private func copyAndPaste(item: HistoryItem) {
@@ -781,11 +798,15 @@ private struct HoverBackground: View {
 
 // MARK: - Tooltip
 
+private class TooltipView: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+}
+
 private struct Tooltip: NSViewRepresentable {
     let text: String
 
     func makeNSView(context: Context) -> NSView {
-        let view = NSView()
+        let view = TooltipView()
         view.toolTip = text
         return view
     }

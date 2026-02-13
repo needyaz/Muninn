@@ -23,7 +23,7 @@ class ExcludedAppsStore {
         save()
     }
 
-    private func load() {
+    func load() {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
         do {
             let data = try Data(contentsOf: fileURL)

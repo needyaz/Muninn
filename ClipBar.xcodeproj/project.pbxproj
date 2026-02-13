@@ -25,6 +25,7 @@
 		A10000110000000000000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000110000000000000011; };
 		A10000120000000000000012 /* ClipBarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000120000000000000012; };
 		A10000130000000000000013 /* ClipBarShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000130000000000000013; };
+		A10000140000000000000014 /* DataPorter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000140000000000000014; };
 		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001; };
 /* End PBXBuildFile section */
 
@@ -49,6 +50,7 @@
 		A20000110000000000000011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000120000000000000012 /* ClipBarIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBarIntents.swift; sourceTree = "<group>"; };
 		A20000130000000000000013 /* ClipBarShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBarShortcuts.swift; sourceTree = "<group>"; };
+		A20000140000000000000014 /* DataPorter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorter.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ClipBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -103,6 +105,7 @@
 				A20000110000000000000011 /* SettingsView.swift */,
 				A20000120000000000000012 /* ClipBarIntents.swift */,
 				A20000130000000000000013 /* ClipBarShortcuts.swift */,
+				A20000140000000000000014 /* DataPorter.swift */,
 				A2000000G00000000000000G /* ClipBar.entitlements */,
 				A2000000H00000000000000H /* Assets.xcassets */,
 				A20000060000000000000006 /* Info.plist */,
@@ -194,6 +197,7 @@
 				A10000110000000000000011 /* SettingsView.swift in Sources */,
 				A10000120000000000000012 /* ClipBarIntents.swift in Sources */,
 				A10000130000000000000013 /* ClipBarShortcuts.swift in Sources */,
+				A10000140000000000000014 /* DataPorter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

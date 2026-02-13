@@ -91,6 +91,15 @@ All actions appear in Shortcuts.app with suggested phrases for Siri.
 - **Global shortcut** — set a keyboard shortcut to toggle ClipBar
 - **Excluded apps** — choose which apps to ignore
 
+### Import / Export
+
+Back up or migrate all your data via Settings > Data:
+
+- **Export Data** — saves history, snippets, settings, excluded apps, and all binary blobs (images, PDFs, rich text) to a single `.clipbar` file
+- **Import Data** — reads a `.clipbar` file and replaces all current data (with confirmation)
+
+The export file is JSON with base64-encoded blobs, so no external dependencies or archive tools are needed.
+
 ## Data Storage
 
 All data is stored locally in `~/Library/Application Support/ClipBar/`:

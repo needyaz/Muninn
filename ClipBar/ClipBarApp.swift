@@ -53,6 +53,8 @@ struct ClipBarApp: App {
             SettingsView()
                 .environment(settingsStore)
                 .environment(excludedAppsStore)
+                .environment(historyStore)
+                .environment(store)
         }
     }
 
