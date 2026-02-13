@@ -4,11 +4,11 @@ import Foundation
 class HistoryStore {
     var items: [HistoryItem] = []
 
-    private static let maxItems = 50
-
+    private let settingsStore: SettingsStore
     private let fileURL = StoragePaths.base.appendingPathComponent("history.json")
 
-    init() {
+    init(settingsStore: SettingsStore) {
+        self.settingsStore = settingsStore
         load()
     }
 
@@ -38,14 +38,8 @@ class HistoryStore {
         }
         // Insert at top
         items.insert(item, at: 0)
-        // Cap at max, cleaning up blobs for evicted items
-        if items.count > Self.maxItems {
-            let evicted = items[Self.maxItems...]
-            for old in evicted {
-                if let blob = old.blobFile { BlobStorage.delete(blob) }
-            }
-            items = Array(items.prefix(Self.maxItems))
-        }
+        // Cap at limit, cleaning up blobs for evicted items
+        trimToLimit()
         save()
     }
 
@@ -61,5 +55,16 @@ class HistoryStore {
         }
         items.removeAll()
         save()
+    }
+
+    func trimToLimit() {
+        let limit = settingsStore.historyLimit
+        if items.count > limit {
+            let evicted = items[limit...]
+            for old in evicted {
+                if let blob = old.blobFile { BlobStorage.delete(blob) }
+            }
+            items = Array(items.prefix(limit))
+        }
     }
 }

@@ -21,6 +21,9 @@
 		A1000000E00000000000000E /* BlobStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000E00000000000000E; };
 		A1000000F00000000000000F /* StoragePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000F00000000000000F; };
 		A1000000H00000000000000H /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000H00000000000000H; };
+		A10000100000000000000010 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000100000000000000010; };
+		A10000110000000000000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000110000000000000011; };
+		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +43,8 @@
 		A2000000F00000000000000F /* StoragePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePaths.swift; sourceTree = "<group>"; };
 		A2000000G00000000000000G /* ClipBar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipBar.entitlements; sourceTree = "<group>"; };
 		A2000000H00000000000000H /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000100000000000000010 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		A20000110000000000000011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ClipBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -48,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C30000010000000000000001 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +95,8 @@
 				A2000000D00000000000000D /* ClipboardContentType.swift */,
 				A2000000E00000000000000E /* BlobStorage.swift */,
 				A2000000F00000000000000F /* StoragePaths.swift */,
+				A20000100000000000000010 /* SettingsStore.swift */,
+				A20000110000000000000011 /* SettingsView.swift */,
 				A2000000G00000000000000G /* ClipBar.entitlements */,
 				A2000000H00000000000000H /* Assets.xcassets */,
 				A20000060000000000000006 /* Info.plist */,
@@ -120,6 +128,9 @@
 			dependencies = (
 			);
 			name = ClipBar;
+			packageProductDependencies = (
+				C20000010000000000000001 /* KeyboardShortcuts */,
+			);
 			productName = ClipBar;
 			productReference = A30000010000000000000001 /* ClipBar.app */;
 			productType = "com.apple.product-type.application";
@@ -143,6 +154,9 @@
 				Base,
 			);
 			mainGroup = A50000010000000000000001;
+			packageReferences = (
+				C10000010000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+			);
 			productRefGroup = A50000030000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -170,6 +184,8 @@
 				A1000000D00000000000000D /* ClipboardContentType.swift in Sources */,
 				A1000000E00000000000000E /* BlobStorage.swift in Sources */,
 				A1000000F00000000000000F /* StoragePaths.swift in Sources */,
+				A10000100000000000000010 /* SettingsStore.swift in Sources */,
+				A10000110000000000000011 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -277,6 +293,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C10000010000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C20000010000000000000001 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C10000010000000000000001 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = A90000010000000000000001 /* Project object */;

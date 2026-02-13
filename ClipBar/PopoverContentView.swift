@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 
 struct PopoverContentView: View {
+    @Environment(SettingsStore.self) private var settingsStore
     @Environment(ClipStore.self) private var clipStore
     @Environment(HistoryStore.self) private var historyStore
     @Environment(ClipboardMonitor.self) private var monitor
@@ -9,6 +10,9 @@ struct PopoverContentView: View {
 
     @State private var search = ""
     @State private var previousApp: NSRunningApplication?
+    @State private var contentTypeFilter: ClipboardContentType?
+    @State private var selectedIndex: Int?
+    @State private var eventMonitor: Any?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,61 +33,102 @@ struct PopoverContentView: View {
                 }
             }
             .padding(10)
+            .onChange(of: search) {
+                contentTypeFilter = nil
+                selectedIndex = nil
+            }
 
             Divider()
 
+            // Content type filter chips
+            if availableContentTypes.count > 1 {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        FilterChip(label: "All", isSelected: contentTypeFilter == nil) {
+                            contentTypeFilter = nil
+                        }
+                        ForEach(availableContentTypes, id: \.self) { type in
+                            FilterChip(label: type.displayName, isSelected: contentTypeFilter == type) {
+                                contentTypeFilter = contentTypeFilter == type ? nil : type
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                }
+
+                Divider()
+            }
+
             // Scrollable content
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Snippets section
-                    if !filteredClips.isEmpty {
-                        sectionHeader("SNIPPETS")
-                        ForEach(filteredClips) { clip in
-                            Button {
-                                copyAndPaste(clip: clip)
-                            } label: {
-                                HStack {
-                                    Text(clip.name)
-                                        .lineLimit(1)
-                                    Spacer()
-                                    clipPreviewLabel(clip)
-                                        .lineLimit(1)
-                                        .foregroundStyle(.secondary)
-                                        .frame(maxWidth: 160, alignment: .trailing)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Snippets section
+                        if !filteredClips.isEmpty {
+                            sectionHeader("SNIPPETS")
+                            ForEach(Array(filteredClips.enumerated()), id: \.element.id) { idx, clip in
+                                let globalIdx = idx
+                                Button {
+                                    copyAndPaste(clip: clip)
+                                } label: {
+                                    HStack {
+                                        Text(clip.name)
+                                            .lineLimit(1)
+                                        Spacer()
+                                        clipPreviewLabel(clip)
+                                            .lineLimit(1)
+                                            .foregroundStyle(.secondary)
+                                            .frame(maxWidth: 160, alignment: .trailing)
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
                                 }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .background(HoverBackground())
-                        }
-                    }
-
-                    // History section
-                    if !filteredHistory.isEmpty {
-                        sectionHeader("HISTORY")
-                        ForEach(filteredHistory) { item in
-                            HistoryRow(item: item) {
-                                copyAndPaste(item: item)
-                            } onPin: {
-                                pinItem(item)
-                            } onDelete: {
-                                historyStore.delete(item)
+                                .buttonStyle(.plain)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(selectedIndex == globalIdx ? Color.accentColor.opacity(0.2) : Color.clear)
+                                )
+                                .background(HoverBackground())
+                                .id("item-\(globalIdx)")
                             }
                         }
-                    }
 
-                    if filteredClips.isEmpty && filteredHistory.isEmpty {
-                        Text(search.isEmpty ? "No history yet" : "No results")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 20)
+                        // History section
+                        if !filteredHistory.isEmpty {
+                            sectionHeader("HISTORY")
+                            ForEach(Array(filteredHistory.enumerated()), id: \.element.id) { idx, item in
+                                let globalIdx = filteredClips.count + idx
+                                HistoryRow(item: item, isSelected: selectedIndex == globalIdx) {
+                                    copyAndPaste(item: item)
+                                } onPin: {
+                                    pinItem(item)
+                                } onDelete: {
+                                    historyStore.delete(item)
+                                }
+                                .id("item-\(globalIdx)")
+                            }
+                        }
+
+                        if filteredClips.isEmpty && filteredHistory.isEmpty {
+                            Text(search.isEmpty ? "No history yet" : "No results")
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                        }
+                    }
+                }
+                .frame(maxHeight: 400)
+                .onChange(of: selectedIndex) { _, newValue in
+                    if let idx = newValue {
+                        withAnimation {
+                            proxy.scrollTo("item-\(idx)", anchor: .center)
+                        }
                     }
                 }
             }
-            .frame(maxHeight: 400)
 
             Divider()
 
@@ -97,6 +142,33 @@ struct PopoverContentView: View {
 
                 Spacer()
 
+                // Pause / Resume
+                if monitor.isPaused {
+                    Button {
+                        monitor.resume()
+                    } label: {
+                        Label("Resume", systemImage: "play.fill")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.orange)
+                } else {
+                    Menu {
+                        Button("1 minute") { monitor.pause(for: 60) }
+                        Button("5 minutes") { monitor.pause(for: 300) }
+                        Button("10 minutes") { monitor.pause(for: 600) }
+                        Button("30 minutes") { monitor.pause(for: 1800) }
+                        Button("1 hour") { monitor.pause(for: 3600) }
+                        Divider()
+                        Button("Until resumed") { monitor.pause(for: nil) }
+                    } label: {
+                        Image(systemName: "pause.circle")
+                            .foregroundStyle(.secondary)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .frame(width: 20)
+                }
+
                 if !historyStore.items.isEmpty {
                     Button("Clear") {
                         historyStore.clearAll()
@@ -106,7 +178,7 @@ struct PopoverContentView: View {
                 }
 
                 Button {
-                    openWindow(id: "excluded-apps")
+                    openWindow(id: "settings")
                     NSApp.activate(ignoringOtherApps: true)
                 } label: {
                     Image(systemName: "gearshape")
@@ -127,7 +199,24 @@ struct PopoverContentView: View {
         .frame(width: 320)
         .onAppear {
             previousApp = NSWorkspace.shared.frontmostApplication
+            installKeyMonitor()
         }
+        .onDisappear {
+            removeKeyMonitor()
+        }
+    }
+
+    // MARK: - Selectable items count
+
+    private var selectableCount: Int {
+        filteredClips.count + filteredHistory.count
+    }
+
+    // MARK: - Content type filter
+
+    private var availableContentTypes: [ClipboardContentType] {
+        let types = Set(historyStore.items.map(\.contentType))
+        return ClipboardContentType.allCases.filter { types.contains($0) }
     }
 
     // MARK: - Filtered data
@@ -141,18 +230,29 @@ struct PopoverContentView: View {
     }
 
     private var filteredHistory: [HistoryItem] {
-        if search.isEmpty { return historyStore.items }
-        let q = search.lowercased()
-        return historyStore.items.filter { item in
-            switch item.contentType {
-            case .text:
-                return item.value?.lowercased().contains(q) ?? false
-            case .fileURL:
-                return item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false
-            default:
-                return item.preview.lowercased().contains(q)
+        var items = historyStore.items
+
+        // Apply content type filter
+        if let typeFilter = contentTypeFilter {
+            items = items.filter { $0.contentType == typeFilter }
+        }
+
+        // Apply search filter
+        if !search.isEmpty {
+            let q = search.lowercased()
+            items = items.filter { item in
+                switch item.contentType {
+                case .text:
+                    return item.value?.lowercased().contains(q) ?? false
+                case .fileURL:
+                    return item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false
+                default:
+                    return item.preview.lowercased().contains(q)
+                }
             }
         }
+
+        return items
     }
 
     // MARK: - Clip preview label
@@ -213,22 +313,28 @@ struct PopoverContentView: View {
     }
 
     private func copyAndPaste(item: HistoryItem) {
+        let optionHeld = NSEvent.modifierFlags.contains(.option)
+        let plainText = optionHeld != settingsStore.pasteAsPlainText
         writeToPasteboard(
             contentType: item.contentType,
             value: item.value,
             blobFile: item.blobFile,
             fileURLs: item.fileURLs,
-            colorComponents: item.colorComponents
+            colorComponents: item.colorComponents,
+            plainTextOnly: plainText
         )
     }
 
     private func copyAndPaste(clip: Clip) {
+        let optionHeld = NSEvent.modifierFlags.contains(.option)
+        let plainText = optionHeld != settingsStore.pasteAsPlainText
         writeToPasteboard(
             contentType: clip.contentType,
             value: clip.value,
             blobFile: clip.blobFile,
             fileURLs: clip.fileURLs,
-            colorComponents: clip.colorComponents
+            colorComponents: clip.colorComponents,
+            plainTextOnly: plainText
         )
     }
 
@@ -237,7 +343,8 @@ struct PopoverContentView: View {
         value: String?,
         blobFile: String?,
         fileURLs: [String]?,
-        colorComponents: [Double]?
+        colorComponents: [Double]?,
+        plainTextOnly: Bool = false
     ) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
@@ -247,8 +354,8 @@ struct PopoverContentView: View {
             if let value {
                 pasteboard.setString(value, forType: .string)
             }
-            // Restore rich text blob if available
-            if let blob = blobFile, let data = BlobStorage.load(blob) {
+            // Restore rich text blob if available (unless plain text mode)
+            if !plainTextOnly, let blob = blobFile, let data = BlobStorage.load(blob) {
                 let ext = (blob as NSString).pathExtension
                 if ext == "rtf" {
                     pasteboard.setData(data, forType: .rtf)
@@ -311,12 +418,156 @@ struct PopoverContentView: View {
         let days = hours / 24
         return "\(days)d"
     }
+
+    // MARK: - Keyboard Navigation
+
+    private func installKeyMonitor() {
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            return handleKeyEvent(event) ? nil : event
+        }
+    }
+
+    private func removeKeyMonitor() {
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+    }
+
+    private func handleKeyEvent(_ event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 125: // Down arrow
+            if selectedIndex == nil {
+                selectedIndex = 0
+            } else if let idx = selectedIndex, idx < selectableCount - 1 {
+                selectedIndex = idx + 1
+            }
+            return true
+
+        case 126: // Up arrow
+            if selectedIndex == nil {
+                selectedIndex = selectableCount - 1
+            } else if let idx = selectedIndex, idx > 0 {
+                selectedIndex = idx - 1
+            }
+            return true
+
+        case 36: // Return/Enter
+            if let idx = selectedIndex {
+                activateItemAt(idx)
+                return true
+            }
+            return false
+
+        case 53: // Escape
+            NSApp.keyWindow?.close()
+            return true
+
+        default:
+            return false
+        }
+    }
+
+    private func activateItemAt(_ index: Int) {
+        let clipCount = filteredClips.count
+        if index < clipCount {
+            copyAndPaste(clip: filteredClips[index])
+        } else {
+            let historyIndex = index - clipCount
+            if historyIndex < filteredHistory.count {
+                copyAndPaste(item: filteredHistory[historyIndex])
+            }
+        }
+    }
+
+    // MARK: - Drag helpers
+
+    static func makeItemProvider(
+        contentType: ClipboardContentType,
+        value: String?,
+        blobFile: String?,
+        fileURLs: [String]?,
+        colorComponents: [Double]?
+    ) -> NSItemProvider {
+        let provider = NSItemProvider()
+        switch contentType {
+        case .text:
+            if let value {
+                provider.registerObject(value as NSString, visibility: .all)
+            }
+        case .image:
+            if let blob = blobFile, let data = BlobStorage.load(blob),
+               let image = NSImage(data: data) {
+                provider.registerObject(image, visibility: .all)
+            }
+        case .pdf:
+            if let blob = blobFile, let data = BlobStorage.load(blob) {
+                provider.registerDataRepresentation(forTypeIdentifier: "com.adobe.pdf", visibility: .all) { completion in
+                    completion(data, nil)
+                    return nil
+                }
+            }
+        case .fileURL:
+            if let paths = fileURLs {
+                for path in paths {
+                    let url = URL(fileURLWithPath: path) as NSURL
+                    provider.registerObject(url, visibility: .all)
+                }
+            }
+        case .color:
+            if let comps = colorComponents, comps.count >= 3 {
+                let hex = String(format: "#%02X%02X%02X",
+                    Int(comps[0] * 255), Int(comps[1] * 255), Int(comps[2] * 255))
+                provider.registerObject(hex as NSString, visibility: .all)
+            }
+        }
+        return provider
+    }
+}
+
+// MARK: - Filter chip
+
+private struct FilterChip: View {
+    let label: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.06))
+                )
+                .foregroundStyle(isSelected ? Color.accentColor : .primary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Source app icon cache
+
+private class AppIconCache {
+    static let shared = AppIconCache()
+    private var cache: [String: NSImage] = [:]
+
+    func icon(for bundleID: String) -> NSImage? {
+        if let cached = cache[bundleID] { return cached }
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        cache[bundleID] = icon
+        return icon
+    }
 }
 
 // MARK: - History row with delete on hover
 
 private struct HistoryRow: View {
     let item: HistoryItem
+    var isSelected: Bool = false
     var onTap: () -> Void
     var onPin: () -> Void
     var onDelete: () -> Void
@@ -328,6 +579,14 @@ private struct HistoryRow: View {
             onTap()
         } label: {
             HStack {
+                // Source app icon
+                if let bundleID = item.sourceAppBundleID,
+                   let icon = AppIconCache.shared.icon(for: bundleID) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .frame(width: 14, height: 14)
+                }
+
                 historyPreviewContent
                 Spacer()
                 if isHovered {
@@ -361,9 +620,21 @@ private struct HistoryRow: View {
         .buttonStyle(.plain)
         .background(
             RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? Color.primary.opacity(0.1) : Color.clear)
+                .fill(
+                    isSelected ? Color.accentColor.opacity(0.2) :
+                    isHovered ? Color.primary.opacity(0.1) : Color.clear
+                )
         )
         .onHover { isHovered = $0 }
+        .onDrag {
+            PopoverContentView.makeItemProvider(
+                contentType: item.contentType,
+                value: item.value,
+                blobFile: item.blobFile,
+                fileURLs: item.fileURLs,
+                colorComponents: item.colorComponents
+            )
+        }
     }
 
     @ViewBuilder

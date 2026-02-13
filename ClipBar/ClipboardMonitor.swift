@@ -9,6 +9,10 @@ class ClipboardMonitor {
     private let historyStore: HistoryStore
     private let excludedAppsStore: ExcludedAppsStore
 
+    var isPaused = false
+    var pauseResumeDate: Date?
+    private var pauseTimer: Timer?
+
     init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore) {
         self.historyStore = historyStore
         self.excludedAppsStore = excludedAppsStore
@@ -30,7 +34,37 @@ class ClipboardMonitor {
         selfCopyChangeCount = NSPasteboard.general.changeCount
     }
 
+    // MARK: - Pause / Resume
+
+    func pause(for duration: TimeInterval?) {
+        isPaused = true
+        pauseTimer?.invalidate()
+        pauseTimer = nil
+
+        if let duration {
+            pauseResumeDate = Date().addingTimeInterval(duration)
+            pauseTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+                self?.resume()
+            }
+        } else {
+            pauseResumeDate = nil
+        }
+    }
+
+    func resume() {
+        isPaused = false
+        pauseResumeDate = nil
+        pauseTimer?.invalidate()
+        pauseTimer = nil
+        // Re-sync change count so we don't capture stale clipboard content
+        lastChangeCount = NSPasteboard.general.changeCount
+    }
+
+    // MARK: - Polling
+
     private func poll() {
+        guard !isPaused else { return }
+
         let pasteboard = NSPasteboard.general
         let current = pasteboard.changeCount
 
@@ -44,8 +78,11 @@ class ClipboardMonitor {
         }
         selfCopyChangeCount = nil
 
+        // Capture source app bundle ID
+        let sourceAppBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+
         // Skip if frontmost app is excluded
-        if let bundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+        if let bundleID = sourceAppBundleID,
            excludedAppsStore.isExcluded(bundleID) {
             return
         }
@@ -61,7 +98,8 @@ class ClipboardMonitor {
             let item = HistoryItem(
                 id: id,
                 contentType: .fileURL,
-                fileURLs: paths
+                fileURLs: paths,
+                sourceAppBundleID: sourceAppBundleID
             )
             historyStore.add(item)
             return
@@ -81,7 +119,8 @@ class ClipboardMonitor {
                 let item = HistoryItem(
                     id: id,
                     contentType: .image,
-                    blobFile: blobFile
+                    blobFile: blobFile,
+                    sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
                 return
@@ -95,7 +134,8 @@ class ClipboardMonitor {
                 let item = HistoryItem(
                     id: id,
                     contentType: .pdf,
-                    blobFile: blobFile
+                    blobFile: blobFile,
+                    sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
                 return
@@ -116,7 +156,8 @@ class ClipboardMonitor {
                 let item = HistoryItem(
                     id: id,
                     contentType: .color,
-                    colorComponents: components
+                    colorComponents: components,
+                    sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
                 return
@@ -140,7 +181,8 @@ class ClipboardMonitor {
                 id: id,
                 value: string,
                 contentType: .text,
-                blobFile: blobFile
+                blobFile: blobFile,
+                sourceAppBundleID: sourceAppBundleID
             )
             historyStore.add(item)
         }
