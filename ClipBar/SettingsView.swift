@@ -6,12 +6,11 @@ struct SettingsView: View {
         TabView {
             GeneralTab()
                 .tabItem { Label("General", systemImage: "gearshape") }
-            ExcludedAppsView()
+            ExcludedAppsTab()
                 .tabItem { Label("Excluded Apps", systemImage: "xmark.app") }
             ShortcutTab()
                 .tabItem { Label("Shortcut", systemImage: "keyboard") }
         }
-        .frame(width: 450, height: 500)
     }
 }
 
@@ -29,15 +28,20 @@ private struct GeneralTab: View {
                 }
             }
             .onChange(of: settingsStore.historyLimit) {
-                // Post notification so HistoryStore can trim
                 NotificationCenter.default.post(name: .historyLimitChanged, object: nil)
             }
 
             Toggle("Paste as plain text by default", isOn: $settings.pasteAsPlainText)
-                .padding(.top, 4)
         }
         .formStyle(.grouped)
-        .padding()
+        .frame(width: 400)
+    }
+}
+
+private struct ExcludedAppsTab: View {
+    var body: some View {
+        ExcludedAppsView()
+            .frame(width: 400, height: 450)
     }
 }
 
@@ -47,7 +51,7 @@ private struct ShortcutTab: View {
             KeyboardShortcuts.Recorder("Toggle ClipBar:", name: .togglePopover)
         }
         .formStyle(.grouped)
-        .padding()
+        .frame(width: 400)
     }
 }
 

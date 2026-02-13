@@ -56,7 +56,7 @@ struct ExcludedAppsView: View {
                 }
             }
         }
-        .frame(width: 400, height: 500)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { loadInstalledApps() }
     }
 

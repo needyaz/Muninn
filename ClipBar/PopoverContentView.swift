@@ -7,12 +7,14 @@ struct PopoverContentView: View {
     @Environment(HistoryStore.self) private var historyStore
     @Environment(ClipboardMonitor.self) private var monitor
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     @State private var search = ""
     @State private var previousApp: NSRunningApplication?
     @State private var contentTypeFilter: ClipboardContentType?
     @State private var selectedIndex: Int?
     @State private var eventMonitor: Any?
+    @State private var showClearConfirmation = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -170,15 +172,25 @@ struct PopoverContentView: View {
                 }
 
                 if !historyStore.items.isEmpty {
-                    Button("Clear") {
-                        historyStore.clearAll()
+                    Button {
+                        showClearConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
+                    .confirmationDialog(
+                        "Clear all history?",
+                        isPresented: $showClearConfirmation
+                    ) {
+                        Button("Clear All", role: .destructive) {
+                            historyStore.clearAll()
+                        }
+                    }
                 }
 
                 Button {
-                    openWindow(id: "settings")
+                    openSettings()
                     NSApp.activate(ignoringOtherApps: true)
                 } label: {
                     Image(systemName: "gearshape")

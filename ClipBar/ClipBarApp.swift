@@ -49,13 +49,11 @@ struct ClipBarApp: App {
         .defaultSize(width: 450, height: 350)
         .windowResizability(.contentSize)
 
-        Window("Settings", id: "settings") {
+        Settings {
             SettingsView()
                 .environment(settingsStore)
                 .environment(excludedAppsStore)
         }
-        .defaultSize(width: 450, height: 500)
-        .windowResizability(.contentSize)
     }
 
     private func setupGlobalHotkey() {
