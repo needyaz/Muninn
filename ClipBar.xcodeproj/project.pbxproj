@@ -26,6 +26,7 @@
 		A10000120000000000000012 /* ClipBarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000120000000000000012; };
 		A10000130000000000000013 /* ClipBarShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000130000000000000013; };
 		A10000140000000000000014 /* DataPorter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000140000000000000014; };
+		A10000150000000000000015 /* ExcludedTypesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000150000000000000015; };
 		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001; };
 /* End PBXBuildFile section */
 
@@ -51,6 +52,7 @@
 		A20000120000000000000012 /* ClipBarIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBarIntents.swift; sourceTree = "<group>"; };
 		A20000130000000000000013 /* ClipBarShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBarShortcuts.swift; sourceTree = "<group>"; };
 		A20000140000000000000014 /* DataPorter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorter.swift; sourceTree = "<group>"; };
+		A20000150000000000000015 /* ExcludedTypesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedTypesStore.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ClipBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -97,6 +99,7 @@
 				A2000000A00000000000000A /* PopoverContentView.swift */,
 				A20000050000000000000005 /* ClipEditorView.swift */,
 				A2000000B00000000000000B /* ExcludedAppsStore.swift */,
+				A20000150000000000000015 /* ExcludedTypesStore.swift */,
 				A2000000C00000000000000C /* ExcludedAppsView.swift */,
 				A2000000D00000000000000D /* ClipboardContentType.swift */,
 				A2000000E00000000000000E /* BlobStorage.swift */,
@@ -189,6 +192,7 @@
 				A10000090000000000000009 /* PopoverContentView.swift in Sources */,
 				A10000050000000000000005 /* ClipEditorView.swift in Sources */,
 				A1000000B00000000000000B /* ExcludedAppsStore.swift in Sources */,
+				A10000150000000000000015 /* ExcludedTypesStore.swift in Sources */,
 				A1000000C00000000000000C /* ExcludedAppsView.swift in Sources */,
 				A1000000D00000000000000D /* ClipboardContentType.swift in Sources */,
 				A1000000E00000000000000E /* BlobStorage.swift in Sources */,

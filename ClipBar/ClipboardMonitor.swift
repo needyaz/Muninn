@@ -8,14 +8,16 @@ class ClipboardMonitor {
     private var selfCopyChangeCount: Int?
     private let historyStore: HistoryStore
     private let excludedAppsStore: ExcludedAppsStore
+    private let excludedTypesStore: ExcludedTypesStore
 
     var isPaused = false
     var pauseResumeDate: Date?
     private var pauseTimer: Timer?
 
-    init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore) {
+    init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore, excludedTypesStore: ExcludedTypesStore) {
         self.historyStore = historyStore
         self.excludedAppsStore = excludedAppsStore
+        self.excludedTypesStore = excludedTypesStore
         self.lastChangeCount = NSPasteboard.general.changeCount
     }
 
@@ -94,6 +96,7 @@ class ClipboardMonitor {
         if types.contains(.fileURL),
            let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
            !urls.isEmpty {
+            guard !excludedTypesStore.isExcluded(.fileURL) else { return }
             let paths = urls.map { $0.path }
 
             // Save file data as blob so export/import preserves the actual content
@@ -116,6 +119,7 @@ class ClipboardMonitor {
 
         // 2. Image (PNG or TIFF)
         if types.contains(.png) || types.contains(.tiff) {
+            guard !excludedTypesStore.isExcluded(.image) else { return }
             let imageData: Data?
             if types.contains(.png) {
                 imageData = pasteboard.data(forType: .png)
@@ -138,6 +142,7 @@ class ClipboardMonitor {
 
         // 3. PDF
         if types.contains(.pdf) {
+            guard !excludedTypesStore.isExcluded(.pdf) else { return }
             if let data = pasteboard.data(forType: .pdf) {
                 let blobFile = BlobStorage.save(data, id: id, ext: "pdf")
                 let item = HistoryItem(
@@ -153,6 +158,7 @@ class ClipboardMonitor {
 
         // 4. Color
         if types.contains(.color) {
+            guard !excludedTypesStore.isExcluded(.color) else { return }
             if let data = pasteboard.data(forType: .color),
                let color = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data) {
                 let c = color.usingColorSpace(.sRGB) ?? color
@@ -175,6 +181,7 @@ class ClipboardMonitor {
 
         // 5. Text (with optional rich text blob)
         if let string = pasteboard.string(forType: .string) {
+            guard !excludedTypesStore.isExcluded(.text) else { return }
             let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else { return }
 

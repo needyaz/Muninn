@@ -8,6 +8,7 @@ enum DataPorter {
         var history: [HistoryItem]
         var clips: [Clip]
         var excludedApps: [String]
+        var excludedTypes: [String]?
         var blobs: [String: String] // filename -> base64
 
         struct Settings: Codable {
@@ -55,6 +56,15 @@ enum DataPorter {
             excludedApps = []
         }
 
+        // Read excluded types
+        let excludedTypesURL = StoragePaths.base.appendingPathComponent("excluded_types.json")
+        let excludedTypes: [String]
+        if let data = try? Data(contentsOf: excludedTypesURL) {
+            excludedTypes = (try? JSONDecoder().decode([String].self, from: data)) ?? []
+        } else {
+            excludedTypes = []
+        }
+
         // Read blobs
         var blobs: [String: String] = [:]
         let blobDir = StoragePaths.blobs
@@ -81,6 +91,7 @@ enum DataPorter {
             history: history,
             clips: clips,
             excludedApps: excludedApps,
+            excludedTypes: excludedTypes,
             blobs: blobs
         )
 
@@ -94,6 +105,7 @@ enum DataPorter {
         var historyCount: Int
         var clipCount: Int
         var excludedAppCount: Int
+        var excludedTypeCount: Int
         var imageCount: Int
         var pdfCount: Int
         var richTextCount: Int
@@ -106,6 +118,7 @@ enum DataPorter {
         historyStore: HistoryStore,
         clipStore: ClipStore,
         excludedAppsStore: ExcludedAppsStore,
+        excludedTypesStore: ExcludedTypesStore,
         settingsStore: SettingsStore
     ) throws -> ImportResult {
         let data = try Data(contentsOf: url)
@@ -191,6 +204,9 @@ enum DataPorter {
         var newHistoryCount: Int
         var newClipCount: Int
         var newExcludedAppCount: Int
+        var newExcludedTypeCount: Int
+
+        let importedExcludedTypes = envelope.excludedTypes ?? []
 
         if merge {
             // Merge: add items that don't already exist (by ID)
@@ -212,6 +228,12 @@ enum DataPorter {
             let excludedData = try encoder.encode(newExcludedApps)
             try excludedData.write(to: StoragePaths.base.appendingPathComponent("excluded_apps.json"), options: .atomic)
             newExcludedAppCount = newExcludedApps.count - excludedAppsStore.excludedBundleIDs.count
+
+            let importedTypes = Set(importedExcludedTypes.compactMap { ClipboardContentType(rawValue: $0) })
+            let newExcludedTypes = excludedTypesStore.excludedTypes.union(importedTypes)
+            let excludedTypesData = try encoder.encode(newExcludedTypes)
+            try excludedTypesData.write(to: StoragePaths.base.appendingPathComponent("excluded_types.json"), options: .atomic)
+            newExcludedTypeCount = newExcludedTypes.count - excludedTypesStore.excludedTypes.count
         } else {
             // Replace all
             let historyData = try encoder.encode(importedHistory)
@@ -226,6 +248,11 @@ enum DataPorter {
             try excludedData.write(to: StoragePaths.base.appendingPathComponent("excluded_apps.json"), options: .atomic)
             newExcludedAppCount = envelope.excludedApps.count
 
+            let replacedTypes = Set(importedExcludedTypes.compactMap { ClipboardContentType(rawValue: $0) })
+            let excludedTypesData = try encoder.encode(replacedTypes)
+            try excludedTypesData.write(to: StoragePaths.base.appendingPathComponent("excluded_types.json"), options: .atomic)
+            newExcludedTypeCount = replacedTypes.count
+
             // Apply settings only on replace
             let defaults = UserDefaults.standard
             defaults.set(envelope.settings.historyLimit, forKey: "historyLimit")
@@ -238,6 +265,7 @@ enum DataPorter {
         historyStore.load()
         clipStore.load()
         excludedAppsStore.load()
+        excludedTypesStore.load()
 
         var imageCount = 0
         var pdfCount = 0
@@ -261,6 +289,7 @@ enum DataPorter {
             historyCount: newHistoryCount,
             clipCount: newClipCount,
             excludedAppCount: newExcludedAppCount,
+            excludedTypeCount: newExcludedTypeCount,
             imageCount: imageCount,
             pdfCount: pdfCount,
             richTextCount: richTextCount

@@ -28,7 +28,7 @@ Save frequently used clips as named snippets for instant access. Snippets appear
 ### Search and Filtering
 
 - **Search bar** — filter both snippets and history by keyword
-- **Content type chips** — quickly filter history by type (Text, Images, PDFs, Files, Colors)
+- **Content type chips** — quickly filter snippets and history by type (Text, Images, PDFs, Files, Colors)
 
 ### Text Transformations
 
@@ -72,6 +72,10 @@ The menu bar icon changes to a pause indicator while paused.
 
 Prevent specific apps from being recorded in clipboard history. The Settings panel lists all installed apps with toggles to exclude them.
 
+### Excluded Types
+
+Prevent specific content types from being captured. Toggle off any combination of Text, Images, PDFs, Files, or Colors in Settings. When a clipboard entry matches an excluded type, the entire copy is skipped — it won't fall through and appear as a different type.
+
 ### Siri Shortcuts
 
 ClipBar exposes actions to the macOS Shortcuts app via AppIntents:
@@ -90,13 +94,14 @@ All actions appear in Shortcuts.app with suggested phrases for Siri.
 - **Paste as plain text** — strip formatting by default
 - **Global shortcut** — set a keyboard shortcut to toggle ClipBar
 - **Excluded apps** — choose which apps to ignore
+- **Excluded types** — choose which content types to ignore
 
 ### Import / Export
 
 Back up or migrate all your data via Settings > Data:
 
-- **Export Data** — saves history, snippets, settings, excluded apps, and all binary blobs (images, PDFs, rich text) to a single `.clipbar` file
-- **Import Data** — reads a `.clipbar` file and replaces all current data (with confirmation)
+- **Export Data** — saves history, snippets, settings, excluded apps, excluded types, and all binary blobs (images, PDFs, rich text) to a single `.clipbar` file
+- **Import Data** — reads a `.clipbar` file with a choice to **merge** (add new items, keep existing data) or **replace** all current data
 
 The export file is JSON with base64-encoded blobs, so no external dependencies or archive tools are needed.
 
@@ -109,6 +114,7 @@ All data is stored locally in `~/Library/Application Support/ClipBar/`:
 | `history.json` | Clipboard history items |
 | `clips.json` | Saved snippets |
 | `excluded_apps.json` | Excluded app bundle IDs |
+| `excluded_types.json` | Excluded content types |
 | `blobs/` | Binary data for images, PDFs, and rich text |
 
 Settings (history limit, plain text mode) are stored in `UserDefaults`.

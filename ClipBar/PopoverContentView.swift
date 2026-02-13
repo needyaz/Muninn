@@ -243,18 +243,28 @@ struct PopoverContentView: View {
     // MARK: - Content type filter
 
     private var availableContentTypes: [ClipboardContentType] {
-        let types = Set(historyStore.items.map(\.contentType))
+        var types = Set(historyStore.items.map(\.contentType))
+        types.formUnion(clipStore.clips.map(\.contentType))
         return ClipboardContentType.allCases.filter { types.contains($0) }
     }
 
     // MARK: - Filtered data
 
     private var filteredClips: [Clip] {
-        if search.isEmpty { return clipStore.clips }
-        let q = search.lowercased()
-        return clipStore.clips.filter {
-            $0.name.lowercased().contains(q) || $0.preview.lowercased().contains(q)
+        var items = clipStore.clips
+
+        if let typeFilter = contentTypeFilter {
+            items = items.filter { $0.contentType == typeFilter }
         }
+
+        if !search.isEmpty {
+            let q = search.lowercased()
+            items = items.filter {
+                $0.name.lowercased().contains(q) || $0.preview.lowercased().contains(q)
+            }
+        }
+
+        return items
     }
 
     private var filteredHistory: [HistoryItem] {

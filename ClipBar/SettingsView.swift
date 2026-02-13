@@ -8,6 +8,8 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
             ExcludedAppsTab()
                 .tabItem { Label("Excluded Apps", systemImage: "xmark.app") }
+            ExcludedTypesTab()
+                .tabItem { Label("Excluded Types", systemImage: "line.3.horizontal.decrease.circle") }
             ShortcutTab()
                 .tabItem { Label("Shortcut", systemImage: "keyboard") }
             DataTab()
@@ -47,6 +49,34 @@ private struct ExcludedAppsTab: View {
     }
 }
 
+private struct ExcludedTypesTab: View {
+    @Environment(ExcludedTypesStore.self) private var excludedTypesStore
+
+    var body: some View {
+        Form {
+            ForEach(ClipboardContentType.allCases, id: \.self) { type in
+                Toggle(isOn: Binding(
+                    get: { excludedTypesStore.isExcluded(type) },
+                    set: { _ in excludedTypesStore.toggle(type) }
+                )) {
+                    Label {
+                        VStack(alignment: .leading) {
+                            Text(type.displayName)
+                            Text(type.typeDescription)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: type.systemImage)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .frame(width: 400)
+    }
+}
+
 private struct ShortcutTab: View {
     var body: some View {
         Form {
@@ -62,6 +92,7 @@ private struct DataTab: View {
     @Environment(HistoryStore.self) private var historyStore
     @Environment(ClipStore.self) private var clipStore
     @Environment(ExcludedAppsStore.self) private var excludedAppsStore
+    @Environment(ExcludedTypesStore.self) private var excludedTypesStore
 
     @State private var showImportConfirmation = false
     @State private var importURL: URL?
@@ -177,12 +208,14 @@ private struct DataTab: View {
                 historyStore: historyStore,
                 clipStore: clipStore,
                 excludedAppsStore: excludedAppsStore,
+                excludedTypesStore: excludedTypesStore,
                 settingsStore: settingsStore
             )
             var parts: [String] = [
                 "\(result.historyCount) history item\(result.historyCount == 1 ? "" : "s")",
                 "\(result.clipCount) snippet\(result.clipCount == 1 ? "" : "s")",
                 "\(result.excludedAppCount) excluded app\(result.excludedAppCount == 1 ? "" : "s")",
+                "\(result.excludedTypeCount) excluded type\(result.excludedTypeCount == 1 ? "" : "s")",
             ]
             if result.imageCount > 0 {
                 parts.append("\(result.imageCount) image\(result.imageCount == 1 ? "" : "s")")

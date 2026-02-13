@@ -11,6 +11,7 @@ struct ClipBarApp: App {
     @State private var store: ClipStore
     @State private var historyStore: HistoryStore
     @State private var excludedAppsStore: ExcludedAppsStore
+    @State private var excludedTypesStore: ExcludedTypesStore
     @State private var monitor: ClipboardMonitor?
 
     init() {
@@ -20,6 +21,7 @@ struct ClipBarApp: App {
         _store = State(initialValue: ClipStore())
         _historyStore = State(initialValue: HistoryStore(settingsStore: settings))
         _excludedAppsStore = State(initialValue: ExcludedAppsStore())
+        _excludedTypesStore = State(initialValue: ExcludedTypesStore())
     }
 
     var body: some Scene {
@@ -29,10 +31,11 @@ struct ClipBarApp: App {
                 .environment(store)
                 .environment(historyStore)
                 .environment(excludedAppsStore)
-                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore))
+                .environment(excludedTypesStore)
+                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore))
                 .onAppear {
                     if monitor == nil {
-                        let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore)
+                        let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore)
                         m.start()
                         monitor = m
                         setupGlobalHotkey()
@@ -53,6 +56,7 @@ struct ClipBarApp: App {
             SettingsView()
                 .environment(settingsStore)
                 .environment(excludedAppsStore)
+                .environment(excludedTypesStore)
                 .environment(historyStore)
                 .environment(store)
         }
