@@ -95,9 +95,18 @@ class ClipboardMonitor {
            let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
            !urls.isEmpty {
             let paths = urls.map { $0.path }
+
+            // Save file data as blob so export/import preserves the actual content
+            var blobFile: String?
+            if urls.count == 1, let data = try? Data(contentsOf: urls[0]) {
+                let ext = urls[0].pathExtension.isEmpty ? "dat" : urls[0].pathExtension
+                blobFile = BlobStorage.save(data, id: id, ext: ext)
+            }
+
             let item = HistoryItem(
                 id: id,
                 contentType: .fileURL,
+                blobFile: blobFile,
                 fileURLs: paths,
                 sourceAppBundleID: sourceAppBundleID
             )

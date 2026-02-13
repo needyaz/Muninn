@@ -68,6 +68,8 @@ private struct DataTab: View {
     @State private var errorMessage: String?
     @State private var showError = false
     @State private var showExportSuccess = false
+    @State private var showImportSuccess = false
+    @State private var importResultMessage = ""
 
     var body: some View {
         Form {
@@ -83,7 +85,7 @@ private struct DataTab: View {
                 Button("Import Data\u{2026}") {
                     chooseImportFile()
                 }
-                Text("Replaces all current data with the imported file.")
+                Text("Import from a backup file. You can merge or replace your current data.")
                     .foregroundStyle(.secondary)
                     .font(.callout)
             }
@@ -92,11 +94,14 @@ private struct DataTab: View {
         .frame(width: 400)
         .alert("Import Data", isPresented: $showImportConfirmation) {
             Button("Cancel", role: .cancel) { importURL = nil }
-            Button("Replace All Data", role: .destructive) {
-                performImport()
+            Button("Merge") {
+                performImport(merge: true)
+            }
+            Button("Replace All", role: .destructive) {
+                performImport(merge: false)
             }
         } message: {
-            Text("This will replace all your current data including history, snippets, settings, and excluded apps. This cannot be undone.")
+            Text("Merge adds new items and keeps your current data. Replace overwrites everything.")
         }
         .alert("Error", isPresented: $showError) {
             Button("OK") {}
@@ -107,6 +112,11 @@ private struct DataTab: View {
             Button("OK") {}
         } message: {
             Text("Your data has been exported successfully.")
+        }
+        .alert("Import Successful", isPresented: $showImportSuccess) {
+            Button("OK") {}
+        } message: {
+            Text(importResultMessage)
         }
     }
 
@@ -156,18 +166,37 @@ private struct DataTab: View {
         }
     }
 
-    private func performImport() {
+    private func performImport(merge: Bool) {
         guard let url = importURL else { return }
         defer { importURL = nil }
 
         do {
-            try DataPorter.importData(
+            let result = try DataPorter.importData(
                 from: url,
+                merge: merge,
                 historyStore: historyStore,
                 clipStore: clipStore,
                 excludedAppsStore: excludedAppsStore,
                 settingsStore: settingsStore
             )
+            var parts: [String] = [
+                "\(result.historyCount) history item\(result.historyCount == 1 ? "" : "s")",
+                "\(result.clipCount) snippet\(result.clipCount == 1 ? "" : "s")",
+                "\(result.excludedAppCount) excluded app\(result.excludedAppCount == 1 ? "" : "s")",
+            ]
+            if result.imageCount > 0 {
+                parts.append("\(result.imageCount) image\(result.imageCount == 1 ? "" : "s")")
+            }
+            if result.pdfCount > 0 {
+                parts.append("\(result.pdfCount) PDF\(result.pdfCount == 1 ? "" : "s")")
+            }
+            if result.richTextCount > 0 {
+                parts.append("\(result.richTextCount) rich text format\(result.richTextCount == 1 ? "" : "s")")
+            }
+            let last = parts.removeLast()
+            let verb = merge ? "Merged" : "Imported"
+            importResultMessage = verb + " " + (parts.isEmpty ? last : parts.joined(separator: ", ") + ", and " + last) + "."
+            showImportSuccess = true
         } catch {
             errorMessage = error.localizedDescription
             showError = true

@@ -90,13 +90,24 @@ enum DataPorter {
         return try encoder.encode(envelope)
     }
 
+    struct ImportResult {
+        var historyCount: Int
+        var clipCount: Int
+        var excludedAppCount: Int
+        var imageCount: Int
+        var pdfCount: Int
+        var richTextCount: Int
+    }
+
+    @discardableResult
     static func importData(
         from url: URL,
+        merge: Bool,
         historyStore: HistoryStore,
         clipStore: ClipStore,
         excludedAppsStore: ExcludedAppsStore,
         settingsStore: SettingsStore
-    ) throws {
+    ) throws -> ImportResult {
         let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -106,42 +117,153 @@ enum DataPorter {
             throw PorterError.unsupportedVersion(envelope.version)
         }
 
-        // Write blobs
         let blobDir = StoragePaths.blobs
-        // Clear existing blobs
-        if let existing = try? FileManager.default.contentsOfDirectory(atPath: blobDir.path) {
-            for file in existing {
-                try? FileManager.default.removeItem(at: blobDir.appendingPathComponent(file))
+
+        var newBlobFilenames: Set<String> = []
+
+        if merge {
+            // Write only new blobs (don't overwrite existing)
+            for (filename, base64) in envelope.blobs {
+                let dest = blobDir.appendingPathComponent(filename)
+                if !FileManager.default.fileExists(atPath: dest.path),
+                   let blobData = Data(base64Encoded: base64) {
+                    try? blobData.write(to: dest, options: .atomic)
+                    newBlobFilenames.insert(filename)
+                }
             }
-        }
-        for (filename, base64) in envelope.blobs {
-            if let blobData = Data(base64Encoded: base64) {
-                try? blobData.write(to: blobDir.appendingPathComponent(filename), options: .atomic)
+        } else {
+            // Replace: clear existing blobs and write all
+            if let existing = try? FileManager.default.contentsOfDirectory(atPath: blobDir.path) {
+                for file in existing {
+                    try? FileManager.default.removeItem(at: blobDir.appendingPathComponent(file))
+                }
+            }
+            for (filename, base64) in envelope.blobs {
+                if let blobData = Data(base64Encoded: base64) {
+                    try? blobData.write(to: blobDir.appendingPathComponent(filename), options: .atomic)
+                }
             }
         }
 
-        // Write JSON files
+        // Restore files from blobs for fileURL items
+        let filesDir = StoragePaths.base.appendingPathComponent("files", isDirectory: true)
+        try? FileManager.default.createDirectory(at: filesDir, withIntermediateDirectories: true)
+        if !merge {
+            if let existing = try? FileManager.default.contentsOfDirectory(atPath: filesDir.path) {
+                for file in existing {
+                    try? FileManager.default.removeItem(at: filesDir.appendingPathComponent(file))
+                }
+            }
+        }
+
+        var importedHistory = envelope.history
+        var importedClips = envelope.clips
+
+        for i in importedHistory.indices {
+            if importedHistory[i].contentType == .fileURL,
+               let blob = importedHistory[i].blobFile,
+               let blobData = BlobStorage.load(blob),
+               let originalPath = importedHistory[i].fileURLs?.first {
+                let filename = (originalPath as NSString).lastPathComponent
+                let destURL = filesDir.appendingPathComponent(filename)
+                if !FileManager.default.fileExists(atPath: destURL.path) {
+                    try? blobData.write(to: destURL, options: .atomic)
+                }
+                importedHistory[i].fileURLs = [destURL.path]
+            }
+        }
+
+        for i in importedClips.indices {
+            if importedClips[i].contentType == .fileURL,
+               let blob = importedClips[i].blobFile,
+               let blobData = BlobStorage.load(blob),
+               let originalPath = importedClips[i].fileURLs?.first {
+                let filename = (originalPath as NSString).lastPathComponent
+                let destURL = filesDir.appendingPathComponent(filename)
+                if !FileManager.default.fileExists(atPath: destURL.path) {
+                    try? blobData.write(to: destURL, options: .atomic)
+                }
+                importedClips[i].fileURLs = [destURL.path]
+            }
+        }
+
         let encoder = JSONEncoder()
+        var newHistoryCount: Int
+        var newClipCount: Int
+        var newExcludedAppCount: Int
 
-        let historyData = try encoder.encode(envelope.history)
-        try historyData.write(to: StoragePaths.base.appendingPathComponent("history.json"), options: .atomic)
+        if merge {
+            // Merge: add items that don't already exist (by ID)
+            let existingHistoryIDs = Set(historyStore.items.map(\.id))
+            let newHistory = importedHistory.filter { !existingHistoryIDs.contains($0.id) }
+            let mergedHistory = historyStore.items + newHistory
+            let historyData = try encoder.encode(mergedHistory)
+            try historyData.write(to: StoragePaths.base.appendingPathComponent("history.json"), options: .atomic)
+            newHistoryCount = newHistory.count
 
-        let clipsData = try encoder.encode(envelope.clips)
-        try clipsData.write(to: StoragePaths.base.appendingPathComponent("clips.json"), options: .atomic)
+            let existingClipIDs = Set(clipStore.clips.map(\.id))
+            let newClips = importedClips.filter { !existingClipIDs.contains($0.id) }
+            let mergedClips = clipStore.clips + newClips
+            let clipsData = try encoder.encode(mergedClips)
+            try clipsData.write(to: StoragePaths.base.appendingPathComponent("clips.json"), options: .atomic)
+            newClipCount = newClips.count
 
-        let excludedData = try encoder.encode(envelope.excludedApps)
-        try excludedData.write(to: StoragePaths.base.appendingPathComponent("excluded_apps.json"), options: .atomic)
+            let newExcludedApps = excludedAppsStore.excludedBundleIDs.union(envelope.excludedApps)
+            let excludedData = try encoder.encode(newExcludedApps)
+            try excludedData.write(to: StoragePaths.base.appendingPathComponent("excluded_apps.json"), options: .atomic)
+            newExcludedAppCount = newExcludedApps.count - excludedAppsStore.excludedBundleIDs.count
+        } else {
+            // Replace all
+            let historyData = try encoder.encode(importedHistory)
+            try historyData.write(to: StoragePaths.base.appendingPathComponent("history.json"), options: .atomic)
+            newHistoryCount = importedHistory.count
 
-        // Apply settings
-        let defaults = UserDefaults.standard
-        defaults.set(envelope.settings.historyLimit, forKey: "historyLimit")
-        defaults.set(envelope.settings.pasteAsPlainText, forKey: "pasteAsPlainText")
+            let clipsData = try encoder.encode(importedClips)
+            try clipsData.write(to: StoragePaths.base.appendingPathComponent("clips.json"), options: .atomic)
+            newClipCount = importedClips.count
+
+            let excludedData = try encoder.encode(envelope.excludedApps)
+            try excludedData.write(to: StoragePaths.base.appendingPathComponent("excluded_apps.json"), options: .atomic)
+            newExcludedAppCount = envelope.excludedApps.count
+
+            // Apply settings only on replace
+            let defaults = UserDefaults.standard
+            defaults.set(envelope.settings.historyLimit, forKey: "historyLimit")
+            defaults.set(envelope.settings.pasteAsPlainText, forKey: "pasteAsPlainText")
+            settingsStore.historyLimit = envelope.settings.historyLimit
+            settingsStore.pasteAsPlainText = envelope.settings.pasteAsPlainText
+        }
 
         // Reload all stores
-        settingsStore.historyLimit = envelope.settings.historyLimit
-        settingsStore.pasteAsPlainText = envelope.settings.pasteAsPlainText
         historyStore.load()
         clipStore.load()
         excludedAppsStore.load()
+
+        var imageCount = 0
+        var pdfCount = 0
+        var richTextCount = 0
+        let blobsToCount = merge ? newBlobFilenames : Set(envelope.blobs.keys)
+        for filename in blobsToCount {
+            let ext = (filename as NSString).pathExtension.lowercased()
+            switch ext {
+            case "png", "tiff":
+                imageCount += 1
+            case "pdf":
+                pdfCount += 1
+            case "rtf", "html":
+                richTextCount += 1
+            default:
+                break
+            }
+        }
+
+        return ImportResult(
+            historyCount: newHistoryCount,
+            clipCount: newClipCount,
+            excludedAppCount: newExcludedAppCount,
+            imageCount: imageCount,
+            pdfCount: pdfCount,
+            richTextCount: richTextCount
+        )
     }
 }
