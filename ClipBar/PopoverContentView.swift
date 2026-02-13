@@ -116,7 +116,7 @@ struct PopoverContentView: View {
                             sectionHeader("HISTORY")
                             ForEach(Array(filteredHistory.enumerated()), id: \.element.id) { idx, item in
                                 let globalIdx = filteredClips.count + idx
-                                HistoryRow(item: item, isSelected: selectedIndex == globalIdx) {
+                                HistoryRow(item: item, isSelected: selectedIndex == globalIdx, showRichPreview: settingsStore.enableRichPreviews) {
                                     copyAndPaste(item: item)
                                 } onPin: {
                                     pinItem(item)
@@ -653,7 +653,7 @@ private struct FilterChip: View {
 
 // MARK: - Source app icon cache
 
-private class AppIconCache {
+class AppIconCache {
     static let shared = AppIconCache()
     private var cache: [String: NSImage] = [:]
 
@@ -671,10 +671,13 @@ private class AppIconCache {
 private struct HistoryRow: View {
     let item: HistoryItem
     var isSelected: Bool = false
+    var showRichPreview: Bool = false
     var onTap: () -> Void
     var onPin: () -> Void
     var onDelete: () -> Void
     var onTransform: ((_ text: String, _ transform: TextTransform) -> Void)?
+
+    private static let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "tiff", "gif", "bmp", "webp", "heic"]
 
     @State private var isHovered = false
 
@@ -765,7 +768,8 @@ private struct HistoryRow: View {
                 Image(nsImage: nsImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 32)
+                    .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
+                    .animation(.easeInOut(duration: 0.15), value: isHovered)
             } else {
                 Label("Image", systemImage: "photo")
                     .lineLimit(1)
@@ -774,15 +778,41 @@ private struct HistoryRow: View {
             Label("PDF Document", systemImage: "doc.richtext")
                 .lineLimit(1)
         case .fileURL:
-            Label(item.preview, systemImage: "doc")
-                .lineLimit(1)
+            if showRichPreview,
+               let blob = item.blobFile,
+               Self.imageExtensions.contains((blob as NSString).pathExtension.lowercased()),
+               let data = BlobStorage.load(blob),
+               let nsImage = NSImage(data: data) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(item.preview, systemImage: "doc")
+                        .lineLimit(1)
+                    if isHovered {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: 120)
+                    }
+                }
+                .animation(.easeInOut(duration: 0.15), value: isHovered)
+            } else {
+                Label(item.preview, systemImage: "doc")
+                    .lineLimit(1)
+            }
         case .color:
             if let comps = item.colorComponents, comps.count >= 3 {
                 HStack(spacing: 6) {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
-                        .frame(width: 16, height: 16)
-                    Text("Color")
+                        .frame(width: showRichPreview ? 24 : 16, height: showRichPreview ? 24 : 16)
+                    if showRichPreview {
+                        Text(String(format: "#%02X%02X%02X",
+                            Int(comps[0] * 255), Int(comps[1] * 255), Int(comps[2] * 255)))
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                    } else {
+                        Text("Color")
+                    }
                 }
             } else {
                 Text("Color")

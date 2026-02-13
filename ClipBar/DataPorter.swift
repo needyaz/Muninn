@@ -14,6 +14,9 @@ enum DataPorter {
         struct Settings: Codable {
             var historyLimit: Int
             var pasteAsPlainText: Bool
+            var enableStats: Bool?
+            var enableRichPreviews: Bool?
+            var captureSound: String?
         }
     }
 
@@ -81,7 +84,10 @@ enum DataPorter {
         let defaults = UserDefaults.standard
         let settings = ExportEnvelope.Settings(
             historyLimit: defaults.integer(forKey: "historyLimit"),
-            pasteAsPlainText: defaults.bool(forKey: "pasteAsPlainText")
+            pasteAsPlainText: defaults.bool(forKey: "pasteAsPlainText"),
+            enableStats: defaults.bool(forKey: "enableStats"),
+            enableRichPreviews: defaults.bool(forKey: "enableRichPreviews"),
+            captureSound: defaults.string(forKey: "captureSound") ?? ""
         )
 
         let envelope = ExportEnvelope(
@@ -259,6 +265,18 @@ enum DataPorter {
             defaults.set(envelope.settings.pasteAsPlainText, forKey: "pasteAsPlainText")
             settingsStore.historyLimit = envelope.settings.historyLimit
             settingsStore.pasteAsPlainText = envelope.settings.pasteAsPlainText
+            if let enableStats = envelope.settings.enableStats {
+                defaults.set(enableStats, forKey: "enableStats")
+                settingsStore.enableStats = enableStats
+            }
+            if let enableRichPreviews = envelope.settings.enableRichPreviews {
+                defaults.set(enableRichPreviews, forKey: "enableRichPreviews")
+                settingsStore.enableRichPreviews = enableRichPreviews
+            }
+            if let captureSound = envelope.settings.captureSound {
+                defaults.set(captureSound, forKey: "captureSound")
+                settingsStore.captureSound = captureSound
+            }
         }
 
         // Reload all stores

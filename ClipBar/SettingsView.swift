@@ -10,6 +10,8 @@ struct SettingsView: View {
                 .tabItem { Label("Excluded Apps", systemImage: "xmark.app") }
             ExcludedTypesTab()
                 .tabItem { Label("Excluded Types", systemImage: "line.3.horizontal.decrease.circle") }
+            StatsTab()
+                .tabItem { Label("Stats", systemImage: "chart.bar") }
             ShortcutTab()
                 .tabItem { Label("Shortcut", systemImage: "keyboard") }
             DataTab()
@@ -36,16 +38,40 @@ private struct GeneralTab: View {
             }
 
             Toggle("Paste as plain text by default", isOn: $settings.pasteAsPlainText)
+
+            Toggle("Show rich previews", isOn: $settings.enableRichPreviews)
+
+            Toggle("Track clipboard statistics", isOn: $settings.enableStats)
+
+            HStack {
+                Picker("Capture sound:", selection: $settings.captureSound) {
+                    Text("None").tag("")
+                    Divider()
+                    ForEach(systemSounds, id: \.self) { name in
+                        Text(name).tag(name)
+                    }
+                }
+                if !settingsStore.captureSound.isEmpty {
+                    Button("Preview") {
+                        NSSound(named: NSSound.Name(settingsStore.captureSound))?.play()
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 400)
+        .frame(width: 500)
     }
+
+    private let systemSounds = [
+        "Tink", "Pop", "Glass", "Bottle", "Frog", "Funk",
+        "Ping", "Purr", "Submarine", "Wobble", "Basso", "Blow",
+    ]
 }
 
 private struct ExcludedAppsTab: View {
     var body: some View {
         ExcludedAppsView()
-            .frame(width: 400, height: 450)
+            .frame(width: 500, height: 450)
     }
 }
 
@@ -73,7 +99,13 @@ private struct ExcludedTypesTab: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400)
+        .frame(width: 500)
+    }
+}
+
+private struct StatsTab: View {
+    var body: some View {
+        StatsView()
     }
 }
 
@@ -83,7 +115,7 @@ private struct ShortcutTab: View {
             KeyboardShortcuts.Recorder("Toggle ClipBar:", name: .togglePopover)
         }
         .formStyle(.grouped)
-        .frame(width: 400)
+        .frame(width: 500)
     }
 }
 
@@ -122,7 +154,7 @@ private struct DataTab: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400)
+        .frame(width: 500)
         .alert("Import Data", isPresented: $showImportConfirmation) {
             Button("Cancel", role: .cancel) { importURL = nil }
             Button("Merge") {

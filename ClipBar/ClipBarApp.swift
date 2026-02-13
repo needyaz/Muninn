@@ -12,6 +12,7 @@ struct ClipBarApp: App {
     @State private var historyStore: HistoryStore
     @State private var excludedAppsStore: ExcludedAppsStore
     @State private var excludedTypesStore: ExcludedTypesStore
+    @State private var statsStore: StatsStore
     @State private var monitor: ClipboardMonitor?
 
     init() {
@@ -22,6 +23,7 @@ struct ClipBarApp: App {
         _historyStore = State(initialValue: HistoryStore(settingsStore: settings))
         _excludedAppsStore = State(initialValue: ExcludedAppsStore())
         _excludedTypesStore = State(initialValue: ExcludedTypesStore())
+        _statsStore = State(initialValue: StatsStore())
     }
 
     var body: some Scene {
@@ -32,10 +34,11 @@ struct ClipBarApp: App {
                 .environment(historyStore)
                 .environment(excludedAppsStore)
                 .environment(excludedTypesStore)
-                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore))
+                .environment(statsStore)
+                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore, settingsStore: settingsStore, statsStore: statsStore))
                 .onAppear {
                     if monitor == nil {
-                        let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore)
+                        let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore, settingsStore: settingsStore, statsStore: statsStore)
                         m.start()
                         monitor = m
                         setupGlobalHotkey()
@@ -57,6 +60,7 @@ struct ClipBarApp: App {
                 .environment(settingsStore)
                 .environment(excludedAppsStore)
                 .environment(excludedTypesStore)
+                .environment(statsStore)
                 .environment(historyStore)
                 .environment(store)
         }

@@ -9,15 +9,19 @@ class ClipboardMonitor {
     private let historyStore: HistoryStore
     private let excludedAppsStore: ExcludedAppsStore
     private let excludedTypesStore: ExcludedTypesStore
+    private let settingsStore: SettingsStore
+    private let statsStore: StatsStore
 
     var isPaused = false
     var pauseResumeDate: Date?
     private var pauseTimer: Timer?
 
-    init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore, excludedTypesStore: ExcludedTypesStore) {
+    init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore, excludedTypesStore: ExcludedTypesStore, settingsStore: SettingsStore, statsStore: StatsStore) {
         self.historyStore = historyStore
         self.excludedAppsStore = excludedAppsStore
         self.excludedTypesStore = excludedTypesStore
+        self.settingsStore = settingsStore
+        self.statsStore = statsStore
         self.lastChangeCount = NSPasteboard.general.changeCount
     }
 
@@ -114,6 +118,7 @@ class ClipboardMonitor {
                 sourceAppBundleID: sourceAppBundleID
             )
             historyStore.add(item)
+            didCapture(contentType: .fileURL, sourceApp: sourceAppBundleID)
             return
         }
 
@@ -136,6 +141,7 @@ class ClipboardMonitor {
                     sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
+                didCapture(contentType: .image, sourceApp: sourceAppBundleID)
                 return
             }
         }
@@ -152,6 +158,7 @@ class ClipboardMonitor {
                     sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
+                didCapture(contentType: .pdf, sourceApp: sourceAppBundleID)
                 return
             }
         }
@@ -175,6 +182,7 @@ class ClipboardMonitor {
                     sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
+                didCapture(contentType: .color, sourceApp: sourceAppBundleID)
                 return
             }
         }
@@ -201,6 +209,16 @@ class ClipboardMonitor {
                 sourceAppBundleID: sourceAppBundleID
             )
             historyStore.add(item)
+            didCapture(contentType: .text, sourceApp: sourceAppBundleID)
+        }
+    }
+
+    private func didCapture(contentType: ClipboardContentType, sourceApp: String?) {
+        if settingsStore.enableStats {
+            statsStore.recordCapture(contentType: contentType, sourceApp: sourceApp)
+        }
+        if !settingsStore.captureSound.isEmpty {
+            NSSound(named: NSSound.Name(settingsStore.captureSound))?.play()
         }
     }
 }
