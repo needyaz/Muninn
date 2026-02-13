@@ -149,11 +149,11 @@ struct PopoverContentView: View {
                     Button {
                         monitor.resume()
                     } label: {
-                        Label("Resume", systemImage: "play.fill")
-                            .font(.caption)
+                        Image(systemName: "play")
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.orange)
+                    .tooltip("Resume clipboard monitoring")
                 } else {
                     Menu {
                         Button("1 minute") { monitor.pause(for: 60) }
@@ -164,11 +164,12 @@ struct PopoverContentView: View {
                         Divider()
                         Button("Until resumed") { monitor.pause(for: nil) }
                     } label: {
-                        Image(systemName: "pause.circle")
+                        Image(systemName: "pause")
                             .foregroundStyle(.secondary)
                     }
                     .menuStyle(.borderlessButton)
                     .frame(width: 20)
+                    .tooltip("Pause clipboard monitoring")
                 }
 
                 if !historyStore.items.isEmpty {
@@ -187,6 +188,7 @@ struct PopoverContentView: View {
                             historyStore.clearAll()
                         }
                     }
+                    .tooltip("Clear history")
                 }
 
                 Button {
@@ -197,6 +199,7 @@ struct PopoverContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
+                .tooltip("Settings")
 
                 Button {
                     NSApplication.shared.terminate(nil)
@@ -205,6 +208,7 @@ struct PopoverContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
+                .tooltip("Quit ClipBar")
             }
             .padding(10)
         }
@@ -696,5 +700,27 @@ private struct HoverBackground: View {
         RoundedRectangle(cornerRadius: 4)
             .fill(isHovered ? Color.primary.opacity(0.1) : Color.clear)
             .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - Tooltip
+
+private struct Tooltip: NSViewRepresentable {
+    let text: String
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        view.toolTip = text
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        nsView.toolTip = text
+    }
+}
+
+extension View {
+    func tooltip(_ text: String) -> some View {
+        overlay(Tooltip(text: text))
     }
 }
