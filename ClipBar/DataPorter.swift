@@ -19,6 +19,7 @@ enum DataPorter {
             var captureSound: String?
             var captureScreenshots: Bool?
             var enableOCR: Bool?
+            var enableQRDetection: Bool?
         }
     }
 
@@ -91,7 +92,8 @@ enum DataPorter {
             enableRichPreviews: defaults.bool(forKey: "enableRichPreviews"),
             captureSound: defaults.string(forKey: "captureSound") ?? "",
             captureScreenshots: defaults.bool(forKey: "captureScreenshots"),
-            enableOCR: defaults.bool(forKey: "enableOCR")
+            enableOCR: defaults.bool(forKey: "enableOCR"),
+            enableQRDetection: defaults.bool(forKey: "enableQRDetection")
         )
 
         let envelope = ExportEnvelope(
@@ -288,6 +290,10 @@ enum DataPorter {
             if let enableOCR = envelope.settings.enableOCR {
                 defaults.set(enableOCR, forKey: "enableOCR")
                 settingsStore.enableOCR = enableOCR
+            }
+            if let enableQRDetection = envelope.settings.enableQRDetection {
+                defaults.set(enableQRDetection, forKey: "enableQRDetection")
+                settingsStore.enableQRDetection = enableQRDetection
             }
         }
 

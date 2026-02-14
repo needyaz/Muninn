@@ -22,6 +22,7 @@ struct SettingsView: View {
 
 private struct GeneralTab: View {
     @Environment(SettingsStore.self) private var settingsStore
+    @Environment(HistoryStore.self) private var historyStore
 
     private let limitOptions = [25, 50, 100, 200, 500]
 
@@ -46,6 +47,14 @@ private struct GeneralTab: View {
             Toggle("Auto-capture screenshots to clipboard", isOn: $settings.captureScreenshots)
 
             Toggle("Extract text from images (OCR)", isOn: $settings.enableOCR)
+                .onChange(of: settingsStore.enableOCR) { _, newValue in
+                    if newValue { historyStore.scanForOCR() }
+                }
+
+            Toggle("Detect QR codes and barcodes in images", isOn: $settings.enableQRDetection)
+                .onChange(of: settingsStore.enableQRDetection) { _, newValue in
+                    if newValue { historyStore.scanForBarcodes() }
+                }
 
             HStack {
                 Picker("Capture sound:", selection: $settings.captureSound) {

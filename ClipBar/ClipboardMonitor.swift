@@ -158,6 +158,12 @@ class ClipboardMonitor {
                         historyStore?.update(id: id, ocrText: text)
                     }
                 }
+                if settingsStore.enableQRDetection {
+                    QRService.detectBarcode(from: data) { [weak historyStore] value in
+                        guard let value else { return }
+                        historyStore?.update(id: id, detectedBarcode: value)
+                    }
+                }
                 didCapture(contentType: .image, sourceApp: sourceAppBundleID)
                 return
             }

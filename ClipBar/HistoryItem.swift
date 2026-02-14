@@ -10,6 +10,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
     var colorComponents: [Double]?
     var sourceAppBundleID: String?
     var ocrText: String?
+    var detectedBarcode: String?
 
     init(
         id: UUID = UUID(),
@@ -20,7 +21,8 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         fileURLs: [String]? = nil,
         colorComponents: [Double]? = nil,
         sourceAppBundleID: String? = nil,
-        ocrText: String? = nil
+        ocrText: String? = nil,
+        detectedBarcode: String? = nil
     ) {
         self.id = id
         self.value = value
@@ -31,6 +33,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         self.colorComponents = colorComponents
         self.sourceAppBundleID = sourceAppBundleID
         self.ocrText = ocrText
+        self.detectedBarcode = detectedBarcode
     }
 
     // Backward-compatible decoder: defaults contentType to .text when missing
@@ -45,6 +48,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         colorComponents = try container.decodeIfPresent([Double].self, forKey: .colorComponents)
         sourceAppBundleID = try container.decodeIfPresent(String.self, forKey: .sourceAppBundleID)
         ocrText = try container.decodeIfPresent(String.self, forKey: .ocrText)
+        detectedBarcode = try container.decodeIfPresent(String.self, forKey: .detectedBarcode)
     }
 
     var preview: String {

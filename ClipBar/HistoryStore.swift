@@ -49,6 +49,12 @@ class HistoryStore {
         save()
     }
 
+    func update(id: UUID, detectedBarcode: String) {
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].detectedBarcode = detectedBarcode
+        save()
+    }
+
     func delete(_ item: HistoryItem) {
         if let blob = item.blobFile { BlobStorage.delete(blob) }
         items.removeAll { $0.id == item.id }
@@ -61,6 +67,30 @@ class HistoryStore {
         }
         items.removeAll()
         save()
+    }
+
+    func scanForOCR() {
+        for item in items where item.contentType == .image && item.ocrText == nil {
+            if let blob = item.blobFile, let data = BlobStorage.load(blob) {
+                let id = item.id
+                OCRService.extractText(from: data) { [weak self] text in
+                    guard let text else { return }
+                    self?.update(id: id, ocrText: text)
+                }
+            }
+        }
+    }
+
+    func scanForBarcodes() {
+        for item in items where item.contentType == .image && item.detectedBarcode == nil {
+            if let blob = item.blobFile, let data = BlobStorage.load(blob) {
+                let id = item.id
+                QRService.detectBarcode(from: data) { [weak self] value in
+                    guard let value else { return }
+                    self?.update(id: id, detectedBarcode: value)
+                }
+            }
+        }
     }
 
     func trimToLimit() {

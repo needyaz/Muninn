@@ -274,6 +274,7 @@ struct PopoverContentView: View {
                     return item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false
                 default:
                     return item.preview.lowercased().contains(q)
+                        || (settingsStore.enableQRDetection && (item.detectedBarcode?.lowercased().contains(q) ?? false))
                 }
             }
         }
@@ -683,6 +684,8 @@ class AppIconCache {
 // MARK: - History row with delete on hover
 
 private struct HistoryRow: View {
+    @Environment(SettingsStore.self) private var settingsStore
+
     let item: HistoryItem
     var isSelected: Bool = false
     var showRichPreview: Bool = false
@@ -771,12 +774,29 @@ private struct HistoryRow: View {
                 }
             }
         }
-        .if(item.contentType == .image && item.ocrText != nil) { view in
+        .if(item.contentType == .image && ((settingsStore.enableOCR && item.ocrText != nil) || (settingsStore.enableQRDetection && item.detectedBarcode != nil))) { view in
             view.contextMenu {
-                Button("Copy Text") {
-                    let pasteboard = NSPasteboard.general
-                    pasteboard.clearContents()
-                    pasteboard.setString(item.ocrText!, forType: .string)
+                if settingsStore.enableOCR, item.ocrText != nil {
+                    Button("Copy Text") {
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(item.ocrText!, forType: .string)
+                    }
+                }
+                if settingsStore.enableQRDetection, let barcode = item.detectedBarcode {
+                    let isURL = barcode.hasPrefix("http://") || barcode.hasPrefix("https://")
+                    Button(isURL ? "Copy Link" : "Copy Code") {
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(barcode, forType: .string)
+                    }
+                    if isURL {
+                        Button("Open in Browser") {
+                            if let url = URL(string: barcode) {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -802,11 +822,30 @@ private struct HistoryRow: View {
                                 .font(.caption)
                         }
                     }
-                    if let ocrText = item.ocrText {
+                    if settingsStore.enableOCR, let ocrText = item.ocrText {
                         Text(ocrText)
                             .lineLimit(isHovered ? 3 : 1)
                             .font(.caption)
                             .foregroundStyle(.tertiary)
+                    }
+                    if settingsStore.enableQRDetection, let barcode = item.detectedBarcode {
+                        let isURL = barcode.hasPrefix("http://") || barcode.hasPrefix("https://")
+                        Button {
+                            let pasteboard = NSPasteboard.general
+                            pasteboard.clearContents()
+                            pasteboard.setString(barcode, forType: .string)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: isURL ? "link" : "barcode")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                                Text(barcode)
+                                    .lineLimit(1)
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             } else {

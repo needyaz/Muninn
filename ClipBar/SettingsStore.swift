@@ -30,6 +30,10 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(enableOCR, forKey: "enableOCR") }
     }
 
+    var enableQRDetection: Bool {
+        didSet { UserDefaults.standard.set(enableQRDetection, forKey: "enableQRDetection") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [
@@ -40,6 +44,7 @@ class SettingsStore {
             "captureSound": "",
             "captureScreenshots": false,
             "enableOCR": false,
+            "enableQRDetection": false,
         ])
         historyLimit = defaults.integer(forKey: "historyLimit")
         pasteAsPlainText = defaults.bool(forKey: "pasteAsPlainText")
@@ -48,5 +53,6 @@ class SettingsStore {
         captureSound = defaults.string(forKey: "captureSound") ?? ""
         captureScreenshots = defaults.bool(forKey: "captureScreenshots")
         enableOCR = defaults.bool(forKey: "enableOCR")
+        enableQRDetection = defaults.bool(forKey: "enableQRDetection")
     }
 }
