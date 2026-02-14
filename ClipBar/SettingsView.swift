@@ -45,6 +45,8 @@ private struct GeneralTab: View {
 
             Toggle("Auto-capture screenshots to clipboard", isOn: $settings.captureScreenshots)
 
+            Toggle("Extract text from images (OCR)", isOn: $settings.enableOCR)
+
             HStack {
                 Picker("Capture sound:", selection: $settings.captureSound) {
                     Text("None").tag("")

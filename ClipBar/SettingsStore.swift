@@ -26,6 +26,10 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(captureScreenshots, forKey: "captureScreenshots") }
     }
 
+    var enableOCR: Bool {
+        didSet { UserDefaults.standard.set(enableOCR, forKey: "enableOCR") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [
@@ -35,6 +39,7 @@ class SettingsStore {
             "enableRichPreviews": true,
             "captureSound": "",
             "captureScreenshots": false,
+            "enableOCR": false,
         ])
         historyLimit = defaults.integer(forKey: "historyLimit")
         pasteAsPlainText = defaults.bool(forKey: "pasteAsPlainText")
@@ -42,5 +47,6 @@ class SettingsStore {
         enableRichPreviews = defaults.bool(forKey: "enableRichPreviews")
         captureSound = defaults.string(forKey: "captureSound") ?? ""
         captureScreenshots = defaults.bool(forKey: "captureScreenshots")
+        enableOCR = defaults.bool(forKey: "enableOCR")
     }
 }

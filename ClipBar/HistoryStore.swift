@@ -43,6 +43,12 @@ class HistoryStore {
         save()
     }
 
+    func update(id: UUID, ocrText: String) {
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].ocrText = ocrText
+        save()
+    }
+
     func delete(_ item: HistoryItem) {
         if let blob = item.blobFile { BlobStorage.delete(blob) }
         items.removeAll { $0.id == item.id }

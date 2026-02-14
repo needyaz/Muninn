@@ -771,6 +771,15 @@ private struct HistoryRow: View {
                 }
             }
         }
+        .if(item.contentType == .image && item.ocrText != nil) { view in
+            view.contextMenu {
+                Button("Copy Text") {
+                    let pasteboard = NSPasteboard.general
+                    pasteboard.clearContents()
+                    pasteboard.setString(item.ocrText!, forType: .string)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -779,17 +788,25 @@ private struct HistoryRow: View {
         case .image:
             if let blob = item.blobFile, let data = BlobStorage.load(blob),
                let nsImage = NSImage(data: data) {
-                HStack(spacing: 6) {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
-                        .animation(.easeInOut(duration: 0.15), value: isHovered)
-                    if let name = item.value {
-                        Text(name)
-                            .lineLimit(1)
-                            .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
+                            .animation(.easeInOut(duration: 0.15), value: isHovered)
+                        if let name = item.value {
+                            Text(name)
+                                .lineLimit(1)
+                                .foregroundStyle(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    if let ocrText = item.ocrText {
+                        Text(ocrText)
+                            .lineLimit(isHovered ? 3 : 1)
                             .font(.caption)
+                            .foregroundStyle(.tertiary)
                     }
                 }
             } else {

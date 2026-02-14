@@ -152,6 +152,12 @@ class ClipboardMonitor {
                     sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
+                if settingsStore.enableOCR {
+                    OCRService.extractText(from: data) { [weak historyStore] text in
+                        guard let text else { return }
+                        historyStore?.update(id: id, ocrText: text)
+                    }
+                }
                 didCapture(contentType: .image, sourceApp: sourceAppBundleID)
                 return
             }
