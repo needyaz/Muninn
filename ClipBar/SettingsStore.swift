@@ -34,6 +34,10 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(enableQRDetection, forKey: "enableQRDetection") }
     }
 
+    var popoverHeight: Double {
+        didSet { UserDefaults.standard.set(popoverHeight, forKey: "popoverHeight") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [
@@ -45,6 +49,7 @@ class SettingsStore {
             "captureScreenshots": false,
             "enableOCR": false,
             "enableQRDetection": false,
+            "popoverHeight": 400.0,
         ])
         historyLimit = defaults.integer(forKey: "historyLimit")
         pasteAsPlainText = defaults.bool(forKey: "pasteAsPlainText")
@@ -54,5 +59,6 @@ class SettingsStore {
         captureScreenshots = defaults.bool(forKey: "captureScreenshots")
         enableOCR = defaults.bool(forKey: "enableOCR")
         enableQRDetection = defaults.bool(forKey: "enableQRDetection")
+        popoverHeight = defaults.double(forKey: "popoverHeight")
     }
 }

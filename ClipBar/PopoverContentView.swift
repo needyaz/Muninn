@@ -14,6 +14,8 @@ struct PopoverContentView: View {
     @State private var contentTypeFilter: ClipboardContentType?
     @State private var selectedIndex: Int?
     @State private var eventMonitor: Any?
+    @State private var mouseEventMonitor: Any?
+    @State private var resizeDrag = ResizeDragState()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -138,7 +140,7 @@ struct PopoverContentView: View {
                         }
                     }
                 }
-                .frame(maxHeight: 400)
+                .frame(height: settingsStore.popoverHeight)
                 .onChange(of: selectedIndex) { _, newValue in
                     if let idx = newValue {
                         withAnimation {
@@ -148,6 +150,25 @@ struct PopoverContentView: View {
                 }
             }
 
+            // Resize handle
+            Divider()
+            HStack {
+                Spacer()
+                Capsule()
+                    .fill(Color.secondary.opacity(0.4))
+                    .frame(width: 36, height: 4)
+                Spacer()
+            }
+            .frame(height: 12)
+            .contentShape(Rectangle())
+            .onHover { hovering in
+                resizeDrag.isHovering = hovering
+                if hovering {
+                    NSCursor.resizeUpDown.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
             Divider()
 
             // Footer
@@ -216,9 +237,11 @@ struct PopoverContentView: View {
         .onAppear {
             previousApp = NSWorkspace.shared.frontmostApplication
             installKeyMonitor()
+            installMouseMonitor()
         }
         .onDisappear {
             removeKeyMonitor()
+            removeMouseMonitor()
         }
     }
 
@@ -505,6 +528,45 @@ struct PopoverContentView: View {
         if hours < 24 { return "\(hours)h" }
         let days = hours / 24
         return "\(days)d"
+    }
+
+    // MARK: - Resize drag via mouse monitor
+
+    private func installMouseMonitor() {
+        let drag = resizeDrag
+        let settings = settingsStore
+        mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp]) { event in
+            switch event.type {
+            case .leftMouseDown:
+                if drag.isHovering {
+                    drag.startY = NSEvent.mouseLocation.y
+                    drag.startHeight = settings.popoverHeight
+                    return nil
+                }
+            case .leftMouseDragged:
+                if let startY = drag.startY, let startH = drag.startHeight {
+                    let delta = startY - NSEvent.mouseLocation.y
+                    settings.popoverHeight = max(200, min(800, startH + delta))
+                    return nil
+                }
+            case .leftMouseUp:
+                if drag.startY != nil {
+                    drag.startY = nil
+                    drag.startHeight = nil
+                    return nil
+                }
+            default:
+                break
+            }
+            return event
+        }
+    }
+
+    private func removeMouseMonitor() {
+        if let monitor = mouseEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseEventMonitor = nil
+        }
     }
 
     // MARK: - Keyboard Navigation
@@ -900,6 +962,14 @@ private struct HistoryRow: View {
                 .lineLimit(1)
         }
     }
+}
+
+// MARK: - Resize drag state
+
+private class ResizeDragState {
+    var isHovering = false
+    var startY: CGFloat?
+    var startHeight: Double?
 }
 
 // MARK: - Hover effect
