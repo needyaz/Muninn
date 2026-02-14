@@ -88,6 +88,67 @@ ClipBar exposes actions to the macOS Shortcuts app via AppIntents:
 
 All actions appear in Shortcuts.app with suggested phrases for Siri.
 
+### Rich Previews
+
+When enabled, hovering over history items reveals expanded previews:
+
+- **Images** — thumbnail grows from 32pt to 120pt on hover, shows filename
+- **Colors** — displays hex code alongside the color swatch
+- **Files** — image file thumbnails expand on hover
+
+Toggle in Settings > General > "Show rich previews."
+
+### Screenshot Capture
+
+Automatically captures macOS screenshots (Cmd+Shift+3/4/5) into clipboard history without needing to manually copy them. Uses macOS metadata queries to detect new screenshots as they're saved.
+
+Toggle in Settings > General > "Auto-capture screenshots to clipboard."
+
+### OCR Text Extraction
+
+Extracts readable text from images using Apple's Vision framework:
+
+- Text is extracted automatically as images are captured
+- Enabling the feature retroactively scans existing image history
+- Extracted text appears below the image preview on hover
+- Right-click an image to **Copy Text**
+- OCR text is searchable via the search bar
+
+Toggle in Settings > General > "Extract text from images (OCR)."
+
+### QR Code and Barcode Detection
+
+Detects QR codes and barcodes in images and extracts their content:
+
+- Supports QR, EAN-13, EAN-8, Code 128, Code 39, and UPC-E
+- Enabling the feature retroactively scans existing image history
+- Detected codes appear below the image preview with a link or barcode icon
+- Right-click to **Copy Link** / **Copy Code**, or **Open in Browser** for URLs
+- Detected codes are searchable via the search bar
+
+Toggle in Settings > General > "Detect QR codes and barcodes in images."
+
+### Capture Sounds
+
+Play a system sound each time content is captured to the clipboard. Choose from 12 built-in macOS sounds (Tink, Pop, Glass, Bottle, Frog, Funk, Ping, Purr, Submarine, Wobble, Basso, Blow) or disable. A preview button lets you hear the sound before selecting it.
+
+Configure in Settings > General > "Capture sound."
+
+### Clipboard Stats
+
+A statistics dashboard tracking your clipboard activity:
+
+- **Overview** — total copies, content type breakdown, source app count
+- **Type chart** — bar chart of copies by content type
+- **Top source apps** — most-used apps with icons and counts
+- **Activity heatmap** — 13-week calendar showing daily copy intensity
+
+Access via Settings > Stats. Statistics can be reset at any time.
+
+### Resizable Popover
+
+Drag the handle at the bottom of the popover to make it taller or shorter (200–800pt). The size is remembered across sessions.
+
 ### Settings
 
 - **History limit** — 25, 50, 100, 200, or 500 items
@@ -95,6 +156,12 @@ All actions appear in Shortcuts.app with suggested phrases for Siri.
 - **Global shortcut** — set a keyboard shortcut to toggle ClipBar
 - **Excluded apps** — choose which apps to ignore
 - **Excluded types** — choose which content types to ignore
+- **Rich previews** — expanded previews on hover
+- **Screenshot capture** — auto-capture macOS screenshots
+- **OCR** — extract text from images
+- **QR/barcode detection** — detect codes in images
+- **Capture sound** — audio feedback on clipboard capture
+- **Stats** — clipboard activity dashboard
 
 ### Import / Export
 
@@ -117,7 +184,7 @@ All data is stored locally in `~/Library/Application Support/ClipBar/`:
 | `excluded_types.json` | Excluded content types |
 | `blobs/` | Binary data for images, PDFs, and rich text |
 
-Settings (history limit, plain text mode) are stored in `UserDefaults`.
+Settings (history limit, plain text mode, rich previews, capture sound, screenshot capture, OCR, QR detection, popover height) are stored in `UserDefaults`.
 
 ## Building
 
