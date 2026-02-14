@@ -84,8 +84,18 @@ class ClipboardMonitor {
         }
         selfCopyChangeCount = nil
 
-        // Capture source app bundle ID
-        let sourceAppBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        // Capture source app bundle ID and screenshot filename
+        let sourceAppBundleID: String?
+        let screenshotFilename: String?
+        if current == ScreenshotMonitor.lastScreenshotChangeCount {
+            sourceAppBundleID = "com.apple.Screenshot"
+            screenshotFilename = ScreenshotMonitor.lastScreenshotFilename
+            ScreenshotMonitor.lastScreenshotChangeCount = nil
+            ScreenshotMonitor.lastScreenshotFilename = nil
+        } else {
+            sourceAppBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            screenshotFilename = nil
+        }
 
         // Skip if frontmost app is excluded
         if let bundleID = sourceAppBundleID,
@@ -136,6 +146,7 @@ class ClipboardMonitor {
                 let blobFile = BlobStorage.save(data, id: id, ext: ext)
                 let item = HistoryItem(
                     id: id,
+                    value: screenshotFilename,
                     contentType: .image,
                     blobFile: blobFile,
                     sourceAppBundleID: sourceAppBundleID

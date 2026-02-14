@@ -43,6 +43,8 @@ private struct GeneralTab: View {
 
             Toggle("Track clipboard statistics", isOn: $settings.enableStats)
 
+            Toggle("Auto-capture screenshots to clipboard", isOn: $settings.captureScreenshots)
+
             HStack {
                 Picker("Capture sound:", selection: $settings.captureSound) {
                     Text("None").tag("")

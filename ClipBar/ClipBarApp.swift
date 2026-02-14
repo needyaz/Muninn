@@ -14,6 +14,7 @@ struct ClipBarApp: App {
     @State private var excludedTypesStore: ExcludedTypesStore
     @State private var statsStore: StatsStore
     @State private var monitor: ClipboardMonitor?
+    @State private var screenshotMonitor: ScreenshotMonitor?
 
     init() {
         StoragePaths.migrateIfNeeded()
@@ -41,6 +42,11 @@ struct ClipBarApp: App {
                         let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore, settingsStore: settingsStore, statsStore: statsStore)
                         m.start()
                         monitor = m
+
+                        let sm = ScreenshotMonitor(settingsStore: settingsStore)
+                        sm.start()
+                        screenshotMonitor = sm
+
                         setupGlobalHotkey()
                         observeHistoryLimitChanges()
                     }

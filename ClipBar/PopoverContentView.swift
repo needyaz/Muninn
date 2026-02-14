@@ -67,7 +67,7 @@ struct PopoverContentView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         // Snippets section
                         if !filteredClips.isEmpty {
-                            sectionHeader("SNIPPETS")
+                            snippetsSectionHeader()
                             ForEach(Array(filteredClips.enumerated()), id: \.element.id) { idx, clip in
                                 let globalIdx = idx
                                 Button {
@@ -152,18 +152,6 @@ struct PopoverContentView: View {
 
             // Footer
             HStack {
-                Button {
-                    openWindow(id: "editor")
-                    NSApp.activate(ignoringOtherApps: true)
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .tooltip("Edit Clips")
-
-                Spacer()
-
                 // Pause / Resume
                 if monitor.isPaused {
                     Button {
@@ -330,6 +318,29 @@ struct PopoverContentView: View {
             .padding(.horizontal, 10)
             .padding(.top, 8)
             .padding(.bottom, 4)
+    }
+
+    private func snippetsSectionHeader() -> some View {
+        HStack {
+            Text("SNIPPETS")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button {
+                openWindow(id: "editor")
+                NSApp.activate(ignoringOtherApps: true)
+            } label: {
+                Image(systemName: "square.and.pencil")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .tooltip("Edit Clips")
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 
     private func pinItem(_ item: HistoryItem) {
@@ -572,9 +583,12 @@ struct PopoverContentView: View {
                 provider.registerObject(value as NSString, visibility: .all)
             }
         case .image:
-            if let blob = blobFile, let data = BlobStorage.load(blob),
-               let image = NSImage(data: data) {
-                provider.registerObject(image, visibility: .all)
+            if let blob = blobFile, let data = BlobStorage.load(blob) {
+                let ext = (blob as NSString).pathExtension
+                let filename = value ?? "Image.\(ext)"
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                try? data.write(to: tempURL, options: .atomic)
+                provider.registerObject(tempURL as NSURL, visibility: .all)
             }
         case .pdf:
             if let blob = blobFile, let data = BlobStorage.load(blob) {
@@ -765,13 +779,21 @@ private struct HistoryRow: View {
         case .image:
             if let blob = item.blobFile, let data = BlobStorage.load(blob),
                let nsImage = NSImage(data: data) {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
-                    .animation(.easeInOut(duration: 0.15), value: isHovered)
+                HStack(spacing: 6) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
+                        .animation(.easeInOut(duration: 0.15), value: isHovered)
+                    if let name = item.value {
+                        Text(name)
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                    }
+                }
             } else {
-                Label("Image", systemImage: "photo")
+                Label(item.value ?? "Image", systemImage: "photo")
                     .lineLimit(1)
             }
         case .pdf:

@@ -22,6 +22,10 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(captureSound, forKey: "captureSound") }
     }
 
+    var captureScreenshots: Bool {
+        didSet { UserDefaults.standard.set(captureScreenshots, forKey: "captureScreenshots") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [
@@ -30,11 +34,13 @@ class SettingsStore {
             "enableStats": true,
             "enableRichPreviews": true,
             "captureSound": "",
+            "captureScreenshots": false,
         ])
         historyLimit = defaults.integer(forKey: "historyLimit")
         pasteAsPlainText = defaults.bool(forKey: "pasteAsPlainText")
         enableStats = defaults.bool(forKey: "enableStats")
         enableRichPreviews = defaults.bool(forKey: "enableRichPreviews")
         captureSound = defaults.string(forKey: "captureSound") ?? ""
+        captureScreenshots = defaults.bool(forKey: "captureScreenshots")
     }
 }

@@ -46,7 +46,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
     var preview: String {
         switch contentType {
         case .image:
-            return "Image"
+            return value ?? "Image"
         case .pdf:
             return "PDF Document"
         case .fileURL:
