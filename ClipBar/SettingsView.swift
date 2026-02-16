@@ -56,6 +56,13 @@ private struct GeneralTab: View {
                     if newValue { historyStore.scanForBarcodes() }
                 }
 
+            Picker("Sensitive content:", selection: $settings.sensitiveHandling) {
+                Text("Don't record").tag("skip")
+                Text("Record masked").tag("mask")
+                Text("Record normally").tag("allow")
+            }
+            .help("How to handle passwords and other sensitive clipboard items from password managers")
+
             HStack {
                 Picker("Capture sound:", selection: $settings.captureSound) {
                     Text("None").tag("")

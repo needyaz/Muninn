@@ -38,6 +38,11 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(popoverHeight, forKey: "popoverHeight") }
     }
 
+    /// "skip" = don't record, "mask" = record but hide preview, "allow" = record normally
+    var sensitiveHandling: String {
+        didSet { UserDefaults.standard.set(sensitiveHandling, forKey: "sensitiveHandling") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [
@@ -50,6 +55,7 @@ class SettingsStore {
             "enableOCR": false,
             "enableQRDetection": false,
             "popoverHeight": 400.0,
+            "sensitiveHandling": "skip",
         ])
         historyLimit = defaults.integer(forKey: "historyLimit")
         pasteAsPlainText = defaults.bool(forKey: "pasteAsPlainText")
@@ -60,5 +66,6 @@ class SettingsStore {
         enableOCR = defaults.bool(forKey: "enableOCR")
         enableQRDetection = defaults.bool(forKey: "enableQRDetection")
         popoverHeight = defaults.double(forKey: "popoverHeight")
+        sensitiveHandling = defaults.string(forKey: "sensitiveHandling") ?? "skip"
     }
 }

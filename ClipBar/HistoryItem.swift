@@ -11,6 +11,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
     var sourceAppBundleID: String?
     var ocrText: String?
     var detectedBarcode: String?
+    var isSensitive: Bool?
 
     init(
         id: UUID = UUID(),
@@ -22,7 +23,8 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         colorComponents: [Double]? = nil,
         sourceAppBundleID: String? = nil,
         ocrText: String? = nil,
-        detectedBarcode: String? = nil
+        detectedBarcode: String? = nil,
+        isSensitive: Bool? = nil
     ) {
         self.id = id
         self.value = value
@@ -34,6 +36,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         self.sourceAppBundleID = sourceAppBundleID
         self.ocrText = ocrText
         self.detectedBarcode = detectedBarcode
+        self.isSensitive = isSensitive
     }
 
     // Backward-compatible decoder: defaults contentType to .text when missing
@@ -49,9 +52,13 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         sourceAppBundleID = try container.decodeIfPresent(String.self, forKey: .sourceAppBundleID)
         ocrText = try container.decodeIfPresent(String.self, forKey: .ocrText)
         detectedBarcode = try container.decodeIfPresent(String.self, forKey: .detectedBarcode)
+        isSensitive = try container.decodeIfPresent(Bool.self, forKey: .isSensitive)
     }
 
     var preview: String {
+        if isSensitive == true {
+            return "Sensitive content"
+        }
         switch contentType {
         case .image:
             return ocrText ?? value ?? "Image"
