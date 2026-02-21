@@ -3,3 +3,4 @@ xcuserdata/
 *.xcworkspace/
 build/
 DerivedData/
+.claude/
