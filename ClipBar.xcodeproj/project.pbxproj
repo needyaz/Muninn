@@ -51,6 +51,7 @@
 		T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000C00000000000000C; };
 		T1000000D00000000000000D /* OCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000D00000000000000D; };
 		T1000000E00000000000000E /* QRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000E00000000000000E; };
+		T1000000F00000000000000F /* DataPorterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000F00000000000000F; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -111,6 +112,7 @@
 		T2000000C00000000000000C /* FormatRelativeTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatRelativeTimeTests.swift; sourceTree = "<group>"; };
 		T2000000D00000000000000D /* OCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRServiceTests.swift; sourceTree = "<group>"; };
 		T2000000E00000000000000E /* QRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRServiceTests.swift; sourceTree = "<group>"; };
+		T2000000F00000000000000F /* DataPorterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorterTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -224,6 +226,7 @@
 				T2000000C00000000000000C /* FormatRelativeTimeTests.swift */,
 				T2000000D00000000000000D /* OCRServiceTests.swift */,
 				T2000000E00000000000000E /* QRServiceTests.swift */,
+				T2000000F00000000000000F /* DataPorterTests.swift */,
 			);
 			path = ClipBarTests;
 			sourceTree = "<group>";
@@ -354,6 +357,7 @@
 				T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */,
 				T1000000D00000000000000D /* OCRServiceTests.swift in Sources */,
 				T1000000E00000000000000E /* QRServiceTests.swift in Sources */,
+				T1000000F00000000000000F /* DataPorterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

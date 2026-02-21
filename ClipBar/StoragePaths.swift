@@ -1,18 +1,25 @@
 import Foundation
 
 enum StoragePaths {
-    static let base: URL = {
+    static var baseOverride: URL? = nil
+
+    static var base: URL {
+        if let override = baseOverride { return override }
+        return _base
+    }
+
+    private static let _base: URL = {
         let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appendingPathComponent("ClipBar", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }()
 
-    static let blobs: URL = {
+    static var blobs: URL {
         let url = base.appendingPathComponent("blobs", isDirectory: true)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
-    }()
+    }
 
     static func migrateIfNeeded() {
         let fm = FileManager.default
