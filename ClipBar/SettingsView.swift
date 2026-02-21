@@ -133,6 +133,7 @@ private struct ShortcutTab: View {
     var body: some View {
         Form {
             KeyboardShortcuts.Recorder("Toggle ClipBar:", name: .togglePopover)
+            KeyboardShortcuts.Recorder("Snippet Picker:", name: .snippetPicker)
         }
         .formStyle(.grouped)
         .frame(width: 500)

@@ -3,6 +3,7 @@ import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
     static let togglePopover = Self("togglePopover")
+    static let snippetPicker = Self("snippetPicker")
 }
 
 @main
@@ -13,22 +14,35 @@ struct ClipBarApp: App {
     @State private var excludedAppsStore: ExcludedAppsStore
     @State private var excludedTypesStore: ExcludedTypesStore
     @State private var statsStore: StatsStore
-    @State private var monitor: ClipboardMonitor?
-    @State private var screenshotMonitor: ScreenshotMonitor?
+    @State private var monitor: ClipboardMonitor
+    @State private var screenshotMonitor: ScreenshotMonitor
+    @State private var didSetupHotkeys = false
 
     init() {
         StoragePaths.migrateIfNeeded()
         let settings = SettingsStore()
+        let history = HistoryStore(settingsStore: settings)
+        let excludedApps = ExcludedAppsStore()
+        let excludedTypes = ExcludedTypesStore()
+        let stats = StatsStore()
         _settingsStore = State(initialValue: settings)
         _store = State(initialValue: ClipStore())
-        _historyStore = State(initialValue: HistoryStore(settingsStore: settings))
-        _excludedAppsStore = State(initialValue: ExcludedAppsStore())
-        _excludedTypesStore = State(initialValue: ExcludedTypesStore())
-        _statsStore = State(initialValue: StatsStore())
+        _historyStore = State(initialValue: history)
+        _excludedAppsStore = State(initialValue: excludedApps)
+        _excludedTypesStore = State(initialValue: excludedTypes)
+        _statsStore = State(initialValue: stats)
+
+        let m = ClipboardMonitor(historyStore: history, excludedAppsStore: excludedApps, excludedTypesStore: excludedTypes, settingsStore: settings, statsStore: stats)
+        m.start()
+        _monitor = State(initialValue: m)
+
+        let sm = ScreenshotMonitor(settingsStore: settings)
+        sm.start()
+        _screenshotMonitor = State(initialValue: sm)
     }
 
     var body: some Scene {
-        MenuBarExtra("ClipBar", systemImage: monitor?.isPaused == true ? "pause.circle" : "clipboard") {
+        MenuBarExtra("ClipBar", systemImage: monitor.isPaused ? "pause.circle" : "clipboard") {
             PopoverContentView()
                 .environment(settingsStore)
                 .environment(store)
@@ -36,20 +50,12 @@ struct ClipBarApp: App {
                 .environment(excludedAppsStore)
                 .environment(excludedTypesStore)
                 .environment(statsStore)
-                .environment(monitor ?? ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore, settingsStore: settingsStore, statsStore: statsStore))
+                .environment(monitor)
                 .onAppear {
-                    if monitor == nil {
-                        let m = ClipboardMonitor(historyStore: historyStore, excludedAppsStore: excludedAppsStore, excludedTypesStore: excludedTypesStore, settingsStore: settingsStore, statsStore: statsStore)
-                        m.start()
-                        monitor = m
-
-                        let sm = ScreenshotMonitor(settingsStore: settingsStore)
-                        sm.start()
-                        screenshotMonitor = sm
-
-                        setupGlobalHotkey()
-                        observeHistoryLimitChanges()
-                    }
+                    guard !didSetupHotkeys else { return }
+                    didSetupHotkeys = true
+                    setupGlobalHotkey()
+                    observeHistoryLimitChanges()
                 }
         }
         .menuBarExtraStyle(.window)
@@ -75,6 +81,13 @@ struct ClipBarApp: App {
     private func setupGlobalHotkey() {
         KeyboardShortcuts.onKeyUp(for: .togglePopover) {
             toggleMenuBarPopover()
+        }
+        KeyboardShortcuts.onKeyUp(for: .snippetPicker) {
+            SnippetPickerPanel.shared.toggle(
+                clipStore: store,
+                settingsStore: settingsStore,
+                monitor: monitor
+            )
         }
     }
 

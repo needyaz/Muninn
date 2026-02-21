@@ -8,7 +8,7 @@ Requires macOS 14.0 or later.
 
 ### Clipboard History
 
-ClipBar monitors your clipboard in the background and records everything you copy. Supported content types:
+ClipBar monitors your clipboard in the background and records everything you copy. Monitoring starts immediately at launch — no interaction required. Supported content types:
 
 - **Text** — plain text, with optional RTF and HTML formatting preserved
 - **Images** — PNG and TIFF
@@ -24,6 +24,25 @@ Save frequently used clips as named snippets for instant access. Snippets appear
 
 - **Pin from history** — hover over any history item and click the pin icon to save it as a snippet
 - **Create manually** — open the clip editor to add, rename, reorder, or delete snippets
+
+### Snippet Picker
+
+A floating panel for quickly searching and pasting snippets without opening the main popover. Trigger it with a configurable global hotkey (set in Settings > Shortcuts).
+
+- **Search** — type to filter snippets by name or content
+- **Cmd+1–9** — quick-select the first nine results
+- **Arrow keys + Enter** — navigate and paste
+- **Escape** — dismiss
+
+The selected snippet is copied to your clipboard and focus returns to the previous app.
+
+### Sensitive Content Handling
+
+ClipBar detects sensitive clipboard content from password managers and other apps that use the `org.nspasteboard.ConcealedType` convention. Configure how these entries are handled in Settings > General > "Sensitive clipboard content":
+
+- **Allow** — capture normally, no special treatment
+- **Skip** — ignore entirely, nothing is recorded
+- **Mask** — record the value but hide the preview behind a "Sensitive content" label
 
 ### Search and Filtering
 
@@ -48,6 +67,7 @@ Selecting a transform copies the transformed text to your clipboard and pastes i
 - **Enter** — paste the selected item
 - **Escape** — close the popover
 - **Global hotkey** — configurable shortcut to toggle ClipBar from anywhere
+- **Snippet picker hotkey** — configurable shortcut to open the floating snippet picker
 
 ### Drag and Drop
 
@@ -154,6 +174,8 @@ Drag the handle at the bottom of the popover to make it taller or shorter (200�
 - **History limit** — 25, 50, 100, 200, or 500 items
 - **Paste as plain text** — strip formatting by default
 - **Global shortcut** — set a keyboard shortcut to toggle ClipBar
+- **Snippet picker shortcut** — set a keyboard shortcut for the floating snippet picker
+- **Sensitive content** — choose how password manager entries are handled (allow, skip, or mask)
 - **Excluded apps** — choose which apps to ignore
 - **Excluded types** — choose which content types to ignore
 - **Rich previews** — expanded previews on hover
