@@ -34,8 +34,33 @@
 		A1000001A00000000000001A /* QRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001A00000000000001A; };
 		A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001B00000000000001B; };
 		A1000001C00000000000001C /* SnippetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001C00000000000001C; };
+		A1000001D00000000000001D /* TextTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001D00000000000001D; };
 		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001; };
+		T10000010000000000000001 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000001; };
+		T10000020000000000000002 /* ClipboardContentTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000020000000000000002; };
+		T10000030000000000000003 /* ClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000030000000000000003; };
+		T10000040000000000000004 /* HistoryItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000040000000000000004; };
+		T10000050000000000000005 /* BlobStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000050000000000000005; };
+		T10000060000000000000006 /* ClipStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000060000000000000006; };
+		T10000070000000000000007 /* HistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000070000000000000007; };
+		T10000080000000000000008 /* ExcludedAppsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000080000000000000008; };
+		T10000090000000000000009 /* ExcludedTypesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000090000000000000009; };
+		T1000000A00000000000000A /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000A00000000000000A; };
+		T1000000B00000000000000B /* TextTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000B00000000000000B; };
+		T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000C00000000000000C; };
+		T1000000D00000000000000D /* OCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000D00000000000000D; };
+		T1000000E00000000000000E /* QRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000E00000000000000E; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D10000010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90000010000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A60000010000000000000001;
+			remoteInfo = ClipBar;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A20000010000000000000001 /* ClipBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipBarApp.swift; sourceTree = "<group>"; };
@@ -67,7 +92,23 @@
 		A2000001A00000000000001A /* QRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRService.swift; sourceTree = "<group>"; };
 		A2000001B00000000000001B /* SnippetPickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerPanel.swift; sourceTree = "<group>"; };
 		A2000001C00000000000001C /* SnippetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerView.swift; sourceTree = "<group>"; };
+		A2000001D00000000000001D /* TextTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransform.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* ClipBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30000020000000000000002 /* ClipBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		T20000010000000000000001 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
+		T20000020000000000000002 /* ClipboardContentTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentTypeTests.swift; sourceTree = "<group>"; };
+		T20000030000000000000003 /* ClipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipTests.swift; sourceTree = "<group>"; };
+		T20000040000000000000004 /* HistoryItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryItemTests.swift; sourceTree = "<group>"; };
+		T20000050000000000000005 /* BlobStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobStorageTests.swift; sourceTree = "<group>"; };
+		T20000060000000000000006 /* ClipStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStoreTests.swift; sourceTree = "<group>"; };
+		T20000070000000000000007 /* HistoryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStoreTests.swift; sourceTree = "<group>"; };
+		T20000080000000000000008 /* ExcludedAppsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedAppsStoreTests.swift; sourceTree = "<group>"; };
+		T20000090000000000000009 /* ExcludedTypesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedTypesStoreTests.swift; sourceTree = "<group>"; };
+		T2000000A00000000000000A /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
+		T2000000B00000000000000B /* TextTransformTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformTests.swift; sourceTree = "<group>"; };
+		T2000000C00000000000000C /* FormatRelativeTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatRelativeTimeTests.swift; sourceTree = "<group>"; };
+		T2000000D00000000000000D /* OCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRServiceTests.swift; sourceTree = "<group>"; };
+		T2000000E00000000000000E /* QRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +117,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				C30000010000000000000001 /* KeyboardShortcuts in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A40000030000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +138,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A40000040000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -97,6 +152,7 @@
 			isa = PBXGroup;
 			children = (
 				A50000020000000000000002 /* ClipBar */,
+				A50000040000000000000004 /* ClipBarTests */,
 				A50000030000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,6 +186,7 @@
 				A2000001A00000000000001A /* QRService.swift */,
 				A2000001B00000000000001B /* SnippetPickerPanel.swift */,
 				A2000001C00000000000001C /* SnippetPickerView.swift */,
+				A2000001D00000000000001D /* TextTransform.swift */,
 				A2000000G00000000000000G /* ClipBar.entitlements */,
 				A2000000H00000000000000H /* Assets.xcassets */,
 				A20000060000000000000006 /* Info.plist */,
@@ -141,8 +198,30 @@
 			isa = PBXGroup;
 			children = (
 				A30000010000000000000001 /* ClipBar.app */,
+				A30000020000000000000002 /* ClipBarTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A50000040000000000000004 /* ClipBarTests */ = {
+			isa = PBXGroup;
+			children = (
+				T20000010000000000000001 /* TestHelpers.swift */,
+				T20000020000000000000002 /* ClipboardContentTypeTests.swift */,
+				T20000030000000000000003 /* ClipTests.swift */,
+				T20000040000000000000004 /* HistoryItemTests.swift */,
+				T20000050000000000000005 /* BlobStorageTests.swift */,
+				T20000060000000000000006 /* ClipStoreTests.swift */,
+				T20000070000000000000007 /* HistoryStoreTests.swift */,
+				T20000080000000000000008 /* ExcludedAppsStoreTests.swift */,
+				T20000090000000000000009 /* ExcludedTypesStoreTests.swift */,
+				T2000000A00000000000000A /* StatsStoreTests.swift */,
+				T2000000B00000000000000B /* TextTransformTests.swift */,
+				T2000000C00000000000000C /* FormatRelativeTimeTests.swift */,
+				T2000000D00000000000000D /* OCRServiceTests.swift */,
+				T2000000E00000000000000E /* QRServiceTests.swift */,
+			);
+			path = ClipBarTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -167,6 +246,24 @@
 			productName = ClipBar;
 			productReference = A30000010000000000000001 /* ClipBar.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A60000020000000000000002 /* ClipBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A80000020000000000000002 /* Build configuration list for PBXNativeTarget "ClipBarTests" */;
+			buildPhases = (
+				A70000020000000000000002 /* Sources */,
+				A40000030000000000000003 /* Frameworks */,
+				A40000040000000000000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D20000010000000000000001 /* PBXTargetDependency */,
+			);
+			name = ClipBarTests;
+			productName = ClipBarTests;
+			productReference = A30000020000000000000002 /* ClipBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -195,6 +292,7 @@
 			projectRoot = "";
 			targets = (
 				A60000010000000000000001 /* ClipBar */,
+				A60000020000000000000002 /* ClipBarTests */,
 			);
 		};
 /* End PBXProject section */
@@ -230,10 +328,40 @@
 				A1000001A00000000000001A /* QRService.swift in Sources */,
 				A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */,
 				A1000001C00000000000001C /* SnippetPickerView.swift in Sources */,
+				A1000001D00000000000001D /* TextTransform.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A70000020000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				T10000010000000000000001 /* TestHelpers.swift in Sources */,
+				T10000020000000000000002 /* ClipboardContentTypeTests.swift in Sources */,
+				T10000030000000000000003 /* ClipTests.swift in Sources */,
+				T10000040000000000000004 /* HistoryItemTests.swift in Sources */,
+				T10000050000000000000005 /* BlobStorageTests.swift in Sources */,
+				T10000060000000000000006 /* ClipStoreTests.swift in Sources */,
+				T10000070000000000000007 /* HistoryStoreTests.swift in Sources */,
+				T10000080000000000000008 /* ExcludedAppsStoreTests.swift in Sources */,
+				T10000090000000000000009 /* ExcludedTypesStoreTests.swift in Sources */,
+				T1000000A00000000000000A /* StatsStoreTests.swift in Sources */,
+				T1000000B00000000000000B /* TextTransformTests.swift in Sources */,
+				T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */,
+				T1000000D00000000000000D /* OCRServiceTests.swift in Sources */,
+				T1000000E00000000000000E /* QRServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D20000010000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A60000010000000000000001 /* ClipBar */;
+			targetProxy = D10000010000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B10000010000000000000001 /* Debug */ = {
@@ -271,6 +399,40 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B10000030000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = 593HYW3Y2T;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nate.ClipBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipBar.app/Contents/MacOS/ClipBar";
+			};
+			name = Debug;
+		};
+		B10000040000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = 593HYW3Y2T;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nate.ClipBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipBar.app/Contents/MacOS/ClipBar";
 			};
 			name = Release;
 		};
@@ -323,6 +485,15 @@
 			buildConfigurations = (
 				B10000010000000000000001 /* Debug */,
 				B10000020000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A80000020000000000000002 /* Build configuration list for PBXNativeTarget "ClipBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10000030000000000000003 /* Debug */,
+				B10000040000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

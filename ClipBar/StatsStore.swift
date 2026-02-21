@@ -16,14 +16,15 @@ class StatsStore {
 
     var stats = Stats()
 
-    private let fileURL = StoragePaths.base.appendingPathComponent("stats.json")
+    private let fileURL: URL
     private static let dayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
 
-    init() {
+    init(baseURL: URL = StoragePaths.base) {
+        self.fileURL = baseURL.appendingPathComponent("stats.json")
         load()
     }
 

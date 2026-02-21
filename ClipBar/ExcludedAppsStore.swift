@@ -4,9 +4,10 @@ import Foundation
 class ExcludedAppsStore {
     var excludedBundleIDs: Set<String> = []
 
-    private let fileURL = StoragePaths.base.appendingPathComponent("excluded_apps.json")
+    private let fileURL: URL
 
-    init() {
+    init(baseURL: URL = StoragePaths.base) {
+        self.fileURL = baseURL.appendingPathComponent("excluded_apps.json")
         load()
     }
 

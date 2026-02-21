@@ -140,21 +140,14 @@ struct TransformText: AppIntent {
     var transformation: TextTransformType
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        let result: String
+        let transform: TextTransform
         switch transformation {
-        case .uppercase:
-            result = text.uppercased()
-        case .lowercase:
-            result = text.lowercased()
-        case .capitalize:
-            result = text.capitalized
-        case .trim:
-            result = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        case .removeBlankLines:
-            result = text.components(separatedBy: .newlines)
-                .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-                .joined(separator: "\n")
+        case .uppercase: transform = .uppercase
+        case .lowercase: transform = .lowercase
+        case .capitalize: transform = .capitalize
+        case .trim: transform = .trimWhitespace
+        case .removeBlankLines: transform = .removeBlankLines
         }
-        return .result(value: result)
+        return .result(value: applyTransform(text, transform))
     }
 }

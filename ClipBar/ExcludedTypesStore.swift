@@ -4,9 +4,10 @@ import Foundation
 class ExcludedTypesStore {
     var excludedTypes: Set<ClipboardContentType> = []
 
-    private let fileURL = StoragePaths.base.appendingPathComponent("excluded_types.json")
+    private let fileURL: URL
 
-    init() {
+    init(baseURL: URL = StoragePaths.base) {
+        self.fileURL = baseURL.appendingPathComponent("excluded_types.json")
         load()
     }
 

@@ -1,7 +1,8 @@
 import Foundation
 
 enum BlobStorage {
-    private static let blobDir = StoragePaths.blobs
+    static var blobDirOverride: URL? = nil
+    private static var blobDir: URL { blobDirOverride ?? StoragePaths.blobs }
 
     static func save(_ data: Data, id: UUID, ext: String) -> String {
         let filename = "\(id.uuidString).\(ext)"

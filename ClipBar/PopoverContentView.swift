@@ -528,8 +528,8 @@ struct PopoverContentView: View {
         Self.formatRelativeTime(date)
     }
 
-    static func formatRelativeTime(_ date: Date) -> String {
-        let seconds = Int(Date().timeIntervalSince(date))
+    static func formatRelativeTime(_ date: Date, now: Date = Date()) -> String {
+        let seconds = Int(now.timeIntervalSince(date))
         if seconds < 60 { return "now" }
         let minutes = seconds / 60
         if minutes < 60 { return "\(minutes)m" }
@@ -684,33 +684,6 @@ struct PopoverContentView: View {
             }
         }
         return provider
-    }
-}
-
-// MARK: - Text transforms
-
-private enum TextTransform: String, CaseIterable {
-    case uppercase = "UPPERCASE"
-    case lowercase = "lowercase"
-    case capitalize = "Capitalize Words"
-    case trimWhitespace = "Trim Whitespace"
-    case removeBlankLines = "Remove Blank Lines"
-}
-
-private func applyTransform(_ text: String, _ transform: TextTransform) -> String {
-    switch transform {
-    case .uppercase:
-        return text.uppercased()
-    case .lowercase:
-        return text.lowercased()
-    case .capitalize:
-        return text.capitalized
-    case .trimWhitespace:
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
-    case .removeBlankLines:
-        return text.components(separatedBy: .newlines)
-            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-            .joined(separator: "\n")
     }
 }
 

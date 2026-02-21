@@ -4,9 +4,10 @@ import Foundation
 class ClipStore {
     var clips: [Clip] = []
 
-    private let fileURL = StoragePaths.base.appendingPathComponent("clips.json")
+    private let fileURL: URL
 
-    init() {
+    init(baseURL: URL = StoragePaths.base) {
+        self.fileURL = baseURL.appendingPathComponent("clips.json")
         load()
     }
 

@@ -5,10 +5,11 @@ class HistoryStore {
     var items: [HistoryItem] = []
 
     private let settingsStore: SettingsStore
-    private let fileURL = StoragePaths.base.appendingPathComponent("history.json")
+    private let fileURL: URL
 
-    init(settingsStore: SettingsStore) {
+    init(settingsStore: SettingsStore, baseURL: URL = StoragePaths.base) {
         self.settingsStore = settingsStore
+        self.fileURL = baseURL.appendingPathComponent("history.json")
         load()
     }
 
