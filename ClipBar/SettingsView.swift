@@ -1,4 +1,5 @@
 import SwiftUI
+import ServiceManagement
 import KeyboardShortcuts
 
 struct SettingsView: View {
@@ -24,11 +25,26 @@ private struct GeneralTab: View {
     @Environment(SettingsStore.self) private var settingsStore
     @Environment(HistoryStore.self) private var historyStore
 
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+
     private let limitOptions = [25, 50, 100, 200, 500]
 
     var body: some View {
         @Bindable var settings = settingsStore
         Form {
+            Toggle("Launch at login", isOn: $launchAtLogin)
+                .onChange(of: launchAtLogin) { _, newValue in
+                    do {
+                        if newValue {
+                            try SMAppService.mainApp.register()
+                        } else {
+                            try SMAppService.mainApp.unregister()
+                        }
+                    } catch {
+                        launchAtLogin = SMAppService.mainApp.status == .enabled
+                    }
+                }
+
             Picker("History limit:", selection: $settings.historyLimit) {
                 ForEach(limitOptions, id: \.self) { n in
                     Text("\(n) items").tag(n)

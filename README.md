@@ -171,6 +171,7 @@ Drag the handle at the bottom of the popover to make it taller or shorter (200�
 
 ### Settings
 
+- **Launch at login** — automatically start ClipBar when you log in
 - **History limit** — 25, 50, 100, 200, or 500 items
 - **Paste as plain text** — strip formatting by default
 - **Global shortcut** — set a keyboard shortcut to toggle ClipBar
