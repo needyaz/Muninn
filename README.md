@@ -16,7 +16,7 @@ ClipBar monitors your clipboard in the background and records everything you cop
 - **Files** — file URL references
 - **Colors** — `NSColor` values with full RGBA components
 
-History items show the source app icon, a content preview, and a relative timestamp. Duplicate text entries are automatically deduplicated — recopying the same text moves it to the top instead of creating a new entry.
+History items show the source app icon, a content preview, and a relative timestamp. Duplicate text entries are automatically deduplicated — recopying the same text moves it to the top instead of creating a new entry. Hover over any item to reveal pin and delete buttons, or clear all history at once from the footer toolbar.
 
 ### Snippets
 
@@ -71,7 +71,7 @@ Selecting a transform copies the transformed text to your clipboard and pastes i
 
 ### Drag and Drop
 
-Drag any history item or snippet out of the popover and drop it into another app. Text is provided as a string, images as `NSImage`, files as URLs, and colors as hex strings.
+Drag any history item or snippet out of the popover and drop it into another app. Text is provided as a string, images as temporary files, PDFs as raw data, files as URLs, and colors as hex strings.
 
 ### Paste Options
 
@@ -205,9 +205,10 @@ All data is stored locally in `~/Library/Application Support/ClipBar/`:
 | `clips.json` | Saved snippets |
 | `excluded_apps.json` | Excluded app bundle IDs |
 | `excluded_types.json` | Excluded content types |
+| `stats.json` | Clipboard activity statistics |
 | `blobs/` | Binary data for images, PDFs, and rich text |
 
-Settings (history limit, plain text mode, rich previews, capture sound, screenshot capture, OCR, QR detection, popover height) are stored in `UserDefaults`.
+Settings (launch at login, history limit, plain text mode, sensitive content handling, rich previews, capture sound, screenshot capture, OCR, QR detection, popover height) are stored in `UserDefaults`.
 
 ## Building
 

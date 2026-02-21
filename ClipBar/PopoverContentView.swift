@@ -95,6 +95,15 @@ struct PopoverContentView: View {
                                         .fill(selectedIndex == globalIdx ? Color.accentColor.opacity(0.2) : Color.clear)
                                 )
                                 .background(HoverBackground())
+                                .onDrag {
+                                    PopoverContentView.makeItemProvider(
+                                        contentType: clip.contentType,
+                                        value: clip.value,
+                                        blobFile: clip.blobFile,
+                                        fileURLs: clip.fileURLs,
+                                        colorComponents: clip.colorComponents
+                                    )
+                                }
                                 .if(clip.contentType == .text && clip.value != nil) { view in
                                     view.contextMenu {
                                         Button("Copy") {
