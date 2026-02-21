@@ -5,11 +5,11 @@ enum ClipboardContentType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .text: return "Text"
-        case .image: return "Images"
-        case .pdf: return "PDFs"
-        case .fileURL: return "Files"
-        case .color: return "Colors"
+        case .text: return String(localized: "Text")
+        case .image: return String(localized: "Images")
+        case .pdf: return String(localized: "PDFs")
+        case .fileURL: return String(localized: "Files")
+        case .color: return String(localized: "Colors")
         }
     }
 
@@ -25,11 +25,11 @@ enum ClipboardContentType: String, Codable, CaseIterable {
 
     var typeDescription: String {
         switch self {
-        case .text: return "Plain and rich text"
-        case .image: return "Screenshots and copied images"
-        case .pdf: return "PDF documents"
-        case .fileURL: return "Copied files and folders"
-        case .color: return "Color swatches"
+        case .text: return String(localized: "Plain and rich text")
+        case .image: return String(localized: "Screenshots and copied images")
+        case .pdf: return String(localized: "PDF documents")
+        case .fileURL: return String(localized: "Copied files and folders")
+        case .color: return String(localized: "Color swatches")
         }
     }
 }

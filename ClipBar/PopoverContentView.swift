@@ -47,7 +47,7 @@ struct PopoverContentView: View {
             if availableContentTypes.count > 1 {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
-                        FilterChip(label: "All", isSelected: contentTypeFilter == nil) {
+                        FilterChip(label: String(localized: "All"), isSelected: contentTypeFilter == nil) {
                             contentTypeFilter = nil
                         }
                         ForEach(availableContentTypes, id: \.self) { type in
@@ -111,7 +111,7 @@ struct PopoverContentView: View {
                                         }
                                         Divider()
                                         ForEach(TextTransform.allCases, id: \.self) { transform in
-                                            Button(transform.rawValue) {
+                                            Button(transform.displayName) {
                                                 let transformed = applyTransform(clip.value!, transform)
                                                 copyAndPasteText(transformed)
                                             }
@@ -191,7 +191,7 @@ struct PopoverContentView: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.orange)
-                    .tooltip("Resume clipboard monitoring")
+                    .tooltip(String(localized: "Resume clipboard monitoring"))
                 } else {
                     Menu {
                         Button("1 minute") { monitor.pause(for: 60) }
@@ -207,7 +207,7 @@ struct PopoverContentView: View {
                     }
                     .menuStyle(.borderlessButton)
                     .frame(width: 20)
-                    .tooltip("Pause clipboard monitoring")
+                    .tooltip(String(localized: "Pause clipboard monitoring"))
                 }
 
                 if !historyStore.items.isEmpty {
@@ -218,7 +218,7 @@ struct PopoverContentView: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
-                    .tooltip("Clear history")
+                    .tooltip(String(localized: "Clear history"))
                 }
 
                 Button {
@@ -229,7 +229,7 @@ struct PopoverContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .tooltip("Settings")
+                .tooltip(String(localized: "Settings"))
 
                 Button {
                     NSApplication.shared.terminate(nil)
@@ -238,7 +238,7 @@ struct PopoverContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .tooltip("Quit ClipBar")
+                .tooltip(String(localized: "Quit ClipBar"))
             }
             .padding(10)
         }
@@ -343,7 +343,7 @@ struct PopoverContentView: View {
 
     // MARK: - Helpers
 
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .font(.caption)
             .fontWeight(.semibold)
@@ -369,7 +369,7 @@ struct PopoverContentView: View {
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
-            .tooltip("Edit Clips")
+            .tooltip(String(localized: "Edit Clips"))
         }
         .padding(.horizontal, 10)
         .padding(.top, 8)
@@ -401,11 +401,11 @@ struct PopoverContentView: View {
             NSApp.activate(ignoringOtherApps: true)
 
             let alert = NSAlert()
-            alert.messageText = "Clear all history?"
-            alert.informativeText = "This cannot be undone."
+            alert.messageText = String(localized: "Clear all history?")
+            alert.informativeText = String(localized: "This cannot be undone.")
             alert.alertStyle = .warning
-            alert.addButton(withTitle: "Clear All")
-            alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: String(localized: "Clear All"))
+            alert.addButton(withTitle: String(localized: "Cancel"))
             let response = alert.runModal()
 
             NSApp.setActivationPolicy(previousPolicy)
@@ -812,7 +812,7 @@ private struct HistoryRow: View {
                 }
                 Divider()
                 ForEach(TextTransform.allCases, id: \.self) { transform in
-                    Button(transform.rawValue) {
+                    Button(transform.displayName) {
                         onTransform?(item.value!, transform)
                     }
                 }

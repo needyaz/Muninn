@@ -168,7 +168,7 @@ struct StatsView: View {
 // MARK: - Stat box
 
 private struct StatBox: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
 
     var body: some View {
@@ -267,6 +267,9 @@ private struct ActivityHeatmap: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         let dateStr = formatter.string(from: date)
-        return count == 0 ? "No copies on \(dateStr)" : "\(count) cop\(count == 1 ? "y" : "ies") on \(dateStr)"
+        if count == 0 {
+            return String(localized: "No copies on \(dateStr)")
+        }
+        return String(localized: "\(count) copies on \(dateStr)")
     }
 }

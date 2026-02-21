@@ -6,6 +6,16 @@ enum TextTransform: String, CaseIterable {
     case capitalize = "Capitalize Words"
     case trimWhitespace = "Trim Whitespace"
     case removeBlankLines = "Remove Blank Lines"
+
+    var displayName: String {
+        switch self {
+        case .uppercase: return String(localized: "UPPERCASE")
+        case .lowercase: return String(localized: "lowercase")
+        case .capitalize: return String(localized: "Capitalize Words")
+        case .trimWhitespace: return String(localized: "Trim Whitespace")
+        case .removeBlankLines: return String(localized: "Remove Blank Lines")
+        }
+    }
 }
 
 func applyTransform(_ text: String, _ transform: TextTransform) -> String {

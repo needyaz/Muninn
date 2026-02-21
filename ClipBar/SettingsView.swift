@@ -281,23 +281,30 @@ private struct DataTab: View {
                 settingsStore: settingsStore
             )
             var parts: [String] = [
-                "\(result.historyCount) history item\(result.historyCount == 1 ? "" : "s")",
-                "\(result.clipCount) snippet\(result.clipCount == 1 ? "" : "s")",
-                "\(result.excludedAppCount) excluded app\(result.excludedAppCount == 1 ? "" : "s")",
-                "\(result.excludedTypeCount) excluded type\(result.excludedTypeCount == 1 ? "" : "s")",
+                String(localized: "\(result.historyCount) history items"),
+                String(localized: "\(result.clipCount) snippets"),
+                String(localized: "\(result.excludedAppCount) excluded apps"),
+                String(localized: "\(result.excludedTypeCount) excluded types"),
             ]
             if result.imageCount > 0 {
-                parts.append("\(result.imageCount) image\(result.imageCount == 1 ? "" : "s")")
+                parts.append(String(localized: "\(result.imageCount) images"))
             }
             if result.pdfCount > 0 {
-                parts.append("\(result.pdfCount) PDF\(result.pdfCount == 1 ? "" : "s")")
+                parts.append(String(localized: "\(result.pdfCount) PDFs"))
             }
             if result.richTextCount > 0 {
-                parts.append("\(result.richTextCount) rich text format\(result.richTextCount == 1 ? "" : "s")")
+                parts.append(String(localized: "\(result.richTextCount) rich text formats"))
             }
             let last = parts.removeLast()
-            let verb = merge ? "Merged" : "Imported"
-            importResultMessage = verb + " " + (parts.isEmpty ? last : parts.joined(separator: ", ") + ", and " + last) + "."
+            if merge {
+                importResultMessage = parts.isEmpty
+                    ? String(localized: "Merged \(last).")
+                    : String(localized: "Merged \(parts.joined(separator: ", ")), and \(last).")
+            } else {
+                importResultMessage = parts.isEmpty
+                    ? String(localized: "Imported \(last).")
+                    : String(localized: "Imported \(parts.joined(separator: ", ")), and \(last).")
+            }
             showImportSuccess = true
         } catch {
             errorMessage = error.localizedDescription
