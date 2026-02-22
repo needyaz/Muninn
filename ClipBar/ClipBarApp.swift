@@ -42,7 +42,7 @@ struct ClipBarApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("ClipBar", systemImage: monitor.isPaused ? "pause.circle" : "clipboard") {
+        MenuBarExtra("ClipBar", image: monitor.isPaused ? "MenuBarIconPaused" : "MenuBarIcon") {
             PopoverContentView()
                 .environment(settingsStore)
                 .environment(store)

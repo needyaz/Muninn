@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Cleaner, more stylized version -->
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#16163a"/>
+      <stop offset="100%" style="stop-color:#0a0a1f"/>
+    </linearGradient>
+    <linearGradient id="raven" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3d3d5c"/>
+      <stop offset="100%" style="stop-color:#1e1e35"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bg2)"/>
+
+  <!-- Stylized raven - bold, minimal silhouette -->
+  <g transform="translate(230, 270)">
+    <!-- Main body + head as one clean path -->
+    <path d="
+      M -100,40
+      C -130,20 -140,-20 -120,-60
+      C -108,-85 -80,-105 -45,-115
+      C -20,-122 10,-120 35,-110
+      C 55,-102 70,-88 78,-70
+      C 82,-62 84,-52 80,-44
+      L 75,-38
+      C 85,-42 95,-50 100,-58
+      C 104,-64 110,-68 118,-70
+      L 145,-74
+      C 140,-64 132,-56 122,-50
+      L 108,-44
+      C 98,-38 88,-34 78,-32
+      C 72,-30 68,-26 65,-20
+      C 58,-5 44,10 25,22
+      C 5,34 -20,42 -50,44
+      C -70,45 -88,44 -100,40
+      Z
+    " fill="url(#raven)"/>
+
+    <!-- Wing - sweeping curve -->
+    <path d="
+      M -90,10
+      C -110,0 -135,15 -145,40
+      C -140,30 -125,22 -108,18
+      C -80,12 -50,15 -25,25
+      C -5,33 10,38 20,35
+      C 0,30 -20,22 -45,15
+      C -60,10 -78,10 -90,10
+      Z
+    " fill="#15152e" opacity="0.7"/>
+
+    <!-- Tail feathers - sharp, stylized -->
+    <path d="
+      M -100,38
+      L -145,70
+      L -130,60
+      L -135,80
+      L -118,62
+      L -115,82
+      L -105,58
+      L -100,38
+      Z
+    " fill="url(#raven)"/>
+
+    <!-- Eye - golden -->
+    <circle cx="60" cy="-58" r="8" fill="#d4a843"/>
+    <circle cx="62" cy="-59" r="3.5" fill="#0a0a1f"/>
+
+    <!-- Paper snippet in beak - white/cream, clean -->
+    <g transform="translate(130, -84) rotate(-8)">
+      <rect x="0" y="0" width="48" height="36" rx="3" fill="#f5f0e8" opacity="0.95"/>
+      <!-- Text lines on paper -->
+      <line x1="6" y1="10" x2="36" y2="10" stroke="#c0b89e" stroke-width="2" stroke-linecap="round"/>
+      <line x1="6" y1="17" x2="30" y2="17" stroke="#c0b89e" stroke-width="2" stroke-linecap="round"/>
+      <line x1="6" y1="24" x2="22" y2="24" stroke="#c0b89e" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Beak -->
+    <path d="
+      M 80,-44
+      L 82,-50
+      L 130,-76
+      L 128,-66
+      L 80,-38
+      Z
+    " fill="#5c5c7a"/>
+  </g>
+</svg>

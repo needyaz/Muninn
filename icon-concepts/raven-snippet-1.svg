@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background: dark blue-black gradient circle -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0d0d1a"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0e6d3"/>
+      <stop offset="100%" style="stop-color:#d4c5a9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background (macOS style) -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bg)"/>
+
+  <!-- Raven silhouette - profile facing right, carrying paper -->
+  <g transform="translate(256, 260) scale(1.0)">
+    <!-- Body -->
+    <path d="
+      M -60,20
+      C -90,10 -120,-20 -110,-60
+      C -105,-80 -85,-100 -60,-110
+      C -40,-118 -15,-120 5,-115
+      L 15,-112
+      C 30,-108 45,-98 55,-85
+      C 60,-78 62,-70 60,-62
+
+      C 58,-55 50,-48 42,-45
+      L 30,-40
+
+      C 40,-35 48,-28 50,-18
+      C 52,-8 48,5 40,15
+      C 32,25 20,32 5,36
+      L -20,42
+      C -35,45 -48,42 -60,35
+      Z
+    " fill="#2a2a3e"/>
+
+    <!-- Head -->
+    <ellipse cx="48" cy="-72" rx="38" ry="32" fill="#2a2a3e"/>
+
+    <!-- Beak - pointed, carrying paper -->
+    <path d="
+      M 82,-78
+      L 120,-82
+      L 115,-68
+      L 82,-68
+      Z
+    " fill="#4a4a5a"/>
+
+    <!-- Eye -->
+    <circle cx="58" cy="-76" r="5" fill="#c0a050"/>
+    <circle cx="59" cy="-77" r="2" fill="#1a1a2e"/>
+
+    <!-- Wing detail -->
+    <path d="
+      M -40,-10
+      C -70,-5 -100,10 -120,40
+      C -110,30 -85,20 -60,15
+      C -35,10 -15,12 0,18
+    " fill="#1e1e30" opacity="0.6"/>
+
+    <!-- Tail feathers -->
+    <path d="
+      M -60,30
+      L -110,60
+      L -100,55
+      L -95,65
+      L -85,55
+      L -80,68
+      L -70,52
+      L -55,38
+    " fill="#2a2a3e"/>
+
+    <!-- Legs -->
+    <line x1="-10" y1="36" x2="-15" y2="70" stroke="#4a4a5a" stroke-width="3"/>
+    <line x1="10" y1="34" x2="5" y2="70" stroke="#4a4a5a" stroke-width="3"/>
+    <path d="M -25,70 L -15,70 L -10,65 M -15,70 L -5,70" stroke="#4a4a5a" stroke-width="2.5" fill="none"/>
+    <path d="M -5,70 L 5,70 L 10,65 M 5,70 L 15,70" stroke="#4a4a5a" stroke-width="2.5" fill="none"/>
+
+    <!-- Paper/card in beak -->
+    <g transform="translate(112, -88) rotate(-12)">
+      <rect x="0" y="0" width="32" height="24" rx="2" fill="url(#card)" stroke="#b0a080" stroke-width="1"/>
+      <!-- Lines on paper -->
+      <line x1="4" y1="7" x2="24" y2="7" stroke="#a09070" stroke-width="1.5" opacity="0.5"/>
+      <line x1="4" y1="12" x2="20" y2="12" stroke="#a09070" stroke-width="1.5" opacity="0.5"/>
+      <line x1="4" y1="17" x2="16" y2="17" stroke="#a09070" stroke-width="1.5" opacity="0.5"/>
+    </g>
+  </g>
+
+  <!-- App name area (optional subtle text) -->
+</svg>
