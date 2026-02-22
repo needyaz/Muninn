@@ -1,6 +1,6 @@
-# ClipBar
+# Muninn
 
-A lightweight clipboard manager for macOS that lives in your menu bar. ClipBar keeps a searchable history of everything you copy and lets you save frequently used snippets for quick access.
+A lightweight clipboard manager for macOS that lives in your menu bar. Muninn keeps a searchable history of everything you copy and lets you save frequently used snippets for quick access.
 
 Requires macOS 14.0 or later.
 
@@ -8,7 +8,7 @@ Requires macOS 14.0 or later.
 
 ### Clipboard History
 
-ClipBar monitors your clipboard in the background and records everything you copy. Monitoring starts immediately at launch — no interaction required. Supported content types:
+Muninn monitors your clipboard in the background and records everything you copy. Monitoring starts immediately at launch — no interaction required. Supported content types:
 
 - **Text** — plain text, with optional RTF and HTML formatting preserved
 - **Images** — PNG and TIFF
@@ -38,7 +38,7 @@ The selected snippet is copied to your clipboard and focus returns to the previo
 
 ### Sensitive Content Handling
 
-ClipBar detects sensitive clipboard content from password managers and other apps that use the `org.nspasteboard.ConcealedType` convention. Configure how these entries are handled in Settings > General > "Sensitive clipboard content":
+Muninn detects sensitive clipboard content from password managers and other apps that use the `org.nspasteboard.ConcealedType` convention. Configure how these entries are handled in Settings > General > "Sensitive clipboard content":
 
 - **Allow** — capture normally, no special treatment
 - **Skip** — ignore entirely, nothing is recorded
@@ -66,7 +66,7 @@ Selecting a transform copies the transformed text to your clipboard and pastes i
 - **Arrow keys** — move selection up and down through items
 - **Enter** — paste the selected item
 - **Escape** — close the popover
-- **Global hotkey** — configurable shortcut to toggle ClipBar from anywhere
+- **Global hotkey** — configurable shortcut to toggle Muninn from anywhere
 - **Snippet picker hotkey** — configurable shortcut to open the floating snippet picker
 
 ### Drag and Drop
@@ -98,7 +98,7 @@ Prevent specific content types from being captured. Toggle off any combination o
 
 ### Siri Shortcuts
 
-ClipBar exposes actions to the macOS Shortcuts app via AppIntents:
+Muninn exposes actions to the macOS Shortcuts app via AppIntents:
 
 - **Get Clipboard History** — returns the N most recent text items (default: 10)
 - **Search Clipboard History** — search history items by text query
@@ -171,10 +171,10 @@ Drag the handle at the bottom of the popover to make it taller or shorter (200�
 
 ### Settings
 
-- **Launch at login** — automatically start ClipBar when you log in
+- **Launch at login** — automatically start Muninn when you log in
 - **History limit** — 25, 50, 100, 200, or 500 items
 - **Paste as plain text** — strip formatting by default
-- **Global shortcut** — set a keyboard shortcut to toggle ClipBar
+- **Global shortcut** — set a keyboard shortcut to toggle Muninn
 - **Snippet picker shortcut** — set a keyboard shortcut for the floating snippet picker
 - **Sensitive content** — choose how password manager entries are handled (allow, skip, or mask)
 - **Excluded apps** — choose which apps to ignore
@@ -190,14 +190,14 @@ Drag the handle at the bottom of the popover to make it taller or shorter (200�
 
 Back up or migrate all your data via Settings > Data:
 
-- **Export Data** — saves history, snippets, settings, excluded apps, excluded types, and all binary blobs (images, PDFs, rich text) to a single `.clipbar` file
-- **Import Data** — reads a `.clipbar` file with a choice to **merge** (add new items, keep existing data) or **replace** all current data
+- **Export Data** — saves history, snippets, settings, excluded apps, excluded types, and all binary blobs (images, PDFs, rich text) to a single `.muninn` file
+- **Import Data** — reads a `.muninn` file with a choice to **merge** (add new items, keep existing data) or **replace** all current data
 
 The export file is JSON with base64-encoded blobs, so no external dependencies or archive tools are needed.
 
 ## Data Storage
 
-All data is stored locally in `~/Library/Application Support/ClipBar/`:
+All data is stored locally in `~/Library/Application Support/Muninn/`:
 
 | File | Contents |
 |------|----------|
@@ -212,4 +212,4 @@ Settings (launch at login, history limit, plain text mode, sensitive content han
 
 ## Building
 
-Open `ClipBar.xcodeproj` in Xcode and build the `ClipBar` scheme. The project uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) as its only external dependency, managed via Swift Package Manager.
+Open `Muninn.xcodeproj` in Xcode and build the `Muninn` scheme. The project uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) as its only external dependency, managed via Swift Package Manager.
