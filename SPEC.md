@@ -67,6 +67,7 @@ Named for Odin's raven of memory.
 | Multi-select (Cmd+click, Shift+click, Shift+arrow) with bulk delete | ✅ Done |
 | Undo for delete / bulk delete / clear-all (5-second window, blob-aware) | ✅ Done |
 | Pause/resume capture (with duration: 1m, 5m, 30m, or indefinite) | ✅ Done |
+| Menu bar icon reflects paused state (pause bars icon) | ✅ Done |
 
 ### Snippets (Saved Clips)
 
@@ -177,7 +178,7 @@ These are not planned but represent natural extensions based on the existing arc
 - **iCloud sync** — The `~/Library/Application Support/Muninn/` data model is portable; CloudKit or iCloud Drive sync could extend history across Macs.
 - **Color search** — Search by hex value or color name.
 - **Group by source app** — Alternative history view grouped by application.
-- **Menu bar icon state** — Reflect paused/active/sensitive state in the menu bar icon.
+- **Menu bar icon state** — Reflect active/sensitive state in the menu bar icon (paused state is done).
 - **Configurable polling interval** — Currently hardcoded at 0.5s.
 - **Regex search** — Power-user search in history.
 - **Expiring history** — Auto-delete items older than N days regardless of count limit.
