@@ -140,6 +140,13 @@ struct SnippetPickerView: View {
 
     // MARK: - Keyboard handling
 
+    private enum KeyCode {
+        static let downArrow: UInt16 = 125
+        static let upArrow: UInt16 = 126
+        static let returnKey: UInt16 = 36
+        static let escape: UInt16 = 53
+    }
+
     private func installKeyMonitor() {
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             return handleKeyEvent(event) ? nil : event
@@ -168,7 +175,7 @@ struct SnippetPickerView: View {
         }
 
         switch event.keyCode {
-        case 125: // Down arrow
+        case KeyCode.downArrow:
             let count = filteredClips.count
             guard count > 0 else { return true }
             if selectedIndex == nil {
@@ -178,7 +185,7 @@ struct SnippetPickerView: View {
             }
             return true
 
-        case 126: // Up arrow
+        case KeyCode.upArrow:
             let count = filteredClips.count
             guard count > 0 else { return true }
             if selectedIndex == nil {
@@ -188,14 +195,14 @@ struct SnippetPickerView: View {
             }
             return true
 
-        case 36: // Return
+        case KeyCode.returnKey:
             if let idx = selectedIndex, idx < filteredClips.count {
                 pasteClip(filteredClips[idx])
                 return true
             }
             return false
 
-        case 53: // Escape
+        case KeyCode.escape:
             onDismiss()
             return true
 

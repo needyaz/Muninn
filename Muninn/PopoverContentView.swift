@@ -580,6 +580,13 @@ struct PopoverContentView: View {
 
     // MARK: - Keyboard Navigation
 
+    private enum KeyCode {
+        static let downArrow: UInt16 = 125
+        static let upArrow: UInt16 = 126
+        static let returnKey: UInt16 = 36
+        static let escape: UInt16 = 53
+    }
+
     private func installKeyMonitor() {
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             return handleKeyEvent(event) ? nil : event
@@ -595,7 +602,7 @@ struct PopoverContentView: View {
 
     private func handleKeyEvent(_ event: NSEvent) -> Bool {
         switch event.keyCode {
-        case 125: // Down arrow
+        case KeyCode.downArrow:
             if selectedIndex == nil {
                 selectedIndex = 0
             } else if let idx = selectedIndex, idx < selectableCount - 1 {
@@ -603,7 +610,7 @@ struct PopoverContentView: View {
             }
             return true
 
-        case 126: // Up arrow
+        case KeyCode.upArrow:
             if selectedIndex == nil {
                 selectedIndex = selectableCount - 1
             } else if let idx = selectedIndex, idx > 0 {
@@ -611,14 +618,14 @@ struct PopoverContentView: View {
             }
             return true
 
-        case 36: // Return/Enter
+        case KeyCode.returnKey:
             if let idx = selectedIndex {
                 activateItemAt(idx)
                 return true
             }
             return false
 
-        case 53: // Escape
+        case KeyCode.escape:
             NSApp.keyWindow?.close()
             return true
 
