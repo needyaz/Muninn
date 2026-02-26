@@ -168,7 +168,6 @@ None known.
 
 ### Technical Debt
 
-- **Hardcoded key codes** — Arrow keys (125/126), Return (36), Escape (53) in `NSEvent` handlers. Should use named constants or `NSEvent` key constants.
 - **`TextTransformType` duplicated** — `MuninnIntents.swift` maintains a parallel enum that mirrors `TextTransform.swift`. These must be kept in sync manually.
 - **No tests for views** — UI logic in `PopoverContentView` (~1000 lines) and `SnippetPickerView` is entirely untested. Only the model layer has test coverage.
 - **App Intents load from disk, not live state** — Intents re-parse JSON files directly rather than communicating with running stores. Rapid use could have race conditions with in-flight saves.
