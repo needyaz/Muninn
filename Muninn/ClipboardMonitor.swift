@@ -164,6 +164,18 @@ class ClipboardMonitor {
                 sourceAppBundleID: sourceAppBundleID
             )
             historyStore.add(item)
+            if settingsStore.enablePDFTextExtraction,
+               urls.count == 1,
+               urls[0].pathExtension.lowercased() == "pdf",
+               let blob = blobFile,
+               let data = BlobStorage.load(blob) {
+                historyStore.beginScanning(id: id)
+                PDFTextService.extractText(from: data) { [weak historyStore] text in
+                    historyStore?.endScanning(id: id)
+                    guard let text else { return }
+                    historyStore?.update(id: id, ocrText: text)
+                }
+            }
             didCapture(contentType: .fileURL, sourceApp: sourceAppBundleID)
             return
         }
@@ -221,6 +233,14 @@ class ClipboardMonitor {
                     sourceAppBundleID: sourceAppBundleID
                 )
                 historyStore.add(item)
+                if settingsStore.enablePDFTextExtraction {
+                    historyStore.beginScanning(id: id)
+                    PDFTextService.extractText(from: data) { [weak historyStore] text in
+                        historyStore?.endScanning(id: id)
+                        guard let text else { return }
+                        historyStore?.update(id: id, ocrText: text)
+                    }
+                }
                 didCapture(contentType: .pdf, sourceApp: sourceAppBundleID)
                 return
             }

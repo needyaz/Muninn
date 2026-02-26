@@ -32,6 +32,7 @@
 		A10000180000000000000018 /* ScreenshotMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000018; };
 		A10000190000000000000019 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000019; };
 		A1000001A00000000000001A /* QRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001A00000000000001A; };
+		A10000200000000000000020 /* PDFTextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000020; };
 		A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001B00000000000001B; };
 		A1000001C00000000000001C /* SnippetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001C00000000000001C; };
 		A1000001D00000000000001D /* TextTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001D00000000000001D; };
@@ -52,6 +53,7 @@
 		T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000C00000000000000C; };
 		T1000000D00000000000000D /* OCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000D00000000000000D; };
 		T1000000E00000000000000E /* QRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000E00000000000000E; };
+		T10000110000000000000011 /* PDFTextServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000110000000000000011; };
 		T1000000F00000000000000F /* DataPorterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000F00000000000000F; };
 		T10000100000000000000010 /* ViewHelpersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000100000000000000010; };
 /* End PBXBuildFile section */
@@ -94,6 +96,7 @@
 		A20000180000000000000018 /* ScreenshotMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotMonitor.swift; sourceTree = "<group>"; };
 		A20000190000000000000019 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
 		A2000001A00000000000001A /* QRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRService.swift; sourceTree = "<group>"; };
+		A20000200000000000000020 /* PDFTextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextService.swift; sourceTree = "<group>"; };
 		A2000001B00000000000001B /* SnippetPickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerPanel.swift; sourceTree = "<group>"; };
 		A2000001C00000000000001C /* SnippetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerView.swift; sourceTree = "<group>"; };
 		A2000001D00000000000001D /* TextTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransform.swift; sourceTree = "<group>"; };
@@ -115,6 +118,7 @@
 		T2000000C00000000000000C /* FormatRelativeTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatRelativeTimeTests.swift; sourceTree = "<group>"; };
 		T2000000D00000000000000D /* OCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRServiceTests.swift; sourceTree = "<group>"; };
 		T2000000E00000000000000E /* QRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRServiceTests.swift; sourceTree = "<group>"; };
+		T20000110000000000000011 /* PDFTextServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextServiceTests.swift; sourceTree = "<group>"; };
 		T2000000F00000000000000F /* DataPorterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorterTests.swift; sourceTree = "<group>"; };
 		T20000100000000000000010 /* ViewHelpersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewHelpersTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -193,6 +197,7 @@
 				A20000180000000000000018 /* ScreenshotMonitor.swift */,
 				A20000190000000000000019 /* OCRService.swift */,
 				A2000001A00000000000001A /* QRService.swift */,
+				A20000200000000000000020 /* PDFTextService.swift */,
 				A2000001B00000000000001B /* SnippetPickerPanel.swift */,
 				A2000001C00000000000001C /* SnippetPickerView.swift */,
 				A2000001D00000000000001D /* TextTransform.swift */,
@@ -231,6 +236,7 @@
 				T2000000C00000000000000C /* FormatRelativeTimeTests.swift */,
 				T2000000D00000000000000D /* OCRServiceTests.swift */,
 				T2000000E00000000000000E /* QRServiceTests.swift */,
+				T20000110000000000000011 /* PDFTextServiceTests.swift */,
 				T2000000F00000000000000F /* DataPorterTests.swift */,
 				T20000100000000000000010 /* ViewHelpersTests.swift */,
 			);
@@ -339,6 +345,7 @@
 				A10000180000000000000018 /* ScreenshotMonitor.swift in Sources */,
 				A10000190000000000000019 /* OCRService.swift in Sources */,
 				A1000001A00000000000001A /* QRService.swift in Sources */,
+				A10000200000000000000020 /* PDFTextService.swift in Sources */,
 				A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */,
 				A1000001C00000000000001C /* SnippetPickerView.swift in Sources */,
 				A1000001D00000000000001D /* TextTransform.swift in Sources */,
@@ -364,6 +371,7 @@
 				T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */,
 				T1000000D00000000000000D /* OCRServiceTests.swift in Sources */,
 				T1000000E00000000000000E /* QRServiceTests.swift in Sources */,
+				T10000110000000000000011 /* PDFTextServiceTests.swift in Sources */,
 				T1000000F00000000000000F /* DataPorterTests.swift in Sources */,
 				T10000100000000000000010 /* ViewHelpersTests.swift in Sources */,
 			);

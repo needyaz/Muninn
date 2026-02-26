@@ -67,6 +67,11 @@ private struct GeneralTab: View {
                     if newValue { historyStore.scanForOCR() }
                 }
 
+            Toggle("Extract text from PDFs", isOn: $settings.enablePDFTextExtraction)
+                .onChange(of: settingsStore.enablePDFTextExtraction) { _, newValue in
+                    if newValue { historyStore.scanForPDFText() }
+                }
+
             Toggle("Detect QR codes and barcodes in images", isOn: $settings.enableQRDetection)
                 .onChange(of: settingsStore.enableQRDetection) { _, newValue in
                     if newValue { historyStore.scanForBarcodes() }
@@ -82,7 +87,6 @@ private struct GeneralTab: View {
             HStack {
                 Picker("Capture sound:", selection: $settings.captureSound) {
                     Text("None").tag("")
-                    Divider()
                     ForEach(systemSounds, id: \.self) { name in
                         Text(name).tag(name)
                     }

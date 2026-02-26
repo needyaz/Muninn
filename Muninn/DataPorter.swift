@@ -20,6 +20,7 @@ enum DataPorter {
             var captureScreenshots: Bool?
             var enableOCR: Bool?
             var enableQRDetection: Bool?
+            var enablePDFTextExtraction: Bool?
             var popoverHeight: Double?
             var popoverWidth: Double?
             var sensitiveHandling: String?
@@ -97,6 +98,7 @@ enum DataPorter {
             captureScreenshots: defaults.bool(forKey: "captureScreenshots"),
             enableOCR: defaults.bool(forKey: "enableOCR"),
             enableQRDetection: defaults.bool(forKey: "enableQRDetection"),
+            enablePDFTextExtraction: defaults.bool(forKey: "enablePDFTextExtraction"),
             popoverHeight: defaults.double(forKey: "popoverHeight"),
             popoverWidth: defaults.double(forKey: "popoverWidth"),
             sensitiveHandling: defaults.string(forKey: "sensitiveHandling")
@@ -315,6 +317,10 @@ enum DataPorter {
             if let enableQRDetection = envelope.settings.enableQRDetection {
                 defaults.set(enableQRDetection, forKey: "enableQRDetection")
                 settingsStore.enableQRDetection = enableQRDetection
+            }
+            if let enablePDFTextExtraction = envelope.settings.enablePDFTextExtraction {
+                defaults.set(enablePDFTextExtraction, forKey: "enablePDFTextExtraction")
+                settingsStore.enablePDFTextExtraction = enablePDFTextExtraction
             }
             if let popoverHeight = envelope.settings.popoverHeight, popoverHeight > 0 {
                 defaults.set(popoverHeight, forKey: "popoverHeight")

@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import Muninn
 
-@Suite("HistoryStore")
+@Suite("HistoryStore", .serialized)
 struct HistoryStoreTests {
 
     private func makeStore(historyLimit: Int = 50) -> (HistoryStore, URL) {
@@ -247,6 +247,44 @@ struct HistoryStoreTests {
         store.undo()
         #expect(BlobStorage.load(blobFilename) == blobData)
         #expect(store.items.count == 1)
+    }
+
+    @Test("scanForPDFText skips fileURL items with non-pdf blob extension")
+    func scanForPDFTextSkipsNonPDFFileURLs() {
+        let (store, dir) = makeStore()
+        defer { removeTempDir(dir) }
+
+        store.add(HistoryItem(contentType: .fileURL, blobFile: "file.txt", fileURLs: ["/tmp/doc.txt"]))
+        store.add(HistoryItem(contentType: .fileURL, blobFile: "notes.docx", fileURLs: ["/tmp/notes.docx"]))
+        store.scanForPDFText()
+
+        for item in store.items {
+            #expect(!store.isScanning(id: item.id))
+        }
+    }
+
+    @Test("scanForPDFText triggers scan for fileURL item with pdf blob")
+    func scanForPDFTextIncludesFileURLPDFs() throws {
+        let dir = makeTempDir()
+        let blobDir = dir.appendingPathComponent("blobs", isDirectory: true)
+        try FileManager.default.createDirectory(at: blobDir, withIntermediateDirectories: true)
+        BlobStorage.blobDirOverride = blobDir
+        defer {
+            BlobStorage.blobDirOverride = nil
+            removeTempDir(dir)
+        }
+
+        let settings = SettingsStore()
+        let store = HistoryStore(settingsStore: settings, baseURL: dir)
+
+        let fakePDFData = Data("not a real pdf".utf8)
+        let blobFilename = BlobStorage.save(fakePDFData, id: UUID(), ext: "pdf")
+
+        let item = HistoryItem(contentType: .fileURL, blobFile: blobFilename, fileURLs: ["/tmp/doc.pdf"])
+        store.add(item)
+        store.scanForPDFText()
+
+        #expect(store.isScanning(id: item.id))
     }
 
     @Test("persistence: data survives reload")

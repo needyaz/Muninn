@@ -157,7 +157,7 @@ None known.
 | Text | ✅ By value |
 | Image | ✅ By OCR text (if enabled) |
 | File URL | ✅ By filename |
-| PDF | ❌ No text extraction |
+| PDF | ✅ By extracted text (if enabled) |
 | Color | ❌ Not searchable |
 
 ### UX Gaps
@@ -175,7 +175,6 @@ None known.
 These are not planned but represent natural extensions based on the existing architecture:
 
 - **iCloud sync** — The `~/Library/Application Support/Muninn/` data model is portable; CloudKit or iCloud Drive sync could extend history across Macs.
-- **PDF text extraction** — Enable search within PDF clipboard items using PDFKit.
 - **Color search** — Search by hex value or color name.
 - **Group by source app** — Alternative history view grouped by application.
 - **Menu bar icon state** — Reflect paused/active/sensitive state in the menu bar icon.

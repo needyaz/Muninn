@@ -63,7 +63,7 @@ struct HistoryItem: Identifiable, Codable, Hashable {
         case .image:
             return ocrText ?? value ?? "Image"
         case .pdf:
-            return "PDF Document"
+            return ocrText ?? "PDF Document"
         case .fileURL:
             if let urls = fileURLs, let first = urls.first {
                 let name = (first as NSString).lastPathComponent

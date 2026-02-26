@@ -963,6 +963,15 @@ private struct HistoryRow: View {
                 }
             }
         }
+        .if((item.contentType == .pdf || (item.contentType == .fileURL && (item.blobFile.map { ($0 as NSString).pathExtension.lowercased() == "pdf" } ?? false))) && settingsStore.enablePDFTextExtraction && item.ocrText != nil) { view in
+            view.contextMenu {
+                Button("Copy Text") {
+                    let pasteboard = NSPasteboard.general
+                    pasteboard.clearContents()
+                    pasteboard.setString(item.ocrText!, forType: .string)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -1026,8 +1035,23 @@ private struct HistoryRow: View {
                         .lineLimit(1)
                 }
             case .pdf:
-                Label("PDF Document", systemImage: "doc.richtext")
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Label("PDF Document", systemImage: "doc.richtext")
+                            .lineLimit(1)
+                        if isScanning {
+                            ProgressView()
+                                .scaleEffect(0.6)
+                                .help("Extracting text…")
+                        }
+                    }
+                    if settingsStore.enablePDFTextExtraction, let text = item.ocrText {
+                        Text(text)
+                            .lineLimit(isHovered ? 3 : 1)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
             case .fileURL:
                 if showRichPreview,
                    let blob = item.blobFile,
@@ -1045,6 +1069,26 @@ private struct HistoryRow: View {
                         }
                     }
                     .animation(.easeInOut(duration: 0.15), value: isHovered)
+                } else if settingsStore.enablePDFTextExtraction,
+                          let blob = item.blobFile,
+                          (blob as NSString).pathExtension.lowercased() == "pdf" {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Label(item.preview, systemImage: "doc.richtext")
+                                .lineLimit(1)
+                            if isScanning {
+                                ProgressView()
+                                    .scaleEffect(0.6)
+                                    .help("Extracting text…")
+                            }
+                        }
+                        if let text = item.ocrText {
+                            Text(text)
+                                .lineLimit(isHovered ? 3 : 1)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
                 } else {
                     Label(item.preview, systemImage: "doc")
                         .lineLimit(1)

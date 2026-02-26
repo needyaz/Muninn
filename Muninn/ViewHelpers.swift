@@ -38,7 +38,8 @@ func filterHistoryItems(
             case .text:
                 return item.value?.lowercased().contains(q) ?? false
             case .fileURL:
-                return item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false
+                return (item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false)
+                    || (item.ocrText?.lowercased().contains(q) ?? false)
             default:
                 return item.preview.lowercased().contains(q)
                     || (enableQRDetection && (item.detectedBarcode?.lowercased().contains(q) ?? false))

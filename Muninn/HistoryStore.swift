@@ -191,6 +191,24 @@ class HistoryStore {
         }
     }
 
+    func scanForPDFText() {
+        for item in items where item.ocrText == nil {
+            let blobExt = item.blobFile.map { ($0 as NSString).pathExtension.lowercased() }
+            let shouldExtract = item.contentType == .pdf
+                || (item.contentType == .fileURL && blobExt == "pdf")
+            guard shouldExtract else { continue }
+            if let blob = item.blobFile, let data = BlobStorage.load(blob) {
+                let id = item.id
+                beginScanning(id: id)
+                PDFTextService.extractText(from: data) { [weak self] text in
+                    self?.endScanning(id: id)
+                    guard let text else { return }
+                    self?.update(id: id, ocrText: text)
+                }
+            }
+        }
+    }
+
     func scanForBarcodes() {
         for item in items where item.contentType == .image && item.detectedBarcode == nil {
             if let blob = item.blobFile, let data = BlobStorage.load(blob) {

@@ -173,6 +173,17 @@ struct FilterHistoryItemsTests {
     func emptyInput() {
         #expect(filterHistoryItems([], search: "x", typeFilter: nil, enableQRDetection: false).isEmpty)
     }
+
+    @Test("fileURL items searched by extracted PDF text")
+    func fileURLSearchByOCRText() {
+        let items = [
+            HistoryItem(contentType: .fileURL, fileURLs: ["/docs/report.pdf"], ocrText: "Annual revenue summary"),
+            HistoryItem(contentType: .fileURL, fileURLs: ["/docs/notes.pdf"]),
+        ]
+        let result = filterHistoryItems(items, search: "revenue", typeFilter: nil, enableQRDetection: false)
+        #expect(result.count == 1)
+        #expect(result[0].ocrText == "Annual revenue summary")
+    }
 }
 
 // MARK: -

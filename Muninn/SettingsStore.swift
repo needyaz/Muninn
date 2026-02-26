@@ -34,6 +34,10 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(enableQRDetection, forKey: "enableQRDetection") }
     }
 
+    var enablePDFTextExtraction: Bool {
+        didSet { UserDefaults.standard.set(enablePDFTextExtraction, forKey: "enablePDFTextExtraction") }
+    }
+
     var popoverHeight: Double {
         didSet { UserDefaults.standard.set(popoverHeight, forKey: "popoverHeight") }
     }
@@ -58,6 +62,7 @@ class SettingsStore {
             "captureScreenshots": false,
             "enableOCR": false,
             "enableQRDetection": false,
+            "enablePDFTextExtraction": false,
             "popoverHeight": 400.0,
             "popoverWidth": 320.0,
             "sensitiveHandling": "skip",
@@ -70,6 +75,7 @@ class SettingsStore {
         captureScreenshots = defaults.bool(forKey: "captureScreenshots")
         enableOCR = defaults.bool(forKey: "enableOCR")
         enableQRDetection = defaults.bool(forKey: "enableQRDetection")
+        enablePDFTextExtraction = defaults.bool(forKey: "enablePDFTextExtraction")
         popoverHeight = defaults.double(forKey: "popoverHeight")
         popoverWidth = defaults.double(forKey: "popoverWidth")
         sensitiveHandling = defaults.string(forKey: "sensitiveHandling") ?? "skip"
