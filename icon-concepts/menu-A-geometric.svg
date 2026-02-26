@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="220" height="220">
+  <!--
+    OPTION A — Geometric/Bold Head
+    22×22 menu bar template image (black fills, white knockouts)
+    Approach: very angular, logo-style. Flat crown (not round like Twitter bird).
+    Beak angles slightly DOWN — also unlike Twitter bird which angled up.
+    Bold and readable at 11pt (1x) or 22pt (2x).
+  -->
+
+  <!-- Combined head + beak outline, clockwise from crown -->
+  <path fill="black" d="
+    M 7,3
+    L 9.5,3.5
+    C 11,4 12,5 12,6
+    L 20,11
+    L 20,12.5
+    L 12,15
+    C 11,18 9,20.5 8,21
+    C 6,21 4,19.5 3.5,18
+    C 2.5,16 2,14 2,12
+    C 2,10 2,8.5 2,8
+    C 2,6 3.5,4 5.5,3.5
+    Z
+  "/>
+
+  <!-- Eye — white knockout in upper-front of head -->
+  <circle cx="8" cy="9.5" r="1.7" fill="white"/>
+</svg>

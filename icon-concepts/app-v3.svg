@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    APP ICON v3 — High contrast, dark raven on warm amber
+    512×512 macOS app icon concept.
+
+    Design choices:
+    - Amber/ochre background: evokes aged parchment and memory (Muninn = raven of memory)
+    - Near-black raven (#1A1008): high contrast against amber, reads as raven feathers
+    - Gold eye (#F5C518): the raven's eye as a focal point — it watches, it remembers
+    - Cream paper strip in beak (#FFF5DC): nods to clipboard / copied content
+    - Rounded rect canvas (rx=120) matches macOS icon shape
+
+    Raven geometry: menu-A head scaled ~18× and centered on canvas.
+    (x_new = x_orig × 18 + 50,  y_new = y_orig × 18 + 30)
+  -->
+
+  <defs>
+    <!-- Warm amber radial gradient — lighter center, darker edge -->
+    <radialGradient id="bg" cx="40%" cy="35%" r="70%">
+      <stop offset="0%"   stop-color="#E09B30"/>
+      <stop offset="100%" stop-color="#9E600A"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background — macOS rounded rect -->
+  <rect x="0" y="0" width="512" height="512" rx="120" fill="url(#bg)"/>
+
+  <!-- Raven head + beak — near-black -->
+  <path fill="#1A1008" d="
+    M 176,84
+    L 221,93
+    C 248,102 266,120 266,138
+    L 410,228
+    L 410,255
+    L 266,300
+    C 248,354 212,399 194,408
+    C 158,408 122,381 113,354
+    C 95,318 86,282 86,246
+    C 86,210 86,183 86,174
+    C 86,138 113,102 149,93
+    Z
+  "/>
+
+  <!-- Paper strip held in beak — cream, extends to right edge -->
+  <rect x="280" y="221" width="175" height="39" rx="8" fill="#FFF5DC"/>
+
+  <!-- Eye — gold, the focal point -->
+  <circle cx="194" cy="201" r="31" fill="#F5C518"/>
+
+  <!-- Subtle pupil — keep it from looking like a solid dot -->
+  <circle cx="194" cy="201" r="12" fill="#1A1008"/>
+
+  <!-- Eye highlight -->
+  <circle cx="182" cy="191" r="6" fill="#FFFBE0" opacity="0.7"/>
+</svg>

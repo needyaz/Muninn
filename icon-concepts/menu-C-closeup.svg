@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="220" height="220">
+  <!--
+    OPTION C — Close-up / Dramatic
+    22×22 menu bar template image (black fills, white knockouts)
+    Head fills the canvas more aggressively. Beak hooks slightly at the
+    tip (real ravens have a hooked bill) — the hook is the key visual
+    difference from the Twitter bird (straight upward beak).
+    Eye is slightly larger and more centrally positioned.
+  -->
+
+  <!-- Head + beak — slightly larger, fills more canvas -->
+  <path fill="black" d="
+    M 5,1.5
+    L 8,2.5
+    C 10.5,3.5 12,4.5 12.5,5.5
+    L 21,10
+    L 20.5,11.2
+    L 21,12.4
+    L 12.5,15
+    C 11.5,18.5 9.5,21 8.5,21.5
+    C 6,21.5 4,20 3,18.5
+    C 2,16.5 1.5,14.5 1.5,12.5
+    C 1.5,10 1.5,7 1.5,5.5
+    C 1.5,3 3,1.5 5,1.5
+    Z
+  "/>
+
+  <!-- Eye — slightly larger, more prominent -->
+  <circle cx="7.5" cy="9" r="2" fill="white"/>
+</svg>

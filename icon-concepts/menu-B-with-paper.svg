@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="220" height="220">
+  <!--
+    OPTION B — Head + Paper in Beak
+    22×22 menu bar template image (black fills, white knockouts)
+    Same geometric head as A; beak carries a white paper/clipboard strip.
+    The paper references the app's core purpose (clipboard history).
+    Strip extends to canvas edge so it reads as "sticking out" of the beak.
+  -->
+
+  <!-- Combined head + beak outline -->
+  <path fill="black" d="
+    M 7,3
+    L 9.5,3.5
+    C 11,4 12,5 12,6
+    L 20,11
+    L 20,12.5
+    L 12,15
+    C 11,18 9,20.5 8,21
+    C 6,21 4,19.5 3.5,18
+    C 2.5,16 2,14 2,12
+    C 2,10 2,8.5 2,8
+    C 2,6 3.5,4 5.5,3.5
+    Z
+  "/>
+
+  <!-- Paper strip in beak — white knockout.
+       Spans from inside the beak to the canvas edge, giving the
+       impression of a slip of paper being held/carried. -->
+  <rect x="12.5" y="10.7" width="9.5" height="2.1" rx="0.4" fill="white"/>
+
+  <!-- Eye — white knockout, upper-front of head -->
+  <circle cx="8" cy="9.5" r="1.7" fill="white"/>
+</svg>

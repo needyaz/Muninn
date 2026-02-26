@@ -1,12 +1,11 @@
 {
   "images" : [
     {
-      "filename" : "raven-menubar-paused.png",
       "idiom" : "mac",
       "scale" : "1x"
     },
     {
-      "filename" : "raven-menubar-paused@2x.png",
+      "filename" : "menubar_paused.png",
       "idiom" : "mac",
       "scale" : "2x"
     }
