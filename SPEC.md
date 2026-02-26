@@ -1,0 +1,203 @@
+# Muninn — Product Specification
+
+## Overview
+
+Muninn is a macOS 14+ menu bar clipboard manager. It captures everything you copy — text, images, PDFs, colors, and file URLs — and lets you search, re-paste, organize, and analyze your clipboard history. It also manages saved "snippets" (reusable clips) accessible via a global hotkey and a floating picker panel.
+
+Named for Odin's raven of memory.
+
+---
+
+## What It Does
+
+### Core Loop
+1. **Capture** — Monitors `NSPasteboard` every 0.5s. On change, records the item (with content type, source app, timestamp) and optionally runs OCR or barcode detection.
+2. **Browse** — Menu bar popover shows clipboard history and saved snippets. Searchable, filterable by content type, keyboard-navigable.
+3. **Paste** — Click or press Return to copy an item back to the pasteboard and paste into the previously-focused app.
+4. **Organize** — Save frequently-used items as named snippets. Access them via the snippet picker panel (floating window, Cmd+1–9 shortcuts).
+
+---
+
+## Built Features
+
+### Clipboard Capture
+
+| Feature | Status |
+|---------|--------|
+| Text (plain + RTF/HTML preservation) | ✅ Done |
+| Images (PNG/TIFF) | ✅ Done |
+| PDFs | ✅ Done |
+| File URLs (single + multi) | ✅ Done |
+| Colors (RGBA) | ✅ Done |
+| Source app tracking | ✅ Done |
+| Screenshot attribution (via `ScreenshotMonitor`) | ✅ Done |
+| Sensitive content detection (password managers) | ✅ Done — three modes: skip, mask, allow |
+| Deduplication (text only) | ✅ Done |
+| Self-copy suppression (own pastes not re-captured) | ✅ Done |
+| Configurable history limit (25–500) | ✅ Done |
+| Auto-trim with blob cleanup on eviction | ✅ Done |
+
+### OCR & Barcode Detection
+
+| Feature | Status |
+|---------|--------|
+| OCR on captured images (Vision, `.accurate`) | ✅ Done — async, retroactive scan when enabled |
+| Barcode/QR detection (QR, EAN, Code128, etc.) | ✅ Done — async, retroactive scan when enabled |
+| Search history by OCR text | ✅ Done |
+| Display detected barcode value in history row | ✅ Done |
+
+### History Browser (Popover)
+
+| Feature | Status |
+|---------|--------|
+| Text search across all history | ✅ Done |
+| Filter chips by content type | ✅ Done |
+| App icon + source app shown per item | ✅ Done |
+| Rich image previews on hover | ✅ Done |
+| Color swatches with hex values | ✅ Done |
+| OCR text shown under image previews | ✅ Done |
+| Paste as plain text (Option-click toggle) | ✅ Done — inverted by `pasteAsPlainText` setting |
+| Text transform context menu (uppercase, lowercase, capitalize, trim, remove blank lines) | ✅ Done |
+| Drag items out of popover | ✅ Done — `NSItemProvider` for each type |
+| Delete individual items | ✅ Done |
+| Clear all history (with confirmation) | ✅ Done |
+| Resizable popover height (drag handle, 200–800px, persisted) | ✅ Done |
+| Keyboard navigation (↑↓, Return, Escape) | ✅ Done |
+| Pause/resume capture (with duration: 1m, 5m, 30m, or indefinite) | ✅ Done |
+
+### Snippets (Saved Clips)
+
+| Feature | Status |
+|---------|--------|
+| Save item as snippet from history | ✅ Done |
+| Named snippets with CRUD (add, edit, delete, reorder) | ✅ Done |
+| Dedicated editor window | ✅ Done |
+| Snippet picker floating panel (NSPanel, non-activating) | ✅ Done |
+| Global hotkey to open snippet picker | ✅ Done |
+| Search in snippet picker | ✅ Done |
+| Cmd+1–9 quick-select in picker | ✅ Done |
+| Snippet paste restores RTF/HTML if available | ✅ Done |
+| Example snippets on first launch | ✅ Done |
+
+### Settings
+
+| Setting | Status |
+|---------|--------|
+| History limit (25–500) | ✅ Done |
+| Paste as plain text by default | ✅ Done |
+| Enable rich previews | ✅ Done |
+| Enable stats tracking | ✅ Done |
+| Capture screenshots | ✅ Done |
+| Enable OCR | ✅ Done |
+| Enable QR/barcode detection | ✅ Done |
+| Sensitive content handling (skip/mask/allow) | ✅ Done — capture-side complete |
+| Capture sound (picker + preview) | ✅ Done |
+| Launch at login (SMAppService) | ✅ Done |
+| Excluded apps (searchable list of installed apps) | ✅ Done |
+| Excluded content types (per-type toggles) | ✅ Done |
+| Global keyboard shortcuts (via KeyboardShortcuts library) | ✅ Done |
+
+### Statistics
+
+| Feature | Status |
+|---------|--------|
+| Total copies tracked | ✅ Done |
+| Per-type counts | ✅ Done |
+| Per-source-app counts | ✅ Done |
+| 90-day rolling daily counts | ✅ Done |
+| Overview stat boxes (total, types, apps) | ✅ Done |
+| Content type bar chart (SwiftUI Charts) | ✅ Done |
+| Top 8 source apps list | ✅ Done |
+| 13-week activity heatmap | ✅ Done |
+| Reset stats (with confirmation) | ✅ Done |
+| Stats entirely disabled when setting is off | ✅ Done |
+
+### Data Portability
+
+| Feature | Status |
+|---------|--------|
+| Export to JSON (v1 envelope with base64 blobs) | ✅ Done |
+| Import with Replace mode (full overwrite) | ✅ Done |
+| Import with Merge mode (union, deduplicates by ID) | ✅ Done |
+| Blob round-trip (images, PDFs, rich text, files) | ✅ Done |
+| Settings included in export, restored on Replace | ✅ Done |
+| File URL items restored to `~/Library/…/Muninn/files/` | ✅ Done |
+| Migration from ClipBar app name (old path) | ✅ Done |
+| Migration from `~/.config/clipbar` (legacy path) | ✅ Done |
+
+### Siri Shortcuts / App Intents
+
+| Intent | Status |
+|--------|--------|
+| Get Clipboard History (last N items) | ✅ Done |
+| Search Clipboard History (by query) | ✅ Done |
+| Copy Snippet By Name | ✅ Done |
+| Get Latest Clipboard Item | ✅ Done |
+| Transform Text (case, trim, etc.) | ✅ Done |
+
+---
+
+## Gaps & Known Issues
+
+### Bugs
+
+**`pasteAsPlainText` not respected in Snippet Picker**
+The setting is correctly implemented in the main popover but ignored in `SnippetPickerView`. The snippet picker always pastes rich text if a blob is available, regardless of the user's preference.
+
+**Sensitive items not masked in the UI**
+`ClipboardMonitor` correctly sets `isSensitive = true` on captured items and `HistoryItem.preview` returns `"••••••••"` for them. However, the popover's `HistoryRow` never checks `isSensitive` — sensitive items display normally. The masking logic is wired at the model layer but disconnected from the view layer.
+
+**`captureScreenshots` toggle may not gate the monitor**
+`ScreenshotMonitor` is initialized unconditionally in `MuninnApp.init()`. The setting is defined and displayed in the UI, but there's no code path that starts/stops the monitor based on it. Screenshots may continue to be attributed and captured regardless of the toggle.
+
+**`GetLatestClipboardItem` intent returns empty for non-text history**
+If the most recent clipboard item is an image, PDF, or color, the intent returns an empty string rather than a meaningful result or an explanation.
+
+### Missing User Feedback
+
+- **Silent I/O failures** — All file read/write errors use `try?` and print to the console (if at all). Users have no indication when history, blobs, or stats fail to save. DataPorter is the only code path that surfaces errors to the user.
+- **No OCR/QR progress indicator** — Background scanning gives no visual feedback. Users cannot tell if an image is being processed or was already scanned.
+- **No feedback when import partially fails** — Blob writes during import use `try?`. An import can report success while silently skipping blobs.
+
+### Search Gaps
+
+| Content type | Searchable? |
+|--------------|------------|
+| Text | ✅ By value |
+| Image | ✅ By OCR text (if enabled) |
+| File URL | ✅ By filename |
+| PDF | ❌ No text extraction |
+| Color | ❌ Not searchable |
+
+### UX Gaps
+
+- **No pin/favorite for history items** — History is ordered chronologically only. Frequently-accessed items that aren't saved as snippets have no way to be promoted.
+- **No undo for destructive actions** — Deleting a history item or clearing history is permanent (no undo, only a confirmation alert for clear-all).
+- **No multi-select** — Cannot delete or act on multiple history items at once.
+- **No visual indicator for paused state** — The menu bar icon doesn't change when capture is paused; only the popover footer shows the paused state.
+- **Popover width is fixed** — Only height is resizable.
+
+### Technical Debt
+
+- **Hardcoded key codes** — Arrow keys (125/126), Return (36), Escape (53) in `NSEvent` handlers. Should use named constants or `NSEvent` key constants.
+- **`TextTransformType` duplicated** — `MuninnIntents.swift` maintains a parallel enum that mirrors `TextTransform.swift`. These must be kept in sync manually.
+- **No tests for views** — UI logic in `PopoverContentView` (~1000 lines) and `SnippetPickerView` is entirely untested. Only the model layer has test coverage.
+- **App Intents load from disk, not live state** — Intents re-parse JSON files directly rather than communicating with running stores. Rapid use could have race conditions with in-flight saves.
+- **Static coupling between monitors** — `ScreenshotMonitor` and `ClipboardMonitor` share state via static class vars. This is fragile and timing-dependent.
+
+---
+
+## Potential Future Features
+
+These are not planned but represent natural extensions based on the existing architecture:
+
+- **iCloud sync** — The `~/Library/Application Support/Muninn/` data model is portable; CloudKit or iCloud Drive sync could extend history across Macs.
+- **Pin/star history items** — A lightweight promotion mechanism short of saving as a named snippet.
+- **PDF text extraction** — Enable search within PDF clipboard items using PDFKit.
+- **Color search** — Search by hex value or color name.
+- **Group by source app** — Alternative history view grouped by application.
+- **Bulk delete** — Multi-select with delete in history.
+- **Menu bar icon state** — Reflect paused/active/sensitive state in the menu bar icon.
+- **Configurable polling interval** — Currently hardcoded at 0.5s.
+- **Regex search** — Power-user search in history.
+- **Expiring history** — Auto-delete items older than N days regardless of count limit.
