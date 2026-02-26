@@ -803,7 +803,7 @@ private struct HistoryRow: View {
                 colorComponents: item.colorComponents
             )
         }
-        .if(item.contentType == .text && item.value != nil) { view in
+        .if(item.contentType == .text && item.value != nil && item.isSensitive != true) { view in
             view.contextMenu {
                 Button("Copy") {
                     let pasteboard = NSPasteboard.general
@@ -848,100 +848,106 @@ private struct HistoryRow: View {
 
     @ViewBuilder
     private var historyPreviewContent: some View {
-        switch item.contentType {
-        case .image:
-            if let blob = item.blobFile, let data = BlobStorage.load(blob),
-               let nsImage = NSImage(data: data) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Image(nsImage: nsImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
-                            .animation(.easeInOut(duration: 0.15), value: isHovered)
-                        if let name = item.value {
-                            Text(name)
-                                .lineLimit(1)
-                                .foregroundStyle(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    if settingsStore.enableOCR, let ocrText = item.ocrText {
-                        Text(ocrText)
-                            .lineLimit(isHovered ? 3 : 1)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                    if settingsStore.enableQRDetection, let barcode = item.detectedBarcode {
-                        let isURL = barcode.hasPrefix("http://") || barcode.hasPrefix("https://")
-                        Button {
-                            let pasteboard = NSPasteboard.general
-                            pasteboard.clearContents()
-                            pasteboard.setString(barcode, forType: .string)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: isURL ? "link" : "barcode")
-                                    .font(.caption2)
-                                    .foregroundStyle(.tertiary)
-                                Text(barcode)
+        if item.isSensitive == true {
+            Label("Sensitive content", systemImage: "eye.slash")
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        } else {
+            switch item.contentType {
+            case .image:
+                if let blob = item.blobFile, let data = BlobStorage.load(blob),
+                   let nsImage = NSImage(data: data) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Image(nsImage: nsImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
+                                .animation(.easeInOut(duration: 0.15), value: isHovered)
+                            if let name = item.value {
+                                Text(name)
                                     .lineLimit(1)
+                                    .foregroundStyle(.secondary)
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
                             }
                         }
-                        .buttonStyle(.plain)
+                        if settingsStore.enableOCR, let ocrText = item.ocrText {
+                            Text(ocrText)
+                                .lineLimit(isHovered ? 3 : 1)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        if settingsStore.enableQRDetection, let barcode = item.detectedBarcode {
+                            let isURL = barcode.hasPrefix("http://") || barcode.hasPrefix("https://")
+                            Button {
+                                let pasteboard = NSPasteboard.general
+                                pasteboard.clearContents()
+                                pasteboard.setString(barcode, forType: .string)
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: isURL ? "link" : "barcode")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                    Text(barcode)
+                                        .lineLimit(1)
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                } else {
+                    Label(item.value ?? "Image", systemImage: "photo")
+                        .lineLimit(1)
                 }
-            } else {
-                Label(item.value ?? "Image", systemImage: "photo")
+            case .pdf:
+                Label("PDF Document", systemImage: "doc.richtext")
                     .lineLimit(1)
-            }
-        case .pdf:
-            Label("PDF Document", systemImage: "doc.richtext")
-                .lineLimit(1)
-        case .fileURL:
-            if showRichPreview,
-               let blob = item.blobFile,
-               Self.imageExtensions.contains((blob as NSString).pathExtension.lowercased()),
-               let data = BlobStorage.load(blob),
-               let nsImage = NSImage(data: data) {
-                VStack(alignment: .leading, spacing: 4) {
+            case .fileURL:
+                if showRichPreview,
+                   let blob = item.blobFile,
+                   Self.imageExtensions.contains((blob as NSString).pathExtension.lowercased()),
+                   let data = BlobStorage.load(blob),
+                   let nsImage = NSImage(data: data) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label(item.preview, systemImage: "doc")
+                            .lineLimit(1)
+                        if isHovered {
+                            Image(nsImage: nsImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 120)
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.15), value: isHovered)
+                } else {
                     Label(item.preview, systemImage: "doc")
                         .lineLimit(1)
-                    if isHovered {
-                        Image(nsImage: nsImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 120)
-                    }
                 }
-                .animation(.easeInOut(duration: 0.15), value: isHovered)
-            } else {
-                Label(item.preview, systemImage: "doc")
+            case .color:
+                if let comps = item.colorComponents, comps.count >= 3 {
+                    HStack(spacing: 6) {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
+                            .frame(width: showRichPreview ? 24 : 16, height: showRichPreview ? 24 : 16)
+                        if showRichPreview {
+                            Text(String(format: "#%02X%02X%02X",
+                                Int(comps[0] * 255), Int(comps[1] * 255), Int(comps[2] * 255)))
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                                .textSelection(.enabled)
+                        } else {
+                            Text("Color")
+                        }
+                    }
+                } else {
+                    Text("Color")
+                }
+            case .text:
+                Text(item.preview)
                     .lineLimit(1)
             }
-        case .color:
-            if let comps = item.colorComponents, comps.count >= 3 {
-                HStack(spacing: 6) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
-                        .frame(width: showRichPreview ? 24 : 16, height: showRichPreview ? 24 : 16)
-                    if showRichPreview {
-                        Text(String(format: "#%02X%02X%02X",
-                            Int(comps[0] * 255), Int(comps[1] * 255), Int(comps[2] * 255)))
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .textSelection(.enabled)
-                    } else {
-                        Text("Color")
-                    }
-                }
-            } else {
-                Text("Color")
-            }
-        case .text:
-            Text(item.preview)
-                .lineLimit(1)
         }
     }
 }

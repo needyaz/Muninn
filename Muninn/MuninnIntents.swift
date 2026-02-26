@@ -119,11 +119,10 @@ struct GetLatestClipboardItem: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
         let items = loadHistory()
-        guard let first = items.first(where: { $0.contentType == .text }),
-              let value = first.value else {
-            return .result(value: "")
+        if let first = items.first(where: { $0.contentType == .text }), let value = first.value {
+            return .result(value: value)
         }
-        return .result(value: value)
+        return .result(value: items.first?.preview ?? "")
     }
 }
 

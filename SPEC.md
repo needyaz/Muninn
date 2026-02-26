@@ -141,17 +141,7 @@ Named for Odin's raven of memory.
 
 ### Bugs
 
-**`pasteAsPlainText` not respected in Snippet Picker**
-The setting is correctly implemented in the main popover but ignored in `SnippetPickerView`. The snippet picker always pastes rich text if a blob is available, regardless of the user's preference.
-
-**Sensitive items not masked in the UI**
-`ClipboardMonitor` correctly sets `isSensitive = true` on captured items and `HistoryItem.preview` returns `"••••••••"` for them. However, the popover's `HistoryRow` never checks `isSensitive` — sensitive items display normally. The masking logic is wired at the model layer but disconnected from the view layer.
-
-**`captureScreenshots` toggle may not gate the monitor**
-`ScreenshotMonitor` is initialized unconditionally in `MuninnApp.init()`. The setting is defined and displayed in the UI, but there's no code path that starts/stops the monitor based on it. Screenshots may continue to be attributed and captured regardless of the toggle.
-
-**`GetLatestClipboardItem` intent returns empty for non-text history**
-If the most recent clipboard item is an image, PDF, or color, the intent returns an empty string rather than a meaningful result or an explanation.
+None known.
 
 ### Missing User Feedback
 

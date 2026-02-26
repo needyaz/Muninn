@@ -215,7 +215,7 @@ struct SnippetPickerView: View {
             if let value = clip.value {
                 pasteboard.setString(value, forType: .string)
             }
-            if let blob = clip.blobFile, let data = BlobStorage.load(blob) {
+            if !settingsStore.pasteAsPlainText, let blob = clip.blobFile, let data = BlobStorage.load(blob) {
                 let ext = (blob as NSString).pathExtension
                 if ext == "rtf" {
                     pasteboard.setData(data, forType: .rtf)
