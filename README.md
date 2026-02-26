@@ -16,7 +16,7 @@ Muninn monitors your clipboard in the background and records everything you copy
 - **Files** — file URL references
 - **Colors** — `NSColor` values with full RGBA components
 
-History items show the source app icon, a content preview, and a relative timestamp. Duplicate text entries are automatically deduplicated — recopying the same text moves it to the top instead of creating a new entry. Hover over any item to reveal pin and delete buttons, or clear all history at once from the footer toolbar.
+History items show the source app icon, a content preview, and a relative timestamp. Duplicate text entries are automatically deduplicated — recopying the same text moves it to the top instead of creating a new entry. Hover over any item to reveal pin and delete buttons, or clear all history at once from the footer toolbar. Deleting an item or clearing history shows an **Undo** toast for 30 seconds — click it to restore everything, including any images or binary data.
 
 ### Snippets
 
@@ -61,11 +61,23 @@ Right-click any text history item or text snippet to access transformations:
 
 Selecting a transform copies the transformed text to your clipboard and pastes it. A **Copy** option is also available to copy without pasting.
 
+### Multi-Select
+
+Select multiple history items for bulk deletion:
+
+- **Cmd+click** — toggle individual items in or out of the selection
+- **Shift+click** — range-select from the last-toggled item to the clicked item
+- **Shift+↑/↓** — extend the keyboard selection up or down
+- **Delete/Backspace** — delete all selected items (with undo)
+- **Escape** — clear the selection (press again to close the popover)
+
+A floating action bar appears when two or more items are selected.
+
 ### Keyboard Navigation
 
 - **Arrow keys** — move selection up and down through items
 - **Enter** — paste the selected item
-- **Escape** — close the popover
+- **Escape** — clear multi-selection, or close the popover if nothing is selected
 - **Global hotkey** — configurable shortcut to toggle Muninn from anywhere
 - **Snippet picker hotkey** — configurable shortcut to open the floating snippet picker
 
@@ -167,7 +179,7 @@ Access via Settings > Stats. Statistics can be reset at any time.
 
 ### Resizable Popover
 
-Drag the handle at the bottom of the popover to make it taller or shorter (200–800pt). The size is remembered across sessions.
+Drag the corner grip at the bottom-right of the popover to resize it. Dragging changes both height (200–800pt) and width (280–600pt) simultaneously. The size is remembered across sessions.
 
 ### Settings
 
@@ -208,7 +220,7 @@ All data is stored locally in `~/Library/Application Support/Muninn/`:
 | `stats.json` | Clipboard activity statistics |
 | `blobs/` | Binary data for images, PDFs, and rich text |
 
-Settings (launch at login, history limit, plain text mode, sensitive content handling, rich previews, capture sound, screenshot capture, OCR, QR detection, popover height) are stored in `UserDefaults`.
+Settings (launch at login, history limit, plain text mode, sensitive content handling, rich previews, capture sound, screenshot capture, OCR, QR detection, popover height, popover width) are stored in `UserDefaults`.
 
 ## Building
 

@@ -118,10 +118,11 @@ Never add a required `decode()` call for a field that didn't exist in v1. Use `d
 Use `BlobStorage` for all binary file operations. Blobs are named `{UUID}.{ext}` and live in `StoragePaths.blobs`.
 
 ```swift
-let filename = BlobStorage.save(data, ext: "png")   // saves, returns "uuid.png"
-let data = BlobStorage.load("uuid.png")             // returns Data?
+let filename = BlobStorage.save(data, id: uuid, ext: "png")  // saves, returns "uuid.png"
+let data = BlobStorage.load("uuid.png")                      // returns Data?
 BlobStorage.delete("uuid.png")
-BlobStorage.copy("uuid.png", to: destURL)
+BlobStorage.copy("uuid.png", newID: uuid)                    // returns new filename?
+BlobStorage.restore(data, filename: "uuid.png")              // restores data to exact filename (used by undo)
 ```
 
 When a store evicts an item (e.g., history trimmed to limit), it is responsible for calling `BlobStorage.delete()` on any associated blob files.
