@@ -4,6 +4,26 @@ import Foundation
 class HistoryStore {
     var items: [HistoryItem] = []
 
+    /// Tracks in-flight OCR/QR scan tasks per item ID. UI observes this to show progress indicators.
+    private var pendingScanCounts: [UUID: Int] = [:]
+
+    func isScanning(id: UUID) -> Bool {
+        (pendingScanCounts[id] ?? 0) > 0
+    }
+
+    func beginScanning(id: UUID) {
+        pendingScanCounts[id, default: 0] += 1
+    }
+
+    func endScanning(id: UUID) {
+        let current = pendingScanCounts[id] ?? 0
+        if current <= 1 {
+            pendingScanCounts.removeValue(forKey: id)
+        } else {
+            pendingScanCounts[id] = current - 1
+        }
+    }
+
     private let settingsStore: SettingsStore
     private let fileURL: URL
 
@@ -74,7 +94,9 @@ class HistoryStore {
         for item in items where item.contentType == .image && item.ocrText == nil {
             if let blob = item.blobFile, let data = BlobStorage.load(blob) {
                 let id = item.id
+                beginScanning(id: id)
                 OCRService.extractText(from: data) { [weak self] text in
+                    self?.endScanning(id: id)
                     guard let text else { return }
                     self?.update(id: id, ocrText: text)
                 }
@@ -86,7 +108,9 @@ class HistoryStore {
         for item in items where item.contentType == .image && item.detectedBarcode == nil {
             if let blob = item.blobFile, let data = BlobStorage.load(blob) {
                 let id = item.id
+                beginScanning(id: id)
                 QRService.detectBarcode(from: data) { [weak self] value in
+                    self?.endScanning(id: id)
                     guard let value else { return }
                     self?.update(id: id, detectedBarcode: value)
                 }

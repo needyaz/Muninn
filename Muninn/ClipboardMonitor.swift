@@ -189,13 +189,17 @@ class ClipboardMonitor {
                 )
                 historyStore.add(item)
                 if settingsStore.enableOCR {
+                    historyStore.beginScanning(id: id)
                     OCRService.extractText(from: data) { [weak historyStore] text in
+                        historyStore?.endScanning(id: id)
                         guard let text else { return }
                         historyStore?.update(id: id, ocrText: text)
                     }
                 }
                 if settingsStore.enableQRDetection {
+                    historyStore.beginScanning(id: id)
                     QRService.detectBarcode(from: data) { [weak historyStore] value in
+                        historyStore?.endScanning(id: id)
                         guard let value else { return }
                         historyStore?.update(id: id, detectedBarcode: value)
                     }

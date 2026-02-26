@@ -145,9 +145,7 @@ None known.
 
 ### Missing User Feedback
 
-- **Silent I/O failures** — All file read/write errors use `try?` and print to the console (if at all). Users have no indication when history, blobs, or stats fail to save. DataPorter is the only code path that surfaces errors to the user.
-- **No OCR/QR progress indicator** — Background scanning gives no visual feedback. Users cannot tell if an image is being processed or was already scanned.
-- **No feedback when import partially fails** — Blob writes during import use `try?`. An import can report success while silently skipping blobs.
+- **Silent I/O failures** — Store save/load errors are intentionally silent per the app's graceful-degradation design (see CONSTITUTION §7). Only DataPorter surfaces errors to the user.
 
 ### Search Gaps
 

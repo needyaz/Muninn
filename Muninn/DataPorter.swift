@@ -125,6 +125,7 @@ enum DataPorter {
         var imageCount: Int
         var pdfCount: Int
         var richTextCount: Int
+        var failedBlobCount: Int
     }
 
     @discardableResult
@@ -149,15 +150,23 @@ enum DataPorter {
         let blobDir = StoragePaths.blobs
 
         var newBlobFilenames: Set<String> = []
+        var failedBlobCount = 0
 
         if merge {
             // Write only new blobs (don't overwrite existing)
             for (filename, base64) in envelope.blobs {
                 let dest = blobDir.appendingPathComponent(filename)
-                if !FileManager.default.fileExists(atPath: dest.path),
-                   let blobData = Data(base64Encoded: base64) {
-                    try? blobData.write(to: dest, options: .atomic)
-                    newBlobFilenames.insert(filename)
+                if !FileManager.default.fileExists(atPath: dest.path) {
+                    if let blobData = Data(base64Encoded: base64) {
+                        do {
+                            try blobData.write(to: dest, options: .atomic)
+                            newBlobFilenames.insert(filename)
+                        } catch {
+                            failedBlobCount += 1
+                        }
+                    } else {
+                        failedBlobCount += 1
+                    }
                 }
             }
         } else {
@@ -169,7 +178,13 @@ enum DataPorter {
             }
             for (filename, base64) in envelope.blobs {
                 if let blobData = Data(base64Encoded: base64) {
-                    try? blobData.write(to: blobDir.appendingPathComponent(filename), options: .atomic)
+                    do {
+                        try blobData.write(to: blobDir.appendingPathComponent(filename), options: .atomic)
+                    } catch {
+                        failedBlobCount += 1
+                    }
+                } else {
+                    failedBlobCount += 1
                 }
             }
         }
@@ -340,7 +355,8 @@ enum DataPorter {
             excludedTypeCount: newExcludedTypeCount,
             imageCount: imageCount,
             pdfCount: pdfCount,
-            richTextCount: richTextCount
+            richTextCount: richTextCount,
+            failedBlobCount: failedBlobCount
         )
     }
 }

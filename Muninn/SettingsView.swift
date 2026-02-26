@@ -305,6 +305,9 @@ private struct DataTab: View {
                     ? String(localized: "Imported \(last).")
                     : String(localized: "Imported \(parts.joined(separator: ", ")), and \(last).")
             }
+            if result.failedBlobCount > 0 {
+                importResultMessage += String(localized: " \(result.failedBlobCount) attachment\(result.failedBlobCount == 1 ? "" : "s") could not be restored.")
+            }
             showImportSuccess = true
         } catch {
             errorMessage = error.localizedDescription

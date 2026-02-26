@@ -127,7 +127,7 @@ struct PopoverContentView: View {
                             sectionHeader("HISTORY")
                             ForEach(Array(filteredHistory.enumerated()), id: \.element.id) { idx, item in
                                 let globalIdx = filteredClips.count + idx
-                                HistoryRow(item: item, isSelected: selectedIndex == globalIdx, showRichPreview: settingsStore.enableRichPreviews) {
+                                HistoryRow(item: item, isSelected: selectedIndex == globalIdx, showRichPreview: settingsStore.enableRichPreviews, isScanning: historyStore.isScanning(id: item.id)) {
                                     copyAndPaste(item: item)
                                 } onPin: {
                                     pinItem(item)
@@ -740,6 +740,7 @@ private struct HistoryRow: View {
     let item: HistoryItem
     var isSelected: Bool = false
     var showRichPreview: Bool = false
+    var isScanning: Bool = false
     var onTap: () -> Void
     var onPin: () -> Void
     var onDelete: () -> Void
@@ -876,6 +877,11 @@ private struct HistoryRow: View {
                                     .lineLimit(1)
                                     .foregroundStyle(.secondary)
                                     .font(.caption)
+                            }
+                            if isScanning {
+                                ProgressView()
+                                    .scaleEffect(0.6)
+                                    .help("Scanning…")
                             }
                         }
                         if settingsStore.enableOCR, let ocrText = item.ocrText {
