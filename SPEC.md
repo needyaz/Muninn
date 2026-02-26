@@ -62,7 +62,10 @@ Named for Odin's raven of memory.
 | Delete individual items | ✅ Done |
 | Clear all history (with confirmation) | ✅ Done |
 | Resizable popover height (drag handle, 200–800px, persisted) | ✅ Done |
+| Resizable popover width (corner drag handle, 280–600px, persisted) | ✅ Done |
 | Keyboard navigation (↑↓, Return, Escape) | ✅ Done |
+| Multi-select (Cmd+click, Shift+click, Shift+arrow) with bulk delete | ✅ Done |
+| Undo for delete / bulk delete / clear-all (5-second window, blob-aware) | ✅ Done |
 | Pause/resume capture (with duration: 1m, 5m, 30m, or indefinite) | ✅ Done |
 
 ### Snippets (Saved Clips)
@@ -159,10 +162,7 @@ None known.
 
 ### UX Gaps
 
-- **No pin/favorite for history items** — History is ordered chronologically only. Frequently-accessed items that aren't saved as snippets have no way to be promoted.
-- **No undo for destructive actions** — Deleting a history item or clearing history is permanent (no undo, only a confirmation alert for clear-all).
-- **No multi-select** — Cannot delete or act on multiple history items at once.
-- **Popover width is fixed** — Only height is resizable.
+- **No pin/favorite for history items** — The existing save-as-snippet (pin button) effectively covers this use case.
 
 ### Technical Debt
 
@@ -175,11 +175,9 @@ None known.
 These are not planned but represent natural extensions based on the existing architecture:
 
 - **iCloud sync** — The `~/Library/Application Support/Muninn/` data model is portable; CloudKit or iCloud Drive sync could extend history across Macs.
-- **Pin/star history items** — A lightweight promotion mechanism short of saving as a named snippet.
 - **PDF text extraction** — Enable search within PDF clipboard items using PDFKit.
 - **Color search** — Search by hex value or color name.
 - **Group by source app** — Alternative history view grouped by application.
-- **Bulk delete** — Multi-select with delete in history.
 - **Menu bar icon state** — Reflect paused/active/sensitive state in the menu bar icon.
 - **Configurable polling interval** — Currently hardcoded at 0.5s.
 - **Regex search** — Power-user search in history.

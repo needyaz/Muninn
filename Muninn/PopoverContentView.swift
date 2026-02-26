@@ -13,6 +13,8 @@ struct PopoverContentView: View {
     @State private var previousApp: NSRunningApplication?
     @State private var contentTypeFilter: ClipboardContentType?
     @State private var selectedIndex: Int?
+    @State private var selectedIDs: Set<UUID> = []
+    @State private var lastToggledID: UUID?
     @State private var eventMonitor: Any?
     @State private var mouseEventMonitor: Any?
     @State private var resizeDrag = ResizeDragState()
@@ -39,6 +41,8 @@ struct PopoverContentView: View {
             .onChange(of: search) {
                 contentTypeFilter = nil
                 selectedIndex = nil
+                selectedIDs.removeAll()
+                lastToggledID = nil
             }
 
             Divider()
@@ -127,8 +131,23 @@ struct PopoverContentView: View {
                             sectionHeader("HISTORY")
                             ForEach(Array(filteredHistory.enumerated()), id: \.element.id) { idx, item in
                                 let globalIdx = filteredClips.count + idx
-                                HistoryRow(item: item, isSelected: selectedIndex == globalIdx, showRichPreview: settingsStore.enableRichPreviews, isScanning: historyStore.isScanning(id: item.id)) {
-                                    copyAndPaste(item: item)
+                                HistoryRow(
+                                    item: item,
+                                    isSelected: selectedIndex == globalIdx,
+                                    isMultiSelected: selectedIDs.contains(item.id),
+                                    isInMultiSelectMode: !selectedIDs.isEmpty,
+                                    showRichPreview: settingsStore.enableRichPreviews,
+                                    isScanning: historyStore.isScanning(id: item.id)
+                                ) {
+                                    if NSEvent.modifierFlags.contains(.command) {
+                                        toggleMultiSelect(item.id)
+                                    } else if NSEvent.modifierFlags.contains(.shift), lastToggledID != nil {
+                                        shiftSelect(to: item.id, in: filteredHistory)
+                                    } else {
+                                        selectedIDs.removeAll()
+                                        lastToggledID = nil
+                                        copyAndPaste(item: item)
+                                    }
                                 } onPin: {
                                     pinItem(item)
                                 } onDelete: {
@@ -157,16 +176,39 @@ struct PopoverContentView: View {
                         }
                     }
                 }
+                .overlay(alignment: .bottom) {
+                    VStack(spacing: 6) {
+                        if selectedIDs.count >= 2 {
+                            BulkActionBar(count: selectedIDs.count) {
+                                deleteSelected()
+                            } onCancel: {
+                                selectedIDs.removeAll()
+                                lastToggledID = nil
+                            }
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                        if historyStore.pendingUndo != nil {
+                            UndoToast(label: historyStore.pendingUndo!.label) {
+                                historyStore.undo()
+                            }
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                    }
+                    .padding(.bottom, 8)
+                }
+                .animation(.easeInOut(duration: 0.2), value: historyStore.pendingUndo != nil)
+                .animation(.easeInOut(duration: 0.2), value: selectedIDs.count >= 2)
             }
 
-            // Resize handle
+            // Resize handle (corner drag — resizes both height and width)
             Divider()
             HStack {
                 Spacer()
-                Capsule()
-                    .fill(Color.secondary.opacity(0.4))
-                    .frame(width: 36, height: 4)
-                Spacer()
+                Image(systemName: "arrow.down.right.and.arrow.up.left")
+                    .font(.system(size: 7))
+                    .foregroundStyle(Color.secondary.opacity(resizeDrag.isHovering ? 0.7 : 0.35))
+                    .frame(width: 16, height: 12)
+                    .padding(.trailing, 4)
             }
             .frame(height: 12)
             .contentShape(Rectangle())
@@ -242,7 +284,7 @@ struct PopoverContentView: View {
             }
             .padding(10)
         }
-        .frame(width: 320)
+        .frame(width: settingsStore.popoverWidth)
         .onAppear {
             previousApp = NSWorkspace.shared.frontmostApplication
             installKeyMonitor()
@@ -363,6 +405,48 @@ struct PopoverContentView: View {
         clipStore.add(clip)
     }
 
+    // MARK: - Multi-select
+
+    private func toggleMultiSelect(_ id: UUID) {
+        if selectedIDs.contains(id) {
+            selectedIDs.remove(id)
+        } else {
+            selectedIDs.insert(id)
+        }
+        lastToggledID = id
+    }
+
+    private func shiftSelect(to endID: UUID, in historyItems: [HistoryItem]) {
+        guard let startID = lastToggledID,
+              let startIdx = historyItems.firstIndex(where: { $0.id == startID }),
+              let endIdx = historyItems.firstIndex(where: { $0.id == endID }) else {
+            selectedIDs.insert(endID)
+            lastToggledID = endID
+            return
+        }
+        let lo = min(startIdx, endIdx)
+        let hi = max(startIdx, endIdx)
+        for i in lo...hi {
+            selectedIDs.insert(historyItems[i].id)
+        }
+        lastToggledID = endID
+    }
+
+    private func deleteSelected() {
+        let itemsToDelete = historyStore.items.filter { selectedIDs.contains($0.id) }
+        historyStore.deleteMultiple(itemsToDelete)
+        selectedIDs.removeAll()
+        lastToggledID = nil
+    }
+
+    private func historyItemIDAt(_ globalIndex: Int) -> UUID? {
+        let clipCount = filteredClips.count
+        guard globalIndex >= clipCount else { return nil }
+        let historyIndex = globalIndex - clipCount
+        guard historyIndex < filteredHistory.count else { return nil }
+        return filteredHistory[historyIndex].id
+    }
+
     private func clearHistory() {
         DispatchQueue.main.async {
             let previousPolicy = NSApp.activationPolicy()
@@ -371,7 +455,6 @@ struct PopoverContentView: View {
 
             let alert = NSAlert()
             alert.messageText = String(localized: "Clear all history?")
-            alert.informativeText = String(localized: "This cannot be undone.")
             alert.alertStyle = .warning
             alert.addButton(withTitle: String(localized: "Clear All"))
             alert.addButton(withTitle: String(localized: "Cancel"))
@@ -517,20 +600,30 @@ struct PopoverContentView: View {
             switch event.type {
             case .leftMouseDown:
                 if drag.isHovering {
-                    drag.startY = NSEvent.mouseLocation.y
+                    let loc = NSEvent.mouseLocation
+                    drag.startY = loc.y
                     drag.startHeight = settings.popoverHeight
+                    drag.startX = loc.x
+                    drag.startWidth = settings.popoverWidth
                     return nil
                 }
             case .leftMouseDragged:
                 if let startY = drag.startY, let startH = drag.startHeight {
-                    let delta = startY - NSEvent.mouseLocation.y
-                    settings.popoverHeight = max(200, min(800, startH + delta))
+                    let loc = NSEvent.mouseLocation
+                    let deltaY = startY - loc.y
+                    settings.popoverHeight = max(200, min(800, startH + deltaY))
+                    if let startX = drag.startX, let startW = drag.startWidth {
+                        let deltaX = loc.x - startX
+                        settings.popoverWidth = max(280, min(600, startW + deltaX))
+                    }
                     return nil
                 }
             case .leftMouseUp:
                 if drag.startY != nil {
                     drag.startY = nil
                     drag.startHeight = nil
+                    drag.startX = nil
+                    drag.startWidth = nil
                     return nil
                 }
             default:
@@ -554,6 +647,8 @@ struct PopoverContentView: View {
         static let upArrow: UInt16 = 126
         static let returnKey: UInt16 = 36
         static let escape: UInt16 = 53
+        static let delete: UInt16 = 51       // Backspace
+        static let forwardDelete: UInt16 = 117
     }
 
     private func installKeyMonitor() {
@@ -570,31 +665,69 @@ struct PopoverContentView: View {
     }
 
     private func handleKeyEvent(_ event: NSEvent) -> Bool {
+        let shiftHeld = event.modifierFlags.contains(.shift)
+
         switch event.keyCode {
         case KeyCode.downArrow:
-            if selectedIndex == nil {
-                selectedIndex = 0
-            } else if let idx = selectedIndex, idx < selectableCount - 1 {
-                selectedIndex = idx + 1
+            if shiftHeld, let idx = selectedIndex, let id = historyItemIDAt(idx) {
+                let nextIdx = min(idx + 1, selectableCount - 1)
+                if let nextID = historyItemIDAt(nextIdx) {
+                    selectedIDs.insert(id)
+                    selectedIDs.insert(nextID)
+                    lastToggledID = nextID
+                    selectedIndex = nextIdx
+                }
+            } else {
+                if !selectedIDs.isEmpty { selectedIDs.removeAll(); lastToggledID = nil }
+                if selectedIndex == nil {
+                    selectedIndex = 0
+                } else if let idx = selectedIndex, idx < selectableCount - 1 {
+                    selectedIndex = idx + 1
+                }
             }
             return true
 
         case KeyCode.upArrow:
-            if selectedIndex == nil {
-                selectedIndex = selectableCount - 1
-            } else if let idx = selectedIndex, idx > 0 {
-                selectedIndex = idx - 1
+            if shiftHeld, let idx = selectedIndex, let id = historyItemIDAt(idx) {
+                let prevIdx = max(idx - 1, filteredClips.count)
+                if let prevID = historyItemIDAt(prevIdx) {
+                    selectedIDs.insert(id)
+                    selectedIDs.insert(prevID)
+                    lastToggledID = prevID
+                    selectedIndex = prevIdx
+                }
+            } else {
+                if !selectedIDs.isEmpty { selectedIDs.removeAll(); lastToggledID = nil }
+                if selectedIndex == nil {
+                    selectedIndex = selectableCount - 1
+                } else if let idx = selectedIndex, idx > 0 {
+                    selectedIndex = idx - 1
+                }
             }
             return true
 
         case KeyCode.returnKey:
             if let idx = selectedIndex {
+                selectedIDs.removeAll()
+                lastToggledID = nil
                 activateItemAt(idx)
                 return true
             }
             return false
 
+        case KeyCode.delete, KeyCode.forwardDelete:
+            if !selectedIDs.isEmpty {
+                deleteSelected()
+                return true
+            }
+            return false
+
         case KeyCode.escape:
+            if !selectedIDs.isEmpty {
+                selectedIDs.removeAll()
+                lastToggledID = nil
+                return true
+            }
             NSApp.keyWindow?.close()
             return true
 
@@ -707,6 +840,8 @@ private struct HistoryRow: View {
 
     let item: HistoryItem
     var isSelected: Bool = false
+    var isMultiSelected: Bool = false
+    var isInMultiSelectMode: Bool = false
     var showRichPreview: Bool = false
     var isScanning: Bool = false
     var onTap: () -> Void
@@ -723,6 +858,13 @@ private struct HistoryRow: View {
             onTap()
         } label: {
             HStack {
+                // Multi-select indicator
+                if isInMultiSelectMode {
+                    Image(systemName: isMultiSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 13))
+                        .foregroundStyle(isMultiSelected ? Color.accentColor : Color.secondary.opacity(0.5))
+                }
+
                 // Source app icon
                 if let bundleID = item.sourceAppBundleID,
                    let icon = AppIconCache.shared.icon(for: bundleID) {
@@ -765,6 +907,7 @@ private struct HistoryRow: View {
         .background(
             RoundedRectangle(cornerRadius: 4)
                 .fill(
+                    isMultiSelected ? Color.accentColor.opacity(0.15) :
                     isSelected ? Color.accentColor.opacity(0.2) :
                     isHovered ? Color.primary.opacity(0.1) : Color.clear
                 )
@@ -932,12 +1075,79 @@ private struct HistoryRow: View {
     }
 }
 
+// MARK: - Bulk action bar
+
+private struct BulkActionBar: View {
+    let count: Int
+    let onDelete: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text("\(count) selected")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button {
+                onDelete()
+            } label: {
+                Label("Delete", systemImage: "trash")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.red)
+            Button("Cancel") {
+                onCancel()
+            }
+            .buttonStyle(.plain)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.regularMaterial)
+                .shadow(radius: 3)
+        )
+    }
+}
+
+// MARK: - Undo toast
+
+private struct UndoToast: View {
+    let label: String
+    let onUndo: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Button("Undo") {
+                onUndo()
+            }
+            .buttonStyle(.plain)
+            .font(.caption.bold())
+            .foregroundStyle(Color.accentColor)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.regularMaterial)
+                .shadow(radius: 3)
+        )
+    }
+}
+
 // MARK: - Resize drag state
 
 private class ResizeDragState {
     var isHovering = false
     var startY: CGFloat?
     var startHeight: Double?
+    var startX: CGFloat?
+    var startWidth: Double?
 }
 
 // MARK: - Hover effect

@@ -573,6 +573,7 @@ struct DataPorterTests {
                 enableOCR: true,
                 enableQRDetection: true,
                 popoverHeight: 600.0,
+                popoverWidth: 450.0,
                 sensitiveHandling: "allow"
             )
             let envelope = makeEnvelope(settings: settings)
@@ -598,6 +599,7 @@ struct DataPorterTests {
             #expect(settingsStore.enableOCR == true)
             #expect(settingsStore.enableQRDetection == true)
             #expect(settingsStore.popoverHeight == 600.0)
+            #expect(settingsStore.popoverWidth == 450.0)
             #expect(settingsStore.sensitiveHandling == "allow")
         }
     }

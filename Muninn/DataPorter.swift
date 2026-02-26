@@ -21,6 +21,7 @@ enum DataPorter {
             var enableOCR: Bool?
             var enableQRDetection: Bool?
             var popoverHeight: Double?
+            var popoverWidth: Double?
             var sensitiveHandling: String?
         }
     }
@@ -97,6 +98,7 @@ enum DataPorter {
             enableOCR: defaults.bool(forKey: "enableOCR"),
             enableQRDetection: defaults.bool(forKey: "enableQRDetection"),
             popoverHeight: defaults.double(forKey: "popoverHeight"),
+            popoverWidth: defaults.double(forKey: "popoverWidth"),
             sensitiveHandling: defaults.string(forKey: "sensitiveHandling")
         )
 
@@ -317,6 +319,10 @@ enum DataPorter {
             if let popoverHeight = envelope.settings.popoverHeight, popoverHeight > 0 {
                 defaults.set(popoverHeight, forKey: "popoverHeight")
                 settingsStore.popoverHeight = popoverHeight
+            }
+            if let popoverWidth = envelope.settings.popoverWidth, popoverWidth > 0 {
+                defaults.set(popoverWidth, forKey: "popoverWidth")
+                settingsStore.popoverWidth = popoverWidth
             }
             if let sensitiveHandling = envelope.settings.sensitiveHandling {
                 defaults.set(sensitiveHandling, forKey: "sensitiveHandling")

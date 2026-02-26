@@ -21,6 +21,11 @@ enum BlobStorage {
         try? FileManager.default.removeItem(at: url)
     }
 
+    static func restore(_ data: Data, filename: String) {
+        let url = blobDir.appendingPathComponent(filename)
+        try? data.write(to: url, options: .atomic)
+    }
+
     static func copy(_ filename: String, newID: UUID) -> String? {
         let sourceURL = blobDir.appendingPathComponent(filename)
         guard FileManager.default.fileExists(atPath: sourceURL.path) else { return nil }

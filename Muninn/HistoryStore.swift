@@ -4,6 +4,60 @@ import Foundation
 class HistoryStore {
     var items: [HistoryItem] = []
 
+    // MARK: - Undo
+
+    struct UndoableOperation {
+        let items: [HistoryItem]
+        let blobs: [(filename: String, data: Data)]
+        let label: String
+    }
+
+    /// Most recent undoable delete. Nil when no undo is available.
+    var pendingUndo: UndoableOperation?
+
+    private var undoTimer: Timer?
+    private static let maxUndoBlobBytes = 50_000_000 // 50 MB
+
+    func undo() {
+        guard let operation = pendingUndo else { return }
+        for (filename, data) in operation.blobs {
+            BlobStorage.restore(data, filename: filename)
+        }
+        items.insert(contentsOf: operation.items, at: 0)
+        save()
+        pendingUndo = nil
+        undoTimer?.invalidate()
+        undoTimer = nil
+    }
+
+    func commitPendingUndo() {
+        pendingUndo = nil
+        undoTimer?.invalidate()
+        undoTimer = nil
+    }
+
+    private func startUndoTimer() {
+        undoTimer?.invalidate()
+        undoTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { [weak self] _ in
+            self?.commitPendingUndo()
+        }
+    }
+
+    private func blobBackup(for items: [HistoryItem]) -> [(filename: String, data: Data)] {
+        var backup: [(filename: String, data: Data)] = []
+        var totalBytes = 0
+        for item in items {
+            if let blob = item.blobFile, let data = BlobStorage.load(blob) {
+                guard totalBytes + data.count <= Self.maxUndoBlobBytes else { continue }
+                backup.append((filename: blob, data: data))
+                totalBytes += data.count
+            }
+        }
+        return backup
+    }
+
+    // MARK: - Scan tracking
+
     /// Tracks in-flight OCR/QR scan tasks per item ID. UI observes this to show progress indicators.
     private var pendingScanCounts: [UUID: Int] = [:]
 
@@ -77,17 +131,50 @@ class HistoryStore {
     }
 
     func delete(_ item: HistoryItem) {
+        let backup = blobBackup(for: [item])
+        commitPendingUndo()
         if let blob = item.blobFile { BlobStorage.delete(blob) }
         items.removeAll { $0.id == item.id }
         save()
+        pendingUndo = UndoableOperation(items: [item], blobs: backup, label: "1 item deleted")
+        startUndoTimer()
+    }
+
+    func deleteMultiple(_ itemsToDelete: [HistoryItem]) {
+        guard !itemsToDelete.isEmpty else { return }
+        let backup = blobBackup(for: itemsToDelete)
+        commitPendingUndo()
+        let idsToDelete = Set(itemsToDelete.map(\.id))
+        for item in itemsToDelete {
+            if let blob = item.blobFile { BlobStorage.delete(blob) }
+        }
+        items.removeAll { idsToDelete.contains($0.id) }
+        save()
+        let count = itemsToDelete.count
+        pendingUndo = UndoableOperation(
+            items: itemsToDelete,
+            blobs: backup,
+            label: "\(count) item\(count == 1 ? "" : "s") deleted"
+        )
+        startUndoTimer()
     }
 
     func clearAll() {
-        for item in items {
+        let snapshot = items
+        let backup = blobBackup(for: snapshot)
+        commitPendingUndo()
+        for item in snapshot {
             if let blob = item.blobFile { BlobStorage.delete(blob) }
         }
         items.removeAll()
         save()
+        let count = snapshot.count
+        pendingUndo = UndoableOperation(
+            items: snapshot,
+            blobs: backup,
+            label: "\(count) item\(count == 1 ? "" : "s") cleared"
+        )
+        startUndoTimer()
     }
 
     func scanForOCR() {
