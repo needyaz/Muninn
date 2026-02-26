@@ -168,10 +168,7 @@ None known.
 
 ### Technical Debt
 
-- **`TextTransformType` duplicated** — `MuninnIntents.swift` maintains a parallel enum that mirrors `TextTransform.swift`. These must be kept in sync manually.
 - **No tests for views** — UI logic in `PopoverContentView` (~1000 lines) and `SnippetPickerView` is entirely untested. Only the model layer has test coverage.
-- **App Intents load from disk, not live state** — Intents re-parse JSON files directly rather than communicating with running stores. Rapid use could have race conditions with in-flight saves.
-- **Static coupling between monitors** — `ScreenshotMonitor` and `ClipboardMonitor` share state via static class vars. This is fragile and timing-dependent.
 
 ---
 

@@ -36,7 +36,9 @@ struct MuninnApp: App {
         m.start()
         _monitor = State(initialValue: m)
 
-        let sm = ScreenshotMonitor(settingsStore: settings)
+        let sm = ScreenshotMonitor(settingsStore: settings) { changeCount, filename in
+            m.noteScreenshot(changeCount: changeCount, filename: filename)
+        }
         sm.start()
         _screenshotMonitor = State(initialValue: sm)
     }

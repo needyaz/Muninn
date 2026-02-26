@@ -5,18 +5,16 @@ private let logger = Logger(subsystem: "com.nate.Muninn", category: "ScreenshotM
 
 @Observable
 class ScreenshotMonitor {
-    /// Set after writing a screenshot to the pasteboard so ClipboardMonitor can attribute it correctly.
-    static var lastScreenshotChangeCount: Int?
-    static var lastScreenshotFilename: String?
-
     private var query: NSMetadataQuery?
     private var knownPaths: Set<String> = []
     /// Paths we've seen but haven't successfully copied yet — allows changed events to retry
     private var pendingPaths: Set<String> = []
     private let settingsStore: SettingsStore
+    private let onCopied: (Int, String?) -> Void
 
-    init(settingsStore: SettingsStore) {
+    init(settingsStore: SettingsStore, onCopied: @escaping (Int, String?) -> Void) {
         self.settingsStore = settingsStore
+        self.onCopied = onCopied
     }
 
     func start() {
@@ -89,8 +87,7 @@ class ScreenshotMonitor {
             let pasteboard = NSPasteboard.general
             pasteboard.clearContents()
             pasteboard.setData(data, forType: .png)
-            ScreenshotMonitor.lastScreenshotChangeCount = pasteboard.changeCount
-            ScreenshotMonitor.lastScreenshotFilename = (path as NSString).lastPathComponent
+            onCopied(pasteboard.changeCount, (path as NSString).lastPathComponent)
 
             knownPaths.insert(path)
             pendingPaths.remove(path)

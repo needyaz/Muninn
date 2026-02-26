@@ -16,6 +16,14 @@ class ClipboardMonitor {
     var pauseResumeDate: Date?
     private var pauseTimer: Timer?
 
+    private var lastScreenshotChangeCount: Int?
+    private var lastScreenshotFilename: String?
+
+    func noteScreenshot(changeCount: Int, filename: String?) {
+        lastScreenshotChangeCount = changeCount
+        lastScreenshotFilename = filename
+    }
+
     init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore, excludedTypesStore: ExcludedTypesStore, settingsStore: SettingsStore, statsStore: StatsStore) {
         self.historyStore = historyStore
         self.excludedAppsStore = excludedAppsStore
@@ -87,11 +95,11 @@ class ClipboardMonitor {
         // Capture source app bundle ID and screenshot filename
         let sourceAppBundleID: String?
         let screenshotFilename: String?
-        if current == ScreenshotMonitor.lastScreenshotChangeCount {
+        if current == lastScreenshotChangeCount {
             sourceAppBundleID = "com.apple.Screenshot"
-            screenshotFilename = ScreenshotMonitor.lastScreenshotFilename
-            ScreenshotMonitor.lastScreenshotChangeCount = nil
-            ScreenshotMonitor.lastScreenshotFilename = nil
+            screenshotFilename = lastScreenshotFilename
+            lastScreenshotChangeCount = nil
+            lastScreenshotFilename = nil
         } else {
             sourceAppBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
             screenshotFilename = nil

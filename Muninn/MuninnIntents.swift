@@ -50,6 +50,18 @@ enum TextTransformType: String, AppEnum {
             .removeBlankLines: "Remove Blank Lines",
         ]
     }
+
+    /// Maps to the corresponding TextTransform case. Exhaustive switch enforces
+    /// that both enums stay in sync — a missing case here is a compile error.
+    var asTextTransform: TextTransform {
+        switch self {
+        case .uppercase: return .uppercase
+        case .lowercase: return .lowercase
+        case .capitalize: return .capitalize
+        case .trim: return .trimWhitespace
+        case .removeBlankLines: return .removeBlankLines
+        }
+    }
 }
 
 // MARK: - GetClipboardHistory
@@ -139,14 +151,6 @@ struct TransformText: AppIntent {
     var transformation: TextTransformType
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        let transform: TextTransform
-        switch transformation {
-        case .uppercase: transform = .uppercase
-        case .lowercase: transform = .lowercase
-        case .capitalize: transform = .capitalize
-        case .trim: transform = .trimWhitespace
-        case .removeBlankLines: transform = .removeBlankLines
-        }
-        return .result(value: applyTransform(text, transform))
+        return .result(value: applyTransform(text, transformation.asTextTransform))
     }
 }
