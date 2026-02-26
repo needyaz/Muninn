@@ -167,7 +167,7 @@ When introducing a new user-facing operation that reads/writes files (e.g., a ne
 
 **Main thread for all store mutations and UI updates. Background queues for compute-heavy services.**
 
-`OCRService` and `QRService` use `DispatchQueue.global(qos: .userInitiated)` with a `DispatchQueue.main.async` callback. Follow this pattern for any new service that does non-trivial computation.
+`OCRService`, `QRService`, and `PDFTextService` use `DispatchQueue.global(qos: .userInitiated)` with a `DispatchQueue.main.async` callback. Follow this pattern for any new service that does non-trivial computation.
 
 ```swift
 func process(_ data: Data, completion: @escaping (String?) -> Void) {
@@ -232,6 +232,8 @@ The app uses a String Catalog (`Localizable.xcstrings`). New strings are picked 
 **`ClipboardContentType` is the canonical enum for all content discrimination.** Do not use string comparisons or `UTType` checks outside of `ClipboardMonitor`. Once a type is detected during capture, it flows through the system as `ClipboardContentType`.
 
 **Detection order in `ClipboardMonitor` is: `fileURLs` → `image` → `pdf` → `color` → `text`.** This order is load-bearing — do not change it without understanding the implications (e.g., a PDF file dragged in could match as both `fileURL` and `pdf`).
+
+**PDF text extraction is an intentional cross-type concern.** A `.fileURL` item whose single file has a `.pdf` extension also triggers `PDFTextService` in `ClipboardMonitor`, despite being captured as a `fileURL` type. This is the expected behaviour — copying a PDF from Finder goes through the `fileURL` branch, but the content is still text-searchable. `HistoryStore.scanForPDFText()` covers both `.pdf` items and `.fileURL` items with `.pdf` blobs.
 
 ---
 

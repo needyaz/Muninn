@@ -156,7 +156,7 @@ None known.
 |--------------|------------|
 | Text | ✅ By value |
 | Image | ✅ By OCR text (if enabled) |
-| File URL | ✅ By filename |
+| File URL | ✅ By filename; also by extracted text for .pdf files (if enabled) |
 | PDF | ✅ By extracted text (if enabled) |
 | Color | ❌ Not searchable |
 

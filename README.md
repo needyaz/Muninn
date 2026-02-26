@@ -160,6 +160,20 @@ Detects QR codes and barcodes in images and extracts their content:
 
 Toggle in Settings > General > "Detect QR codes and barcodes in images."
 
+### PDF Text Extraction
+
+Extracts text from PDFs so they're searchable and their content is copyable:
+
+- Works for PDFs copied directly to the clipboard (e.g., from Preview) and PDF files copied from Finder
+- Text is extracted automatically as PDFs are captured
+- Enabling the feature retroactively scans existing PDF history
+- Extracted text appears below the PDF label on hover
+- Right-click a PDF to **Copy Text**
+- Extracted text is searchable via the search bar
+- Only works for PDFs with embedded text (not scanned/image-only PDFs)
+
+Toggle in Settings > General > "Extract text from PDFs."
+
 ### Capture Sounds
 
 Play a system sound each time content is captured to the clipboard. Choose from 12 built-in macOS sounds (Tink, Pop, Glass, Bottle, Frog, Funk, Ping, Purr, Submarine, Wobble, Basso, Blow) or disable. A preview button lets you hear the sound before selecting it.
@@ -195,6 +209,7 @@ Drag the corner grip at the bottom-right of the popover to resize it. Dragging c
 - **Screenshot capture** — auto-capture macOS screenshots
 - **OCR** — extract text from images
 - **QR/barcode detection** — detect codes in images
+- **PDF text extraction** — extract and search text in PDFs
 - **Capture sound** — audio feedback on clipboard capture
 - **Stats** — clipboard activity dashboard
 
@@ -220,7 +235,7 @@ All data is stored locally in `~/Library/Application Support/Muninn/`:
 | `stats.json` | Clipboard activity statistics |
 | `blobs/` | Binary data for images, PDFs, and rich text |
 
-Settings (launch at login, history limit, plain text mode, sensitive content handling, rich previews, capture sound, screenshot capture, OCR, QR detection, popover height, popover width) are stored in `UserDefaults`.
+Settings (launch at login, history limit, plain text mode, sensitive content handling, rich previews, capture sound, screenshot capture, OCR, QR detection, PDF text extraction, popover height, popover width) are stored in `UserDefaults`.
 
 ## Building
 
