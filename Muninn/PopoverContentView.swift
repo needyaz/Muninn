@@ -271,47 +271,16 @@ struct PopoverContentView: View {
     // MARK: - Filtered data
 
     private var filteredClips: [Clip] {
-        var items = clipStore.clips
-
-        if let typeFilter = contentTypeFilter {
-            items = items.filter { $0.contentType == typeFilter }
-        }
-
-        if !search.isEmpty {
-            let q = search.lowercased()
-            items = items.filter {
-                $0.name.lowercased().contains(q) || $0.preview.lowercased().contains(q)
-            }
-        }
-
-        return items
+        filterClips(clipStore.clips, search: search, typeFilter: contentTypeFilter)
     }
 
     private var filteredHistory: [HistoryItem] {
-        var items = historyStore.items
-
-        // Apply content type filter
-        if let typeFilter = contentTypeFilter {
-            items = items.filter { $0.contentType == typeFilter }
-        }
-
-        // Apply search filter
-        if !search.isEmpty {
-            let q = search.lowercased()
-            items = items.filter { item in
-                switch item.contentType {
-                case .text:
-                    return item.value?.lowercased().contains(q) ?? false
-                case .fileURL:
-                    return item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false
-                default:
-                    return item.preview.lowercased().contains(q)
-                        || (settingsStore.enableQRDetection && (item.detectedBarcode?.lowercased().contains(q) ?? false))
-                }
-            }
-        }
-
-        return items
+        filterHistoryItems(
+            historyStore.items,
+            search: search,
+            typeFilter: contentTypeFilter,
+            enableQRDetection: settingsStore.enableQRDetection
+        )
     }
 
     // MARK: - Clip preview label
@@ -685,8 +654,7 @@ struct PopoverContentView: View {
             }
         case .color:
             if let comps = colorComponents, comps.count >= 3 {
-                let hex = String(format: "#%02X%02X%02X",
-                    Int(comps[0] * 255), Int(comps[1] * 255), Int(comps[2] * 255))
+                let hex = hexColorString(comps)
                 provider.registerObject(hex as NSString, visibility: .all)
             }
         }
@@ -945,8 +913,7 @@ private struct HistoryRow: View {
                             .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
                             .frame(width: showRichPreview ? 24 : 16, height: showRichPreview ? 24 : 16)
                         if showRichPreview {
-                            Text(String(format: "#%02X%02X%02X",
-                                Int(comps[0] * 255), Int(comps[1] * 255), Int(comps[2] * 255)))
+                            Text(hexColorString(comps))
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                                 .textSelection(.enabled)

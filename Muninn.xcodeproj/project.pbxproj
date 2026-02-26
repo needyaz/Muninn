@@ -36,6 +36,7 @@
 		A1000001C00000000000001C /* SnippetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001C00000000000001C; };
 		A1000001D00000000000001D /* TextTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001D00000000000001D; };
 		A1000001E00000000000001E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000001E00000000000001E; };
+		A1000001F00000000000001F /* ViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001F00000000000001F; };
 		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001; };
 		T10000010000000000000001 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000001; };
 		T10000020000000000000002 /* ClipboardContentTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000020000000000000002; };
@@ -52,6 +53,7 @@
 		T1000000D00000000000000D /* OCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000D00000000000000D; };
 		T1000000E00000000000000E /* QRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000E00000000000000E; };
 		T1000000F00000000000000F /* DataPorterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000F00000000000000F; };
+		T10000100000000000000010 /* ViewHelpersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000100000000000000010; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +98,7 @@
 		A2000001C00000000000001C /* SnippetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerView.swift; sourceTree = "<group>"; };
 		A2000001D00000000000001D /* TextTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransform.swift; sourceTree = "<group>"; };
 		A2000001E00000000000001E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		A2000001F00000000000001F /* ViewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewHelpers.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* Muninn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Muninn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000020000000000000002 /* MuninnTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MuninnTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T20000010000000000000001 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
@@ -113,6 +116,7 @@
 		T2000000D00000000000000D /* OCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRServiceTests.swift; sourceTree = "<group>"; };
 		T2000000E00000000000000E /* QRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRServiceTests.swift; sourceTree = "<group>"; };
 		T2000000F00000000000000F /* DataPorterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorterTests.swift; sourceTree = "<group>"; };
+		T20000100000000000000010 /* ViewHelpersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewHelpersTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,6 +196,7 @@
 				A2000001B00000000000001B /* SnippetPickerPanel.swift */,
 				A2000001C00000000000001C /* SnippetPickerView.swift */,
 				A2000001D00000000000001D /* TextTransform.swift */,
+				A2000001F00000000000001F /* ViewHelpers.swift */,
 				A2000001E00000000000001E /* Localizable.xcstrings */,
 				A2000000G00000000000000G /* Muninn.entitlements */,
 				A2000000H00000000000000H /* Assets.xcassets */,
@@ -227,6 +232,7 @@
 				T2000000D00000000000000D /* OCRServiceTests.swift */,
 				T2000000E00000000000000E /* QRServiceTests.swift */,
 				T2000000F00000000000000F /* DataPorterTests.swift */,
+				T20000100000000000000010 /* ViewHelpersTests.swift */,
 			);
 			path = MuninnTests;
 			sourceTree = "<group>";
@@ -336,6 +342,7 @@
 				A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */,
 				A1000001C00000000000001C /* SnippetPickerView.swift in Sources */,
 				A1000001D00000000000001D /* TextTransform.swift in Sources */,
+				A1000001F00000000000001F /* ViewHelpers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,6 +365,7 @@
 				T1000000D00000000000000D /* OCRServiceTests.swift in Sources */,
 				T1000000E00000000000000E /* QRServiceTests.swift in Sources */,
 				T1000000F00000000000000F /* DataPorterTests.swift in Sources */,
+				T10000100000000000000010 /* ViewHelpersTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

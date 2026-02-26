@@ -13,12 +13,7 @@ struct SnippetPickerView: View {
     @State private var eventMonitor: Any?
 
     private var filteredClips: [Clip] {
-        let items = clipStore.clips
-        if search.isEmpty { return items }
-        let q = search.lowercased()
-        return items.filter {
-            $0.name.lowercased().contains(q) || $0.preview.lowercased().contains(q)
-        }
+        filterClips(clipStore.clips, search: search, typeFilter: nil)
     }
 
     var body: some View {

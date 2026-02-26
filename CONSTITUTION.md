@@ -269,7 +269,9 @@ If a new capability is genuinely needed and a system API exists, use the system 
 
 **Services** (`OCRService`, `QRService`, and any new ones) must have tests for valid input, invalid input, and empty input.
 
-**Views are not unit-tested.** UI logic in views is acceptable to leave untested. Focus test coverage on models, stores, services, and storage.
+**Pure view-logic helpers** (free functions in `ViewHelpers.swift` like `filterClips`, `filterHistoryItems`, `hexColorString`) must be tested. Extract testable logic out of views into `ViewHelpers.swift` before writing tests.
+
+**SwiftUI/AppKit-coupled view code** is not unit-tested. UI composition and layout in `View` body implementations are acceptable to leave untested.
 
 ---
 

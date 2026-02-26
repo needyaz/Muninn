@@ -166,7 +166,7 @@ None known.
 
 ### Technical Debt
 
-- **No tests for views** — UI logic in `PopoverContentView` (~1000 lines) and `SnippetPickerView` is entirely untested. Only the model layer has test coverage.
+None known.
 
 ---
 
