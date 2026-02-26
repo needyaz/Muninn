@@ -90,7 +90,7 @@ Named for Odin's raven of memory.
 | Capture screenshots | ✅ Done |
 | Enable OCR | ✅ Done |
 | Enable QR/barcode detection | ✅ Done |
-| Sensitive content handling (skip/mask/allow) | ✅ Done — capture-side complete |
+| Sensitive content handling (skip/mask/allow) | ✅ Done — fully wired (capture + UI masking) |
 | Capture sound (picker + preview) | ✅ Done |
 | Launch at login (SMAppService) | ✅ Done |
 | Excluded apps (searchable list of installed apps) | ✅ Done |
@@ -164,7 +164,6 @@ None known.
 - **No pin/favorite for history items** — History is ordered chronologically only. Frequently-accessed items that aren't saved as snippets have no way to be promoted.
 - **No undo for destructive actions** — Deleting a history item or clearing history is permanent (no undo, only a confirmation alert for clear-all).
 - **No multi-select** — Cannot delete or act on multiple history items at once.
-- **No visual indicator for paused state** — The menu bar icon doesn't change when capture is paused; only the popover footer shows the paused state.
 - **Popover width is fixed** — Only height is resizable.
 
 ### Technical Debt

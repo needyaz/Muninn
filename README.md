@@ -103,7 +103,7 @@ Muninn exposes actions to the macOS Shortcuts app via AppIntents:
 - **Get Clipboard History** — returns the N most recent text items (default: 10)
 - **Search Clipboard History** — search history items by text query
 - **Copy Snippet by Name** — find a snippet by name and copy it to your clipboard
-- **Get Latest Clipboard Item** — returns the most recent text item
+- **Get Latest Clipboard Item** — returns the most recent text item; returns a content description (e.g. "Image", "Color") if no text items exist
 - **Transform Text** — apply a text transformation (uppercase, lowercase, capitalize, trim whitespace, remove blank lines)
 
 All actions appear in Shortcuts.app with suggested phrases for Siri.
