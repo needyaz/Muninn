@@ -7,55 +7,55 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A10000010000000000000001 /* MuninnApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000001; };
-		A10000020000000000000002 /* Clip.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020000000000000002; };
-		A10000030000000000000003 /* ClipStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000030000000000000003; };
-		A10000050000000000000005 /* ClipEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000050000000000000005; };
-		A10000060000000000000006 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000070000000000000007; };
-		A10000070000000000000007 /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000080000000000000008; };
-		A10000080000000000000008 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090000000000000009; };
-		A10000090000000000000009 /* PopoverContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000A00000000000000A; };
-		A1000000B00000000000000B /* ExcludedAppsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000B00000000000000B; };
-		A1000000C00000000000000C /* ExcludedAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000C00000000000000C; };
-		A1000000D00000000000000D /* ClipboardContentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000D00000000000000D; };
-		A1000000E00000000000000E /* BlobStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000E00000000000000E; };
-		A1000000F00000000000000F /* StoragePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000F00000000000000F; };
-		A1000000H00000000000000H /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000H00000000000000H; };
-		A10000100000000000000010 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000100000000000000010; };
-		A10000110000000000000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000110000000000000011; };
-		A10000120000000000000012 /* MuninnIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000120000000000000012; };
-		A10000130000000000000013 /* MuninnShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000130000000000000013; };
-		A10000140000000000000014 /* DataPorter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000140000000000000014; };
-		A10000150000000000000015 /* ExcludedTypesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000150000000000000015; };
-		A10000160000000000000016 /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000160000000000000016; };
-		A10000170000000000000017 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000170000000000000017; };
-		A10000180000000000000018 /* ScreenshotMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000018; };
-		A10000190000000000000019 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000019; };
-		A1000001A00000000000001A /* QRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001A00000000000001A; };
-		A10000200000000000000020 /* PDFTextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000020; };
-		A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001B00000000000001B; };
-		A1000001C00000000000001C /* SnippetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001C00000000000001C; };
-		A1000001D00000000000001D /* TextTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001D00000000000001D; };
-		A1000001E00000000000001E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000001E00000000000001E; };
-		A1000001F00000000000001F /* ViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001F00000000000001F; };
-		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001; };
-		T10000010000000000000001 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000001; };
-		T10000020000000000000002 /* ClipboardContentTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000020000000000000002; };
-		T10000030000000000000003 /* ClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000030000000000000003; };
-		T10000040000000000000004 /* HistoryItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000040000000000000004; };
-		T10000050000000000000005 /* BlobStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000050000000000000005; };
-		T10000060000000000000006 /* ClipStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000060000000000000006; };
-		T10000070000000000000007 /* HistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000070000000000000007; };
-		T10000080000000000000008 /* ExcludedAppsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000080000000000000008; };
-		T10000090000000000000009 /* ExcludedTypesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000090000000000000009; };
-		T1000000A00000000000000A /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000A00000000000000A; };
-		T1000000B00000000000000B /* TextTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000B00000000000000B; };
-		T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000C00000000000000C; };
-		T1000000D00000000000000D /* OCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000D00000000000000D; };
-		T1000000E00000000000000E /* QRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000E00000000000000E; };
-		T10000110000000000000011 /* PDFTextServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000110000000000000011; };
-		T1000000F00000000000000F /* DataPorterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000F00000000000000F; };
-		T10000100000000000000010 /* ViewHelpersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000100000000000000010; };
+		A1000000B00000000000000B /* ExcludedAppsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000B00000000000000B /* ExcludedAppsStore.swift */; };
+		A1000000C00000000000000C /* ExcludedAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000C00000000000000C /* ExcludedAppsView.swift */; };
+		A1000000D00000000000000D /* ClipboardContentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000D00000000000000D /* ClipboardContentType.swift */; };
+		A1000000E00000000000000E /* BlobStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000E00000000000000E /* BlobStorage.swift */; };
+		A1000000F00000000000000F /* StoragePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000F00000000000000F /* StoragePaths.swift */; };
+		A1000000H00000000000000H /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000H00000000000000H /* Assets.xcassets */; };
+		A10000010000000000000001 /* MuninnApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000001 /* MuninnApp.swift */; };
+		A1000001A00000000000001A /* QRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001A00000000000001A /* QRService.swift */; };
+		A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001B00000000000001B /* SnippetPickerPanel.swift */; };
+		A1000001C00000000000001C /* SnippetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001C00000000000001C /* SnippetPickerView.swift */; };
+		A1000001D00000000000001D /* TextTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001D00000000000001D /* TextTransform.swift */; };
+		A1000001E00000000000001E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A2000001E00000000000001E /* Localizable.xcstrings */; };
+		A1000001F00000000000001F /* ViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001F00000000000001F /* ViewHelpers.swift */; };
+		A10000020000000000000002 /* Clip.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020000000000000002 /* Clip.swift */; };
+		A10000030000000000000003 /* ClipStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000030000000000000003 /* ClipStore.swift */; };
+		A10000050000000000000005 /* ClipEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000050000000000000005 /* ClipEditorView.swift */; };
+		A10000060000000000000006 /* HistoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000070000000000000007 /* HistoryItem.swift */; };
+		A10000070000000000000007 /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000080000000000000008 /* HistoryStore.swift */; };
+		A10000080000000000000008 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090000000000000009 /* ClipboardMonitor.swift */; };
+		A10000090000000000000009 /* PopoverContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000A00000000000000A /* PopoverContentView.swift */; };
+		A10000100000000000000010 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000100000000000000010 /* SettingsStore.swift */; };
+		A10000110000000000000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000110000000000000011 /* SettingsView.swift */; };
+		A10000120000000000000012 /* MuninnIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000120000000000000012 /* MuninnIntents.swift */; };
+		A10000130000000000000013 /* MuninnShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000130000000000000013 /* MuninnShortcuts.swift */; };
+		A10000140000000000000014 /* DataPorter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000140000000000000014 /* DataPorter.swift */; };
+		A10000150000000000000015 /* ExcludedTypesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000150000000000000015 /* ExcludedTypesStore.swift */; };
+		A10000160000000000000016 /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000160000000000000016 /* StatsStore.swift */; };
+		A10000170000000000000017 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000170000000000000017 /* StatsView.swift */; };
+		A10000180000000000000018 /* ScreenshotMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000018 /* ScreenshotMonitor.swift */; };
+		A10000190000000000000019 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000019 /* OCRService.swift */; };
+		A10000200000000000000020 /* PDFTextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000020 /* PDFTextService.swift */; };
+		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001 /* KeyboardShortcuts */; };
+		T1000000A00000000000000A /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000A00000000000000A /* StatsStoreTests.swift */; };
+		T1000000B00000000000000B /* TextTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000B00000000000000B /* TextTransformTests.swift */; };
+		T1000000C00000000000000C /* FormatRelativeTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000C00000000000000C /* FormatRelativeTimeTests.swift */; };
+		T1000000D00000000000000D /* OCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000D00000000000000D /* OCRServiceTests.swift */; };
+		T1000000E00000000000000E /* QRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000E00000000000000E /* QRServiceTests.swift */; };
+		T1000000F00000000000000F /* DataPorterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000F00000000000000F /* DataPorterTests.swift */; };
+		T10000010000000000000001 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000010000000000000001 /* TestHelpers.swift */; };
+		T10000020000000000000002 /* ClipboardContentTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000020000000000000002 /* ClipboardContentTypeTests.swift */; };
+		T10000030000000000000003 /* ClipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000030000000000000003 /* ClipTests.swift */; };
+		T10000040000000000000004 /* HistoryItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000040000000000000004 /* HistoryItemTests.swift */; };
+		T10000050000000000000005 /* BlobStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000050000000000000005 /* BlobStorageTests.swift */; };
+		T10000060000000000000006 /* ClipStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000060000000000000006 /* ClipStoreTests.swift */; };
+		T10000070000000000000007 /* HistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000070000000000000007 /* HistoryStoreTests.swift */; };
+		T10000080000000000000008 /* ExcludedAppsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000080000000000000008 /* ExcludedAppsStoreTests.swift */; };
+		T10000090000000000000009 /* ExcludedTypesStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000090000000000000009 /* ExcludedTypesStoreTests.swift */; };
+		T10000100000000000000010 /* ViewHelpersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000100000000000000010 /* ViewHelpersTests.swift */; };
+		T10000110000000000000011 /* PDFTextServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T20000110000000000000011 /* PDFTextServiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,14 +69,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A20000010000000000000001 /* MuninnApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuninnApp.swift; sourceTree = "<group>"; };
-		A20000020000000000000002 /* Clip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clip.swift; sourceTree = "<group>"; };
-		A20000030000000000000003 /* ClipStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStore.swift; sourceTree = "<group>"; };
-		A20000050000000000000005 /* ClipEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipEditorView.swift; sourceTree = "<group>"; };
-		A20000060000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A20000070000000000000007 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryItem.swift; sourceTree = "<group>"; };
-		A20000080000000000000008 /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
-		A20000090000000000000009 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
 		A2000000A00000000000000A /* PopoverContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverContentView.swift; sourceTree = "<group>"; };
 		A2000000B00000000000000B /* ExcludedAppsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedAppsStore.swift; sourceTree = "<group>"; };
 		A2000000C00000000000000C /* ExcludedAppsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedAppsView.swift; sourceTree = "<group>"; };
@@ -85,6 +77,20 @@
 		A2000000F00000000000000F /* StoragePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePaths.swift; sourceTree = "<group>"; };
 		A2000000G00000000000000G /* Muninn.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Muninn.entitlements; sourceTree = "<group>"; };
 		A2000000H00000000000000H /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000010000000000000001 /* MuninnApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuninnApp.swift; sourceTree = "<group>"; };
+		A2000001A00000000000001A /* QRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRService.swift; sourceTree = "<group>"; };
+		A2000001B00000000000001B /* SnippetPickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerPanel.swift; sourceTree = "<group>"; };
+		A2000001C00000000000001C /* SnippetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerView.swift; sourceTree = "<group>"; };
+		A2000001D00000000000001D /* TextTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransform.swift; sourceTree = "<group>"; };
+		A2000001E00000000000001E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		A2000001F00000000000001F /* ViewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewHelpers.swift; sourceTree = "<group>"; };
+		A20000020000000000000002 /* Clip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clip.swift; sourceTree = "<group>"; };
+		A20000030000000000000003 /* ClipStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipStore.swift; sourceTree = "<group>"; };
+		A20000050000000000000005 /* ClipEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipEditorView.swift; sourceTree = "<group>"; };
+		A20000060000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000070000000000000007 /* HistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryItem.swift; sourceTree = "<group>"; };
+		A20000080000000000000008 /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
+		A20000090000000000000009 /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
 		A20000100000000000000010 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		A20000110000000000000011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20000120000000000000012 /* MuninnIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuninnIntents.swift; sourceTree = "<group>"; };
@@ -95,15 +101,15 @@
 		A20000170000000000000017 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		A20000180000000000000018 /* ScreenshotMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotMonitor.swift; sourceTree = "<group>"; };
 		A20000190000000000000019 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
-		A2000001A00000000000001A /* QRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRService.swift; sourceTree = "<group>"; };
 		A20000200000000000000020 /* PDFTextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextService.swift; sourceTree = "<group>"; };
-		A2000001B00000000000001B /* SnippetPickerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerPanel.swift; sourceTree = "<group>"; };
-		A2000001C00000000000001C /* SnippetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetPickerView.swift; sourceTree = "<group>"; };
-		A2000001D00000000000001D /* TextTransform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransform.swift; sourceTree = "<group>"; };
-		A2000001E00000000000001E /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		A2000001F00000000000001F /* ViewHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewHelpers.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* Muninn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Muninn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000020000000000000002 /* MuninnTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MuninnTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		T2000000A00000000000000A /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
+		T2000000B00000000000000B /* TextTransformTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformTests.swift; sourceTree = "<group>"; };
+		T2000000C00000000000000C /* FormatRelativeTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatRelativeTimeTests.swift; sourceTree = "<group>"; };
+		T2000000D00000000000000D /* OCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRServiceTests.swift; sourceTree = "<group>"; };
+		T2000000E00000000000000E /* QRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRServiceTests.swift; sourceTree = "<group>"; };
+		T2000000F00000000000000F /* DataPorterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorterTests.swift; sourceTree = "<group>"; };
 		T20000010000000000000001 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
 		T20000020000000000000002 /* ClipboardContentTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentTypeTests.swift; sourceTree = "<group>"; };
 		T20000030000000000000003 /* ClipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipTests.swift; sourceTree = "<group>"; };
@@ -113,14 +119,8 @@
 		T20000070000000000000007 /* HistoryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStoreTests.swift; sourceTree = "<group>"; };
 		T20000080000000000000008 /* ExcludedAppsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedAppsStoreTests.swift; sourceTree = "<group>"; };
 		T20000090000000000000009 /* ExcludedTypesStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcludedTypesStoreTests.swift; sourceTree = "<group>"; };
-		T2000000A00000000000000A /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
-		T2000000B00000000000000B /* TextTransformTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTransformTests.swift; sourceTree = "<group>"; };
-		T2000000C00000000000000C /* FormatRelativeTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatRelativeTimeTests.swift; sourceTree = "<group>"; };
-		T2000000D00000000000000D /* OCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRServiceTests.swift; sourceTree = "<group>"; };
-		T2000000E00000000000000E /* QRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRServiceTests.swift; sourceTree = "<group>"; };
-		T20000110000000000000011 /* PDFTextServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextServiceTests.swift; sourceTree = "<group>"; };
-		T2000000F00000000000000F /* DataPorterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPorterTests.swift; sourceTree = "<group>"; };
 		T20000100000000000000010 /* ViewHelpersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewHelpersTests.swift; sourceTree = "<group>"; };
+		T20000110000000000000011 /* PDFTextServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,25 +140,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
-
-/* Begin PBXResourcesBuildPhase section */
-		A40000020000000000000002 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1000000H00000000000000H /* Assets.xcassets in Resources */,
-				A1000001E00000000000001E /* Localizable.xcstrings in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A40000040000000000000004 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
 		A50000010000000000000001 = {
@@ -292,7 +273,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 			};
 			buildConfigurationList = A80000030000000000000003 /* Build configuration list for PBXProject "Muninn" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -315,6 +296,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A40000020000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000H00000000000000H /* Assets.xcassets in Resources */,
+				A1000001E00000000000001E /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A40000040000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A70000010000000000000001 /* Sources */ = {
@@ -392,12 +392,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = Muninn/Muninn.entitlements;
-				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
+				CODE_SIGN_IDENTITY = 87C5D2F42CAD12460984FEF666F02EB0FE5E226C;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 593HYW3Y2T;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readonly;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				INFOPLIST_FILE = Muninn/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = blue.luci.Muninn;
@@ -412,12 +416,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = Muninn/Muninn.entitlements;
-				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
+				CODE_SIGN_IDENTITY = 87C5D2F42CAD12460984FEF666F02EB0FE5E226C;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 593HYW3Y2T;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readonly;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				INFOPLIST_FILE = Muninn/Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = blue.luci.Muninn;
@@ -432,9 +440,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = 87C5D2F42CAD12460984FEF666F02EB0FE5E226C;
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 593HYW3Y2T;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = blue.luci.MuninnTests;
@@ -449,9 +458,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "87C5D2F42CAD12460984FEF666F02EB0FE5E226C";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = 87C5D2F42CAD12460984FEF666F02EB0FE5E226C;
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 593HYW3Y2T;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = blue.luci.MuninnTests;
@@ -467,20 +477,49 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 593HYW3Y2T;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -491,13 +530,42 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 593HYW3Y2T;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -553,7 +621,6 @@
 			productName = KeyboardShortcuts;
 		};
 /* End XCSwiftPackageProductDependency section */
-
 	};
 	rootObject = A90000010000000000000001 /* Project object */;
 }
