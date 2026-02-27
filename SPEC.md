@@ -159,7 +159,7 @@ None known.
 | Image | ✅ By OCR text (if enabled) |
 | File URL | ✅ By filename; also by extracted text for .pdf files (if enabled) |
 | PDF | ✅ By extracted text (if enabled) |
-| Color | ❌ Not searchable |
+| Color | ✅ By hex value (e.g. `#FF0000`) |
 
 ### UX Gaps
 
@@ -176,7 +176,6 @@ None known.
 These are not planned but represent natural extensions based on the existing architecture:
 
 - **iCloud sync** — The `~/Library/Application Support/Muninn/` data model is portable; CloudKit or iCloud Drive sync could extend history across Macs.
-- **Color search** — Search by hex value or color name.
 - **Group by source app** — Alternative history view grouped by application.
 - **Menu bar icon state** — Reflect active/sensitive state in the menu bar icon (paused state is done).
 - **Configurable polling interval** — Currently hardcoded at 0.5s.
