@@ -282,7 +282,7 @@ If a new capability is genuinely needed and a system API exists, use the system 
 
 | Property | Value |
 |----------|-------|
-| Bundle ID | `com.nate.Muninn` |
+| Bundle ID | `blue.luci.Muninn` |
 | Deployment target | macOS 14.0 |
 | Swift version | 5.0 |
 | Data directory | `~/Library/Application Support/Muninn/` |
