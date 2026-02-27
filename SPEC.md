@@ -145,6 +145,7 @@ Named for Odin's raven of memory.
 | Feature | Status |
 |---------|--------|
 | First-launch onboarding window (4-page walkthrough) | ✅ Done |
+| Re-open tour from Settings > Data > "Show Welcome Tour" | ✅ Done |
 | Help reference window (keyboard shortcuts, paste modes, snippets, search) | ✅ Done |
 | Help button (`?`) in popover footer | ✅ Done |
 | `hasSeenOnboarding` flag (UserDefaults, included in export/import) | ✅ Done |

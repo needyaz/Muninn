@@ -194,7 +194,7 @@ Access via Settings > Stats. Statistics can be reset at any time.
 
 ### Onboarding
 
-A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. It won't appear again after you click "Get Started."
+A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. It won't appear again after you click "Get Started." You can reopen it any time from Settings > Data > **Show Welcome Tour**.
 
 ### Help
 
