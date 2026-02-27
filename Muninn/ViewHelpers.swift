@@ -37,6 +37,9 @@ func filterHistoryItems(
             switch item.contentType {
             case .text:
                 return item.value?.lowercased().contains(q) ?? false
+            case .color:
+                guard let components = item.colorComponents else { return false }
+                return hexColorString(components).lowercased().contains(q)
             case .fileURL:
                 return (item.fileURLs?.contains { $0.lowercased().contains(q) } ?? false)
                     || (item.ocrText?.lowercased().contains(q) ?? false)

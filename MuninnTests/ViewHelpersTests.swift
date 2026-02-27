@@ -184,6 +184,16 @@ struct FilterHistoryItemsTests {
         #expect(result.count == 1)
         #expect(result[0].ocrText == "Annual revenue summary")
     }
+
+    @Test("color items searched by hex value")
+    func colorSearchByHex() {
+        let red = HistoryItem(contentType: .color, colorComponents: [1.0, 0.0, 0.0, 1.0])
+        let blue = HistoryItem(contentType: .color, colorComponents: [0.0, 0.0, 1.0, 1.0])
+        let items = [red, blue]
+        let result = filterHistoryItems(items, search: "#FF0000", typeFilter: nil, enableQRDetection: false)
+        #expect(result.count == 1)
+        #expect(result[0].colorComponents?.first == 1.0)
+    }
 }
 
 // MARK: -
