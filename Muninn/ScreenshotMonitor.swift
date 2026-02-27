@@ -1,7 +1,7 @@
 import AppKit
 import os.log
 
-private let logger = Logger(subsystem: "com.nate.Muninn", category: "ScreenshotMonitor")
+private let logger = Logger(subsystem: "blue.luci.Muninn", category: "ScreenshotMonitor")
 
 @Observable
 class ScreenshotMonitor {
