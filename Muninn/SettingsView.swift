@@ -166,6 +166,7 @@ private struct DataTab: View {
     @Environment(ClipStore.self) private var clipStore
     @Environment(ExcludedAppsStore.self) private var excludedAppsStore
     @Environment(ExcludedTypesStore.self) private var excludedTypesStore
+    @Environment(\.openWindow) private var openWindow
 
     @State private var showImportConfirmation = false
     @State private var importURL: URL?
@@ -177,6 +178,13 @@ private struct DataTab: View {
 
     var body: some View {
         Form {
+            Section("Help") {
+                Button("Show Welcome Tour") {
+                    settingsStore.hasSeenOnboarding = false
+                    openWindow(id: "onboarding")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+            }
             Section("Export") {
                 Button("Export Data\u{2026}") {
                     exportData()

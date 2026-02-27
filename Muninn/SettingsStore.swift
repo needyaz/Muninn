@@ -38,6 +38,10 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(enablePDFTextExtraction, forKey: "enablePDFTextExtraction") }
     }
 
+    var hasSeenOnboarding: Bool {
+        didSet { UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding") }
+    }
+
     var popoverHeight: Double {
         didSet { UserDefaults.standard.set(popoverHeight, forKey: "popoverHeight") }
     }
@@ -63,6 +67,7 @@ class SettingsStore {
             "enableOCR": false,
             "enableQRDetection": false,
             "enablePDFTextExtraction": false,
+            "hasSeenOnboarding": false,
             "popoverHeight": 400.0,
             "popoverWidth": 320.0,
             "sensitiveHandling": "skip",
@@ -76,6 +81,7 @@ class SettingsStore {
         enableOCR = defaults.bool(forKey: "enableOCR")
         enableQRDetection = defaults.bool(forKey: "enableQRDetection")
         enablePDFTextExtraction = defaults.bool(forKey: "enablePDFTextExtraction")
+        hasSeenOnboarding = defaults.bool(forKey: "hasSeenOnboarding")
         popoverHeight = defaults.double(forKey: "popoverHeight")
         popoverWidth = defaults.double(forKey: "popoverWidth")
         sensitiveHandling = defaults.string(forKey: "sensitiveHandling") ?? "skip"

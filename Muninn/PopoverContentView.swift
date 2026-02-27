@@ -274,6 +274,16 @@ struct PopoverContentView: View {
                 .tooltip(String(localized: "Settings"))
 
                 Button {
+                    openWindow(id: "help")
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .tooltip(String(localized: "Help"))
+
+                Button {
                     NSApplication.shared.terminate(nil)
                 } label: {
                     Image(systemName: "power")
@@ -289,6 +299,12 @@ struct PopoverContentView: View {
             previousApp = NSWorkspace.shared.frontmostApplication
             installKeyMonitor()
             installMouseMonitor()
+            if !settingsStore.hasSeenOnboarding {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    openWindow(id: "onboarding")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+            }
         }
         .onDisappear {
             removeKeyMonitor()
@@ -884,6 +900,7 @@ private struct HistoryRow: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .tooltip(String(localized: "Save as snippet"))
                     Button {
                         onDelete()
                     } label: {
@@ -892,6 +909,7 @@ private struct HistoryRow: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .tooltip(String(localized: "Delete"))
                 } else {
                     Text(PopoverContentView.formatRelativeTime(item.timestamp))
                         .foregroundStyle(.secondary)

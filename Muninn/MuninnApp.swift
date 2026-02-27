@@ -69,6 +69,19 @@ struct MuninnApp: App {
         .defaultSize(width: 450, height: 350)
         .windowResizability(.contentSize)
 
+        Window("Welcome to Muninn", id: "onboarding") {
+            OnboardingView()
+                .environment(settingsStore)
+        }
+        .defaultSize(width: 500, height: 420)
+        .windowResizability(.contentSize)
+
+        Window("Muninn Help", id: "help") {
+            HelpView()
+        }
+        .defaultSize(width: 440, height: 520)
+        .windowResizability(.contentSize)
+
         Settings {
             SettingsView()
                 .environment(settingsStore)

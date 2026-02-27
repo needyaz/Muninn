@@ -68,6 +68,7 @@ Named for Odin's raven of memory.
 | Undo for delete / bulk delete / clear-all (5-second window, blob-aware) | ✅ Done |
 | Pause/resume capture (with duration: 1m, 5m, 30m, or indefinite) | ✅ Done |
 | Menu bar icon reflects paused state (pause bars icon) | ✅ Done |
+| Tooltips on all footer + hover buttons (pin, delete, pause, settings, help, quit) | ✅ Done |
 
 ### Snippets (Saved Clips)
 
@@ -138,6 +139,15 @@ Named for Odin's raven of memory.
 | Copy Snippet By Name | ✅ Done |
 | Get Latest Clipboard Item | ✅ Done |
 | Transform Text (case, trim, etc.) | ✅ Done |
+
+### Onboarding & Help
+
+| Feature | Status |
+|---------|--------|
+| First-launch onboarding window (4-page walkthrough) | ✅ Done |
+| Help reference window (keyboard shortcuts, paste modes, snippets, search) | ✅ Done |
+| Help button (`?`) in popover footer | ✅ Done |
+| `hasSeenOnboarding` flag (UserDefaults, included in export/import) | ✅ Done |
 
 ---
 

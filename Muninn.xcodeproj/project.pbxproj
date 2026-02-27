@@ -38,6 +38,8 @@
 		A10000180000000000000018 /* ScreenshotMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000018 /* ScreenshotMonitor.swift */; };
 		A10000190000000000000019 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000019 /* OCRService.swift */; };
 		A10000200000000000000020 /* PDFTextService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000020 /* PDFTextService.swift */; };
+		A10000210000000000000021 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000210000000000000021 /* OnboardingView.swift */; };
+		A10000220000000000000022 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000220000000000000022 /* HelpView.swift */; };
 		C30000010000000000000001 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = C20000010000000000000001 /* KeyboardShortcuts */; };
 		T1000000A00000000000000A /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000A00000000000000A /* StatsStoreTests.swift */; };
 		T1000000B00000000000000B /* TextTransformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T2000000B00000000000000B /* TextTransformTests.swift */; };
@@ -102,6 +104,8 @@
 		A20000180000000000000018 /* ScreenshotMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotMonitor.swift; sourceTree = "<group>"; };
 		A20000190000000000000019 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
 		A20000200000000000000020 /* PDFTextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFTextService.swift; sourceTree = "<group>"; };
+		A20000210000000000000021 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A20000220000000000000022 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* Muninn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Muninn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000020000000000000002 /* MuninnTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MuninnTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		T2000000A00000000000000A /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
@@ -179,6 +183,8 @@
 				A20000190000000000000019 /* OCRService.swift */,
 				A2000001A00000000000001A /* QRService.swift */,
 				A20000200000000000000020 /* PDFTextService.swift */,
+				A20000210000000000000021 /* OnboardingView.swift */,
+				A20000220000000000000022 /* HelpView.swift */,
 				A2000001B00000000000001B /* SnippetPickerPanel.swift */,
 				A2000001C00000000000001C /* SnippetPickerView.swift */,
 				A2000001D00000000000001D /* TextTransform.swift */,
@@ -346,6 +352,8 @@
 				A10000190000000000000019 /* OCRService.swift in Sources */,
 				A1000001A00000000000001A /* QRService.swift in Sources */,
 				A10000200000000000000020 /* PDFTextService.swift in Sources */,
+				A10000210000000000000021 /* OnboardingView.swift in Sources */,
+				A10000220000000000000022 /* HelpView.swift in Sources */,
 				A1000001B00000000000001B /* SnippetPickerPanel.swift in Sources */,
 				A1000001C00000000000001C /* SnippetPickerView.swift in Sources */,
 				A1000001D00000000000001D /* TextTransform.swift in Sources */,

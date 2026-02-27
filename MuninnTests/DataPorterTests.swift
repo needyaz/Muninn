@@ -572,6 +572,7 @@ struct DataPorterTests {
                 captureScreenshots: true,
                 enableOCR: true,
                 enableQRDetection: true,
+                hasSeenOnboarding: true,
                 popoverHeight: 600.0,
                 popoverWidth: 450.0,
                 sensitiveHandling: "allow"
@@ -598,6 +599,7 @@ struct DataPorterTests {
             #expect(settingsStore.captureScreenshots == true)
             #expect(settingsStore.enableOCR == true)
             #expect(settingsStore.enableQRDetection == true)
+            #expect(settingsStore.hasSeenOnboarding == true)
             #expect(settingsStore.popoverHeight == 600.0)
             #expect(settingsStore.popoverWidth == 450.0)
             #expect(settingsStore.sensitiveHandling == "allow")

@@ -192,6 +192,14 @@ A statistics dashboard tracking your clipboard activity:
 
 Access via Settings > Stats. Statistics can be reset at any time.
 
+### Onboarding
+
+A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. It won't appear again after you click "Get Started."
+
+### Help
+
+Click the **?** button in the popover footer to open a help reference window with a quick guide to keyboard shortcuts, paste modes, snippets, search, and more.
+
 ### Resizable Popover
 
 Drag the corner grip at the bottom-right of the popover to resize it. Dragging changes both height (200–800pt) and width (280–600pt) simultaneously. The size is remembered across sessions.
