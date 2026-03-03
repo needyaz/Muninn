@@ -12,6 +12,7 @@ struct PopoverContentView: View {
     @State private var search = ""
     @State private var previousApp: NSRunningApplication?
     @State private var contentTypeFilter: ClipboardContentType?
+    @State private var sourceAppFilter: String?
     @State private var selectedIndex: Int?
     @State private var selectedIDs: Set<UUID> = []
     @State private var lastToggledID: UUID?
@@ -40,6 +41,7 @@ struct PopoverContentView: View {
             .padding(10)
             .onChange(of: search) {
                 contentTypeFilter = nil
+                sourceAppFilter = nil
                 selectedIndex = nil
                 selectedIDs.removeAll()
                 lastToggledID = nil
@@ -57,6 +59,26 @@ struct PopoverContentView: View {
                         ForEach(availableContentTypes, id: \.self) { type in
                             FilterChip(label: type.displayName, isSelected: contentTypeFilter == type) {
                                 contentTypeFilter = contentTypeFilter == type ? nil : type
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                }
+
+                Divider()
+            }
+
+            // Source app filter chips
+            if availableSourceApps.count > 1 {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        FilterChip(label: String(localized: "All Apps"), isSelected: sourceAppFilter == nil) {
+                            sourceAppFilter = nil
+                        }
+                        ForEach(availableSourceApps, id: \.bundleID) { app in
+                            AppFilterChip(bundleID: app.bundleID, name: app.name, isSelected: sourceAppFilter == app.bundleID) {
+                                sourceAppFilter = sourceAppFilter == app.bundleID ? nil : app.bundleID
                             }
                         }
                     }
@@ -326,6 +348,15 @@ struct PopoverContentView: View {
         return ClipboardContentType.allCases.filter { types.contains($0) }
     }
 
+    // MARK: - Source app filter
+
+    private var availableSourceApps: [(bundleID: String, name: String)] {
+        let bundleIDs = Set(historyStore.items.compactMap(\.sourceAppBundleID))
+        return bundleIDs
+            .map { (bundleID: $0, name: AppIconCache.shared.appName(for: $0)) }
+            .sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+    }
+
     // MARK: - Filtered data
 
     private var filteredClips: [Clip] {
@@ -337,6 +368,7 @@ struct PopoverContentView: View {
             historyStore.items,
             search: search,
             typeFilter: contentTypeFilter,
+            appFilter: sourceAppFilter,
             enableQRDetection: settingsStore.enableQRDetection
         )
     }
@@ -834,6 +866,37 @@ private struct FilterChip: View {
     }
 }
 
+// MARK: - App filter chip
+
+private struct AppFilterChip: View {
+    let bundleID: String
+    let name: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let icon = AppIconCache.shared.icon(for: bundleID) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .frame(width: 12, height: 12)
+                }
+                Text(name)
+                    .font(.caption)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.06))
+            )
+            .foregroundStyle(isSelected ? Color.accentColor : .primary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Source app icon cache
 
 class AppIconCache {
@@ -846,6 +909,16 @@ class AppIconCache {
         let icon = NSWorkspace.shared.icon(forFile: url.path)
         cache[bundleID] = icon
         return icon
+    }
+
+    func appName(for bundleID: String) -> String {
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            let name = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+                ?? Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleName") as? String
+                ?? url.deletingPathExtension().lastPathComponent
+            return name
+        }
+        return bundleID
     }
 }
 

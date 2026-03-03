@@ -48,6 +48,7 @@ Muninn detects sensitive clipboard content from password managers and other apps
 
 - **Search bar** — filter both snippets and history by keyword
 - **Content type chips** — quickly filter snippets and history by type (Text, Images, PDFs, Files, Colors)
+- **Source app chips** — filter history to items from a specific app; each chip shows the app icon and name
 - **Color search** — search color history items by hex value (e.g. `#FF0000`)
 
 ### Text Transformations

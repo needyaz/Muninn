@@ -52,6 +52,7 @@ Named for Odin's raven of memory.
 |---------|--------|
 | Text search across all history | ✅ Done |
 | Filter chips by content type | ✅ Done |
+| Filter chips by source app (icon + name, scrollable) | ✅ Done |
 | App icon + source app shown per item | ✅ Done |
 | Rich image previews on hover | ✅ Done |
 | Color swatches with hex values | ✅ Done |
@@ -187,7 +188,6 @@ None known.
 These are not planned but represent natural extensions based on the existing architecture:
 
 - **iCloud sync** — The `~/Library/Application Support/Muninn/` data model is portable; CloudKit or iCloud Drive sync could extend history across Macs.
-- **Group by source app** — Alternative history view grouped by application.
 - **Menu bar icon state** — Reflect active/sensitive state in the menu bar icon (paused state is done).
 - **Configurable polling interval** — Currently hardcoded at 0.5s.
 - **Regex search** — Power-user search in history.

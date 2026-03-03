@@ -155,13 +155,7 @@ struct StatsView: View {
     }
 
     private func appName(for bundleID: String) -> String {
-        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
-            let name = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
-                ?? Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleName") as? String
-                ?? url.deletingPathExtension().lastPathComponent
-            return name
-        }
-        return bundleID
+        AppIconCache.shared.appName(for: bundleID)
     }
 }
 

@@ -174,6 +174,39 @@ struct FilterHistoryItemsTests {
         #expect(filterHistoryItems([], search: "x", typeFilter: nil, enableQRDetection: false).isEmpty)
     }
 
+    @Test("app filter limits results to matching bundle ID")
+    func appFilter() {
+        var safari = textItem(value: "from safari")
+        safari.sourceAppBundleID = "com.apple.Safari"
+        var xcode = textItem(value: "from xcode")
+        xcode.sourceAppBundleID = "com.apple.dt.Xcode"
+        let result = filterHistoryItems([safari, xcode], search: "", typeFilter: nil, appFilter: "com.apple.Safari", enableQRDetection: false)
+        #expect(result.count == 1)
+        #expect(result[0].value == "from safari")
+    }
+
+    @Test("app filter nil returns all items")
+    func appFilterNil() {
+        var safari = textItem(value: "from safari")
+        safari.sourceAppBundleID = "com.apple.Safari"
+        var xcode = textItem(value: "from xcode")
+        xcode.sourceAppBundleID = "com.apple.dt.Xcode"
+        #expect(filterHistoryItems([safari, xcode], search: "", typeFilter: nil, appFilter: nil, enableQRDetection: false).count == 2)
+    }
+
+    @Test("app filter combined with type filter")
+    func appFilterAndTypeFilter() {
+        var safariText = textItem(value: "text from safari")
+        safariText.sourceAppBundleID = "com.apple.Safari"
+        var safariImage = imageItem()
+        safariImage.sourceAppBundleID = "com.apple.Safari"
+        var xcodeText = textItem(value: "text from xcode")
+        xcodeText.sourceAppBundleID = "com.apple.dt.Xcode"
+        let result = filterHistoryItems([safariText, safariImage, xcodeText], search: "", typeFilter: .text, appFilter: "com.apple.Safari", enableQRDetection: false)
+        #expect(result.count == 1)
+        #expect(result[0].value == "text from safari")
+    }
+
     @Test("fileURL items searched by extracted PDF text")
     func fileURLSearchByOCRText() {
         let items = [

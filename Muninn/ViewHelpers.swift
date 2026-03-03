@@ -16,7 +16,7 @@ func filterClips(_ clips: [Clip], search: String, typeFilter: ClipboardContentTy
     return items
 }
 
-/// Filters history items by search text and optional content type.
+/// Filters history items by search text, optional content type, and optional source app.
 /// - Text items are searched by value.
 /// - FileURL items are searched by path.
 /// - All other types are searched by preview (which includes OCR text for images).
@@ -25,9 +25,13 @@ func filterHistoryItems(
     _ items: [HistoryItem],
     search: String,
     typeFilter: ClipboardContentType?,
+    appFilter: String? = nil,
     enableQRDetection: Bool
 ) -> [HistoryItem] {
     var result = items
+    if let appFilter {
+        result = result.filter { $0.sourceAppBundleID == appFilter }
+    }
     if let typeFilter {
         result = result.filter { $0.contentType == typeFilter }
     }
