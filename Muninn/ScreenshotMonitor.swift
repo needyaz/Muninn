@@ -70,10 +70,8 @@ class ScreenshotMonitor {
             guard let path = item.value(forAttribute: kMDItemPath as String) as? String else { continue }
             guard !knownPaths.contains(path) else { continue }
 
-            if !pendingPaths.contains(path) {
-                pendingPaths.insert(path)
-            }
-
+            if pendingPaths.contains(path) { continue }
+            pendingPaths.insert(path)
             copyToPasteboard(path: path)
         }
     }

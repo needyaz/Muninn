@@ -118,6 +118,29 @@ class HistoryStore {
         save()
     }
 
+    func loadDemoData() {
+        let now = Date()
+        func ago(_ seconds: TimeInterval) -> Date { now.addingTimeInterval(-seconds) }
+
+        let demoItems: [HistoryItem] = [
+            HistoryItem(value: "https://developer.apple.com/documentation/swiftui", timestamp: ago(30), contentType: .text, sourceAppBundleID: "com.apple.Safari"),
+            HistoryItem(value: "func fetchUser(id: String) async throws -> User {\n    let url = URL(string: \"\\(baseURL)/users/\\(id)\")!\n    let (data, _) = try await URLSession.shared.data(from: url)\n    return try JSONDecoder().decode(User.self, from: data)\n}", timestamp: ago(120), contentType: .text, sourceAppBundleID: "com.microsoft.VSCode"),
+            HistoryItem(value: "Meeting notes: Sync with design team at 2pm. Review new onboarding flow mockups. Confirm launch date for Q2 release.", timestamp: ago(300), contentType: .text, sourceAppBundleID: "com.apple.Notes"),
+            HistoryItem(value: "nate@luci.blue", timestamp: ago(600), contentType: .text, sourceAppBundleID: "com.apple.mail"),
+            HistoryItem(value: "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.", timestamp: ago(900), contentType: .text, sourceAppBundleID: "com.google.Chrome"),
+            HistoryItem(value: "SELECT u.name, COUNT(o.id) as order_count\nFROM users u\nLEFT JOIN orders o ON o.user_id = u.id\nWHERE u.created_at > NOW() - INTERVAL '30 days'\nGROUP BY u.id\nORDER BY order_count DESC;", timestamp: ago(1800), contentType: .text, sourceAppBundleID: "com.tinyapp.TablePlus"),
+            HistoryItem(value: "4A90E2", timestamp: ago(2400), contentType: .color, colorComponents: [0.29, 0.565, 0.886, 1.0], sourceAppBundleID: "com.figma.Desktop"),
+            HistoryItem(value: "brew install ffmpeg --with-options && brew services restart nginx", timestamp: ago(3600), contentType: .text, sourceAppBundleID: "com.apple.Terminal"),
+            HistoryItem(value: "Dear team,\n\nPlease find attached the Q1 performance report. Key highlights:\n• Revenue up 18% YoY\n• Customer retention at 94%\n• NPS score improved to 72\n\nLet me know if you have questions.", timestamp: ago(7200), contentType: .text, sourceAppBundleID: "com.apple.mail"),
+            HistoryItem(value: "sk-ant-••••••••••••••••••••••••••••••••••••••••", timestamp: ago(9000), contentType: .text, isSensitive: true),
+        ]
+
+        commitPendingUndo()
+        items = demoItems + items
+        trimToLimit()
+        save()
+    }
+
     func update(id: UUID, ocrText: String) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].ocrText = ocrText

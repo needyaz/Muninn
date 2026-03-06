@@ -17,6 +17,8 @@ struct SettingsView: View {
                 .tabItem { Label("Shortcut", systemImage: "keyboard") }
             DataTab()
                 .tabItem { Label("Data", systemImage: "externaldrive") }
+            AboutTab()
+                .tabItem { Label("About", systemImage: "info.circle") }
         }
     }
 }
@@ -178,12 +180,14 @@ private struct DataTab: View {
 
     var body: some View {
         Form {
-            Section("Help") {
-                Button("Show Welcome Tour") {
-                    settingsStore.hasSeenOnboarding = false
-                    openWindow(id: "onboarding")
-                    NSApp.activate(ignoringOtherApps: true)
+            Section("Screenshots") {
+                Button("Load Demo Data") {
+                    historyStore.loadDemoData()
+                    clipStore.loadDemoClips()
                 }
+                Text("Populates history and snippets with sample content for screenshots. Clear afterwards when done.")
+                    .foregroundStyle(.secondary)
+                    .font(.callout)
             }
             Section("Export") {
                 Button("Export Data\u{2026}") {
@@ -325,6 +329,82 @@ private struct DataTab: View {
             errorMessage = error.localizedDescription
             showError = true
         }
+    }
+}
+
+private struct AboutTab: View {
+    @Environment(SettingsStore.self) private var settingsStore
+    @Environment(\.openWindow) private var openWindow
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "Version \(version) (\(build))"
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // App identity
+            VStack(spacing: 12) {
+                Image(nsImage: NSImage(named: NSImage.applicationIconName) ?? NSImage())
+                    .resizable()
+                    .frame(width: 80, height: 80)
+
+                VStack(spacing: 4) {
+                    Text("Muninn")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Your second memory")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(appVersion)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .padding(.top, 32)
+            .padding(.bottom, 28)
+
+            Divider()
+                .padding(.horizontal, 80)
+
+            // Welcome tour
+            VStack(spacing: 8) {
+                Button("Show Welcome Tour") {
+                    settingsStore.hasSeenOnboarding = false
+                    openWindow(id: "onboarding")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding(.vertical, 24)
+
+            Divider()
+                .padding(.horizontal, 80)
+
+            // Blue Luci branding
+            VStack(spacing: 6) {
+                Text("Made by")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                Image("BlueLuciLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                Text("© \(currentYear) Blue Luci. All rights reserved.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 20)
+
+            Spacer()
+        }
+        .frame(width: 500, height: 420)
+    }
+
+    private var currentYear: String {
+        String(Calendar.current.component(.year, from: Date()))
     }
 }
 

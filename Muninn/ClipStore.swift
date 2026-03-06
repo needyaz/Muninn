@@ -60,6 +60,13 @@ class ClipStore {
         save()
     }
 
+    func loadDemoClips() {
+        let existing = Set(clips.map { $0.name })
+        let toAdd = Self.exampleClips.filter { !existing.contains($0.name) }
+        clips.insert(contentsOf: toAdd, at: 0)
+        save()
+    }
+
     private static let exampleClips: [Clip] = [
         Clip(name: "Name", value: "Nate"),
         Clip(name: "Email", value: "nate@example.com"),
