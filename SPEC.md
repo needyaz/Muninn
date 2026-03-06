@@ -102,6 +102,7 @@ Named for Odin's raven of memory.
 | Excluded apps (searchable list of installed apps) | ✅ Done |
 | Excluded content types (per-type toggles) | ✅ Done |
 | Global keyboard shortcuts (via KeyboardShortcuts library) | ✅ Done |
+| About tab (Blue Luci branding, app version, tagline, welcome tour) | ✅ Done |
 
 ### Statistics
 
@@ -146,7 +147,7 @@ Named for Odin's raven of memory.
 | Feature | Status |
 |---------|--------|
 | First-launch onboarding window (4-page walkthrough) | ✅ Done |
-| Re-open tour from Settings > Data > "Show Welcome Tour" | ✅ Done |
+| Re-open tour from Settings > About > "Show Welcome Tour" | ✅ Done |
 | Help reference window (keyboard shortcuts, paste modes, snippets, search) | ✅ Done |
 | Help button (`?`) in popover footer | ✅ Done |
 | `hasSeenOnboarding` flag (UserDefaults, included in export/import) | ✅ Done |
@@ -171,7 +172,7 @@ None known.
 | Image | ✅ By OCR text (if enabled) |
 | File URL | ✅ By filename; also by extracted text for .pdf files (if enabled) |
 | PDF | ✅ By extracted text (if enabled) |
-| Color | ✅ By hex value (e.g. `#FF0000`) |
+| Color | ✅ By hex value (e.g. `#FF0000`) or by type name (e.g. `color`) |
 
 ### UX Gaps
 

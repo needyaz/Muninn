@@ -180,6 +180,7 @@ private struct DataTab: View {
 
     var body: some View {
         Form {
+            #if DEBUG
             Section("Screenshots") {
                 Button("Load Demo Data") {
                     historyStore.loadDemoData()
@@ -189,6 +190,7 @@ private struct DataTab: View {
                     .foregroundStyle(.secondary)
                     .font(.callout)
             }
+            #endif
             Section("Export") {
                 Button("Export Data\u{2026}") {
                     exportData()

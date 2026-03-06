@@ -49,7 +49,7 @@ Muninn detects sensitive clipboard content from password managers and other apps
 - **Search bar** — filter both snippets and history by keyword
 - **Content type chips** — quickly filter snippets and history by type (Text, Images, PDFs, Files, Colors)
 - **Source app chips** — filter history to items from a specific app; each chip shows the app icon and name
-- **Color search** — search color history items by hex value (e.g. `#FF0000`)
+- **Color search** — search color history items by hex value (e.g. `#FF0000`) or by type name (e.g. `color`)
 
 ### Text Transformations
 
@@ -195,7 +195,7 @@ Access via Settings > Stats. Statistics can be reset at any time.
 
 ### Onboarding
 
-A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. It won't appear again after you click "Get Started." You can reopen it any time from Settings > Data > **Show Welcome Tour**.
+A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. It won't appear again after you click "Get Started." You can reopen it any time from Settings > About > **Show Welcome Tour**.
 
 ### Help
 
@@ -222,6 +222,7 @@ Drag the corner grip at the bottom-right of the popover to resize it. Dragging c
 - **PDF text extraction** — extract and search text in PDFs
 - **Capture sound** — audio feedback on clipboard capture
 - **Stats** — clipboard activity dashboard
+- **About** — app version, Blue Luci branding, welcome tour
 
 ### Import / Export
 
