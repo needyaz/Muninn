@@ -39,7 +39,7 @@ struct MuninnApp: App {
         let sm = ScreenshotMonitor(settingsStore: settings) { changeCount, filename in
             m.noteScreenshot(changeCount: changeCount, filename: filename)
         }
-        sm.start()
+        sm.start(folderURL: settings.screenshotFolderURL)
         _screenshotMonitor = State(initialValue: sm)
     }
 
@@ -58,6 +58,7 @@ struct MuninnApp: App {
                     didSetupHotkeys = true
                     setupGlobalHotkey()
                     observeHistoryLimitChanges()
+                    observeScreenshotFolderChanges()
                 }
         }
         .menuBarExtraStyle(.window)
@@ -114,6 +115,16 @@ struct MuninnApp: App {
         ) { _ in
             historyStore.trimToLimit()
             historyStore.save()
+        }
+    }
+
+    private func observeScreenshotFolderChanges() {
+        NotificationCenter.default.addObserver(
+            forName: .screenshotFolderChanged,
+            object: nil,
+            queue: .main
+        ) { _ in
+            screenshotMonitor.restart(folderURL: settingsStore.screenshotFolderURL)
         }
     }
 }

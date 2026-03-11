@@ -11,16 +11,21 @@ class ScreenshotMonitor {
     private var pendingPaths: Set<String> = []
     private let settingsStore: SettingsStore
     private let onCopied: (Int, String?) -> Void
+    private var folderURL: URL?
 
     init(settingsStore: SettingsStore, onCopied: @escaping (Int, String?) -> Void) {
         self.settingsStore = settingsStore
         self.onCopied = onCopied
     }
 
-    func start() {
+    func start(folderURL: URL?) {
+        guard let folderURL = folderURL else { return }
+        self.folderURL = folderURL
+        _ = folderURL.startAccessingSecurityScopedResource()
+
         let query = NSMetadataQuery()
         query.predicate = NSPredicate(format: "kMDItemIsScreenCapture == 1")
-        query.searchScopes = [NSMetadataQueryLocalComputerScope]
+        query.searchScopes = [folderURL]
         query.operationQueue = .main
         self.query = query
 
@@ -44,6 +49,13 @@ class ScreenshotMonitor {
         query?.stop()
         NotificationCenter.default.removeObserver(self)
         query = nil
+        folderURL?.stopAccessingSecurityScopedResource()
+        folderURL = nil
+    }
+
+    func restart(folderURL: URL?) {
+        stop()
+        start(folderURL: folderURL)
     }
 
     @objc private func handleGatherComplete(_ notification: Notification) {

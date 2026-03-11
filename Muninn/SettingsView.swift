@@ -63,6 +63,38 @@ private struct GeneralTab: View {
             Toggle("Track clipboard statistics", isOn: $settings.enableStats)
 
             Toggle("Auto-capture screenshots to clipboard", isOn: $settings.captureScreenshots)
+                .onChange(of: settingsStore.captureScreenshots) { _, newValue in
+                    if newValue && settingsStore.screenshotFolderURL == nil {
+                        pickScreenshotFolder()
+                    }
+                }
+
+            if settings.captureScreenshots {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Screenshot folder")
+                            .font(.callout)
+                        if let url = settingsStore.screenshotFolderURL {
+                            Text(url.path(percentEncoded: false))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        } else {
+                            Text("No folder selected — screenshots won't be captured")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    Spacer()
+                    Button("Choose Folder\u{2026}") {
+                        pickScreenshotFolder()
+                    }
+                }
+                Text("Select the folder where macOS saves your screenshots. To change that location, open Screenshot (\u{2318}\u{21E7}5) \u{2192} Options \u{2192} Save to.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Toggle("Extract text from images (OCR)", isOn: $settings.enableOCR)
                 .onChange(of: settingsStore.enableOCR) { _, newValue in
@@ -102,6 +134,36 @@ private struct GeneralTab: View {
         }
         .formStyle(.grouped)
         .frame(width: 500)
+    }
+
+    private func pickScreenshotFolder() {
+        DispatchQueue.main.async {
+            let previousPolicy = NSApp.activationPolicy()
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = false
+            panel.canChooseDirectories = true
+            panel.allowsMultipleSelection = false
+            panel.message = "Choose the folder where macOS saves your screenshots."
+            panel.prompt = "Select Folder"
+
+            let response = panel.runModal()
+            NSApp.setActivationPolicy(previousPolicy)
+
+            guard response == .OK, let url = panel.url else {
+                if settingsStore.screenshotFolderURL == nil {
+                    settingsStore.captureScreenshots = false
+                }
+                return
+            }
+
+            if let bookmark = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil) {
+                settingsStore.screenshotFolderBookmark = bookmark
+                NotificationCenter.default.post(name: .screenshotFolderChanged, object: nil)
+            }
+        }
     }
 
     private let systemSounds = [
@@ -412,4 +474,5 @@ private struct AboutTab: View {
 
 extension Notification.Name {
     static let historyLimitChanged = Notification.Name("historyLimitChanged")
+    static let screenshotFolderChanged = Notification.Name("screenshotFolderChanged")
 }

@@ -55,6 +55,21 @@ class SettingsStore {
         didSet { UserDefaults.standard.set(sensitiveHandling, forKey: "sensitiveHandling") }
     }
 
+    var screenshotFolderBookmark: Data? {
+        didSet { UserDefaults.standard.set(screenshotFolderBookmark, forKey: "screenshotFolderBookmark") }
+    }
+
+    /// Resolves the stored security-scoped bookmark to a URL. Refreshes stale bookmarks automatically.
+    var screenshotFolderURL: URL? {
+        guard let bookmark = screenshotFolderBookmark else { return nil }
+        var isStale = false
+        guard let url = try? URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale) else { return nil }
+        if isStale, let fresh = try? url.bookmarkData(options: .withSecurityScope) {
+            screenshotFolderBookmark = fresh
+        }
+        return url
+    }
+
     init() {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [
@@ -85,5 +100,6 @@ class SettingsStore {
         popoverHeight = defaults.double(forKey: "popoverHeight")
         popoverWidth = defaults.double(forKey: "popoverWidth")
         sensitiveHandling = defaults.string(forKey: "sensitiveHandling") ?? "skip"
+        screenshotFolderBookmark = defaults.data(forKey: "screenshotFolderBookmark")
     }
 }
