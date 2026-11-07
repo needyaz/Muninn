@@ -13,27 +13,30 @@
 </head>
 <body>
     <h1>Muninn Privacy Policy</h1>
-    <p><strong>Effective date:</strong> February 12, 2026</p>
+    <p><strong>Effective date:</strong> November 6, 2026</p>
 
     <h2>Overview</h2>
-    <p>Muninn is a clipboard manager for macOS. Your privacy is important to us. This policy explains what data Muninn accesses and how it is handled.</p>
+    <p>Muninn is a clipboard manager for macOS. It is open source, and this policy explains what data it accesses and how it is handled.</p>
 
-    <h2>Data Collection</h2>
-    <p>Muninn does <strong>not</strong> collect, transmit, or share any personal data. The app operates entirely offline with no network access.</p>
+    <h2>Data collection</h2>
+    <p>Muninn does <strong>not</strong> collect, transmit, or share any personal data. It is sandboxed with all network access turned off, so it cannot send anything off your Mac.</p>
 
-    <h2>Clipboard Data</h2>
-    <p>Muninn reads the system clipboard to provide clipboard history and saved clips. All clipboard data is stored locally on your Mac in the app's sandboxed container. No clipboard content ever leaves your device.</p>
+    <h2>What Muninn stores</h2>
+    <p>Muninn reads the system clipboard to keep a history of what you copy (text, images, PDFs, files, colors, and the app each item came from) and your saved snippets. It also keeps simple usage counts (copies per content type, per source app and per day) for its Stats screen, and your preferences. All of this is stored on your Mac in the app's folder in Application Support. That folder is readable only by your user account and is excluded from backups. It is <strong>not encrypted</strong>, so other programs running as you could read it.</p>
 
-    <h2>Local Storage</h2>
-    <p>Muninn stores clipboard history, saved clips, and user preferences in its Application Support directory. This data remains on your device and is not accessible to other apps or transmitted anywhere.</p>
+    <h2>On-device processing</h2>
+    <p>If you leave them on, Muninn runs text recognition on images, barcode detection and PDF text extraction using Apple's frameworks, entirely on your Mac. The results are stored with the item so they can be searched. Muninn also watches the screenshot folder you choose, to add screenshots to your history.</p>
 
-    <h2>Analytics and Tracking</h2>
-    <p>Muninn does not use any analytics, tracking, or telemetry. There are no third-party SDKs or services embedded in the app.</p>
+    <h2>Sensitive content</h2>
+    <p>Items that password managers mark as concealed are skipped by default. You can instead choose to record only a placeholder (the value is never stored) or to record them normally. Items marked transient are never recorded. You can also exclude apps and content types, or pause recording.</p>
 
-    <h2>Third-Party Services</h2>
-    <p>Muninn does not integrate with any third-party services.</p>
+    <h2>Exports and Shortcuts</h2>
+    <p>You can export your data to a file you choose; the file is not encrypted and leaves out sensitive items. Muninn also offers actions to the Shortcuts app that return your non-sensitive history, so any shortcut you run can read it.</p>
 
-    <h2>Changes to This Policy</h2>
+    <h2>Analytics and tracking</h2>
+    <p>Muninn does not use any analytics, tracking, crash reporting, or telemetry. The only third-party code in the app is an open source keyboard-shortcut library that runs locally.</p>
+
+    <h2>Changes to this policy</h2>
     <p>If this privacy policy changes, the updated version will be posted at this URL.</p>
 
     <h2>Contact</h2>

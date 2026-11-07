@@ -66,8 +66,8 @@ Named for Odin's raven of memory.
 | Resizable popover width (corner drag handle, 280–600px, persisted) | ✅ Done |
 | Keyboard navigation (↑↓, Return, Escape) | ✅ Done |
 | Multi-select (Cmd+click, Shift+click, Shift+arrow) with bulk delete | ✅ Done |
-| Undo for delete / bulk delete / clear-all (5-second window, blob-aware) | ✅ Done |
-| Pause/resume capture (with duration: 1m, 5m, 30m, or indefinite) | ✅ Done |
+| Undo for delete / bulk delete / clear-all (30-second window, blob-aware) | ✅ Done |
+| Pause/resume capture (with duration: 1m, 5m, 10m, 30m, 1h, or indefinite) | ✅ Done |
 | Menu bar icon reflects paused state (pause bars icon) | ✅ Done |
 | Tooltips on all footer + hover buttons (pin, delete, pause, settings, help, quit) | ✅ Done |
 
@@ -158,11 +158,11 @@ Named for Odin's raven of memory.
 
 ### Bugs
 
-None known.
+None known. Open items from the pre-release review: masked items cannot be pasted (by design), and `HistoryStore.undo()` restores items at the top rather than their original position.
 
 ### Missing User Feedback
 
-- **Silent I/O failures** — Store save/load errors are intentionally silent per the app's graceful-degradation design (see CONSTITUTION §7). Only DataPorter surfaces errors to the user.
+- **Silent I/O failures** — Store save/load errors are logged (privately) but not shown, by design: the app degrades gracefully. Only DataPorter surfaces errors to the user.
 
 ### Search Gaps
 
@@ -180,7 +180,10 @@ None known.
 
 ### Technical Debt
 
-None known.
+- `ClipboardMonitor.poll()` is one long function; it should be split per content type.
+- Help and onboarding strings are plain literals, and the catalog is English only.
+- Thumbnails for image rows are decoded on every render; a small `NSCache` would fix it.
+- `sensitiveHandling` is a string (`"skip"`, `"mask"`, `"allow"`) rather than an enum.
 
 ---
 

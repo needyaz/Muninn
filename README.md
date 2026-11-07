@@ -1,8 +1,14 @@
 # Muninn
 
-A lightweight clipboard manager for macOS that lives in your menu bar. Muninn keeps a searchable history of everything you copy and lets you save frequently used snippets for quick access.
+A free, open-source clipboard manager for macOS that lives in your menu bar. Muninn keeps a searchable history of everything you copy and lets you save frequently used snippets for quick access.
 
-Requires macOS 14.0 or later.
+Everything stays on your Mac: Muninn is sandboxed, has no network access at all, and collects nothing. See [Privacy and security](#privacy-and-security).
+
+## Install
+
+Requires macOS 14.0 (Sonoma) or later.
+
+Download the latest notarized build from the [GitHub Releases](../../releases), unzip it, move `Muninn.app` to Applications and open it. Look for the icon in the menu bar. Releases don't update themselves: download a newer one to update. Or build it yourself (see [Building](#building)).
 
 ## Features
 
@@ -40,9 +46,11 @@ The selected snippet is copied to your clipboard and focus returns to the previo
 
 Muninn detects sensitive clipboard content from password managers and other apps that use the `org.nspasteboard.ConcealedType` convention. Configure how these entries are handled in Settings > General > "Sensitive clipboard content":
 
+- **Skip** (default) — ignore entirely, nothing is recorded
+- **Mask** — record that a sensitive copy happened, as a "Sensitive content" placeholder. The value itself is never saved, so a masked item can't be pasted, searched, exported or read by Shortcuts
 - **Allow** — capture normally, no special treatment
-- **Skip** — ignore entirely, nothing is recorded
-- **Mask** — record the value but hide the preview behind a "Sensitive content" label
+
+Copies marked transient (`org.nspasteboard.TransientType`) are never recorded in any mode.
 
 ### Search and Filtering
 
@@ -114,13 +122,13 @@ Prevent specific content types from being captured. Toggle off any combination o
 
 Muninn exposes actions to the macOS Shortcuts app via AppIntents:
 
-- **Get Clipboard History** — returns the N most recent text items (default: 10)
+- **Get Clipboard History** — returns the N most recent text items (default: 10, at most 100)
 - **Search Clipboard History** — search history items by text query
 - **Copy Snippet by Name** — find a snippet by name and copy it to your clipboard
 - **Get Latest Clipboard Item** — returns the most recent text item; returns a content description (e.g. "Image", "Color") if no text items exist
 - **Transform Text** — apply a text transformation (uppercase, lowercase, capitalize, trim whitespace, remove blank lines)
 
-All actions appear in Shortcuts.app with suggested phrases for Siri.
+All actions appear in Shortcuts.app with suggested phrases for Siri. Sensitive items are never returned. Note that any shortcut you run can read your history through these actions.
 
 ### Rich Previews
 
@@ -222,20 +230,20 @@ Drag the corner grip at the bottom-right of the popover to resize it. Dragging c
 - **PDF text extraction** — extract and search text in PDFs
 - **Capture sound** — audio feedback on clipboard capture
 - **Stats** — clipboard activity dashboard
-- **About** — app version, Blue Luci branding, welcome tour
+- **About** — app version, credits, welcome tour
 
 ### Import / Export
 
 Back up or migrate all your data via Settings > Data:
 
-- **Export Data** — saves history, snippets, settings, excluded apps, excluded types, and all binary blobs (images, PDFs, rich text) to a single `.muninn` file
+- **Export Data** — saves history (without sensitive items), snippets, settings, excluded apps, excluded types, and all binary blobs (images, PDFs, rich text) to a single `.muninn` file. The file is **not encrypted**: keep it somewhere you trust
 - **Import Data** — reads a `.muninn` file with a choice to **merge** (add new items, keep existing data) or **replace** all current data
 
-The export file is JSON with base64-encoded blobs, so no external dependencies or archive tools are needed.
+The export file is JSON with base64-encoded blobs, so no external dependencies or archive tools are needed. Import treats the file as untrusted: blob names that could point outside Muninn's folder are rejected, out-of-range settings are ignored, and a file can't switch sensitive handling to "Allow".
 
 ## Data Storage
 
-All data is stored locally in `~/Library/Application Support/Muninn/`:
+All data is stored locally in `~/Library/Application Support/Muninn/` (inside the app's sandbox container), in a folder only your user can read and that is left out of Time Machine backups:
 
 | File | Contents |
 |------|----------|
@@ -248,6 +256,48 @@ All data is stored locally in `~/Library/Application Support/Muninn/`:
 
 Settings (launch at login, history limit, plain text mode, sensitive content handling, rich previews, capture sound, screenshot capture, OCR, QR detection, PDF text extraction, popover height, popover width) are stored in `UserDefaults`.
 
+The files are **not encrypted**. Anything you copy and let Muninn record is stored as plain text or as the original file, readable by any process running as you. When you copy a file in Finder, Muninn keeps a copy of its contents only if it is 25 MB or smaller. Use Skip for sensitive content, exclude apps you don't want recorded, and pause monitoring when you need to.
+
+## Privacy and security
+
+- **No network.** The app is sandboxed with incoming and outgoing connections off, uses no analytics or crash reporting, and has one dependency ([KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts), pinned).
+- **No special permissions.** Muninn never asks for Accessibility, Input Monitoring or Automation. It puts the item on the clipboard and returns focus to your previous app, and you press Cmd+V.
+- **On-device only.** OCR, barcode and PDF text extraction use Apple's Vision and PDFKit frameworks on your Mac.
+- **Screenshots** are found by letting you pick the screenshot folder once; Muninn keeps a security-scoped bookmark to that folder and nothing else.
+- See [SECURITY.md](SECURITY.md) to report a vulnerability and for the details above, and [the privacy policy](docs/privacy-policy.html).
+
 ## Building
 
-Open `Muninn.xcodeproj` in Xcode and build the `Muninn` scheme. The project uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) as its only external dependency, managed via Swift Package Manager.
+Requires Xcode 26 and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`). The Xcode project is generated from `project.yml` and not checked in.
+
+```sh
+make menu       # pick a target (or `make` to list them)
+make run        # build and launch
+make test       # run the unit tests
+make install    # build a Release app and copy it to /Applications
+```
+
+Without any setup, builds are ad-hoc signed, which is fine to run and test on your own Mac. To sign a copy under your own Apple developer team and bundle ID (so, for example, it keeps its permissions across rebuilds), copy `make/local.mk.example` to `make/local.mk` and set `TEAM` and `BUNDLE_ID`, or pass them: `make run TEAM=ABCDE12345 BUNDLE_ID=com.example.Muninn`. If you open the project in Xcode instead, set the signing team on the Muninn target yourself.
+
+Notarized release builds are made with `make github-release`; see [DISTRIBUTION.md](DISTRIBUTION.md). There is no CI: run `make test` before you push.
+
+## Project layout
+
+| Path | What's there |
+|---|---|
+| `Muninn/` | The app, flat, one file per type and named `<Feature><Role>.swift`: stores, monitors, services, views |
+| `MuninnTests/` | Unit tests (Swift Testing) for models, stores, services, import/export and view helpers |
+| `project.yml` | XcodeGen spec; `Muninn.xcodeproj` is generated |
+| `design/` | Icon concept art |
+| `docs/` | The privacy policy |
+| `SPEC.md`, `CLAUDE.md` | The product spec, and architecture conventions and gotchas (written for AI coding assistants, useful to people too) |
+
+## Contributing
+
+Issues are welcome; outside code contributions aren't accepted. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+The code is GPLv3. See `LICENSE`.
+
+The Muninn name, the Blue Luci name and logo, and the app icon artwork are not covered by the GPL; all rights are reserved. If you fork the project, please use your own name and icon.
