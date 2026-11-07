@@ -1,0 +1,8 @@
+# Per-machine settings. Copy to make/local.mk (gitignored, never committed):
+#   cp make/local.mk.example make/local.mk
+#
+# Your 10-character Apple developer team ID. Without it, builds are ad-hoc signed: fine to run and test locally.
+# TEAM := ABCDE12345
+#
+# A bundle ID you own, if you build a copy under your own team.
+# BUNDLE_ID := com.example.Muninn
