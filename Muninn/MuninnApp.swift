@@ -16,7 +16,6 @@ struct MuninnApp: App {
     @State private var statsStore: StatsStore
     @State private var monitor: ClipboardMonitor
     @State private var screenshotMonitor: ScreenshotMonitor
-    @State private var didSetupHotkeys = false
 
     init() {
         StoragePaths.migrateIfNeeded()
@@ -26,7 +25,8 @@ struct MuninnApp: App {
         let excludedTypes = ExcludedTypesStore()
         let stats = StatsStore()
         _settingsStore = State(initialValue: settings)
-        _store = State(initialValue: ClipStore())
+        let clips = ClipStore()
+        _store = State(initialValue: clips)
         _historyStore = State(initialValue: history)
         _excludedAppsStore = State(initialValue: excludedApps)
         _excludedTypesStore = State(initialValue: excludedTypes)
@@ -41,6 +41,10 @@ struct MuninnApp: App {
         }
         sm.start(folderURL: settings.screenshotFolderURL)
         _screenshotMonitor = State(initialValue: sm)
+
+        // Registered here, not when the popover first appears: the hotkeys and observers must work from launch.
+        Self.registerHotkeys(clipStore: clips, settingsStore: settings, monitor: m)
+        Self.observeChanges(historyStore: history, settingsStore: settings, screenshotMonitor: sm)
     }
 
     var body: some Scene {
@@ -53,13 +57,6 @@ struct MuninnApp: App {
                 .environment(excludedTypesStore)
                 .environment(statsStore)
                 .environment(monitor)
-                .onAppear {
-                    guard !didSetupHotkeys else { return }
-                    didSetupHotkeys = true
-                    setupGlobalHotkey()
-                    observeHistoryLimitChanges()
-                    observeScreenshotFolderChanges()
-                }
         }
         .menuBarExtraStyle(.window)
 
@@ -94,36 +91,21 @@ struct MuninnApp: App {
         }
     }
 
-    private func setupGlobalHotkey() {
+    private static func registerHotkeys(clipStore: ClipStore, settingsStore: SettingsStore, monitor: ClipboardMonitor) {
         KeyboardShortcuts.onKeyUp(for: .togglePopover) {
             toggleMenuBarPopover()
         }
         KeyboardShortcuts.onKeyUp(for: .snippetPicker) {
-            SnippetPickerPanel.shared.toggle(
-                clipStore: store,
-                settingsStore: settingsStore,
-                monitor: monitor
-            )
+            SnippetPickerPanel.shared.toggle(clipStore: clipStore, settingsStore: settingsStore, monitor: monitor)
         }
     }
 
-    private func observeHistoryLimitChanges() {
-        NotificationCenter.default.addObserver(
-            forName: .historyLimitChanged,
-            object: nil,
-            queue: .main
-        ) { _ in
+    private static func observeChanges(historyStore: HistoryStore, settingsStore: SettingsStore, screenshotMonitor: ScreenshotMonitor) {
+        NotificationCenter.default.addObserver(forName: .historyLimitChanged, object: nil, queue: .main) { _ in
             historyStore.trimToLimit()
             historyStore.save()
         }
-    }
-
-    private func observeScreenshotFolderChanges() {
-        NotificationCenter.default.addObserver(
-            forName: .screenshotFolderChanged,
-            object: nil,
-            queue: .main
-        ) { _ in
+        NotificationCenter.default.addObserver(forName: .screenshotFolderChanged, object: nil, queue: .main) { _ in
             screenshotMonitor.restart(folderURL: settingsStore.screenshotFolderURL)
         }
     }

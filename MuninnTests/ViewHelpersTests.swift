@@ -234,6 +234,16 @@ struct FilterHistoryItemsTests {
 @Suite("hexColorString")
 struct HexColorStringTests {
 
+    @Test("rounds to the nearest byte instead of truncating")
+    func roundsComponents() {
+        #expect(hexColorString([0.29, 0.565, 0.886]) == "#4A90E2")
+    }
+
+    @Test("out-of-range and non-finite components are clamped")
+    func clampsComponents() {
+        #expect(hexColorString([2.0, -1.0, .nan]) == "#FF0000")
+    }
+
     @Test("pure red")
     func pureRed() {
         #expect(hexColorString([1.0, 0.0, 0.0]) == "#FF0000")
@@ -275,6 +285,6 @@ struct HexColorStringTests {
     @Test("midpoint grey")
     func midGrey() {
         // 0.5 * 255 = 127.5 → Int(127) = 0x7F
-        #expect(hexColorString([0.5, 0.5, 0.5]) == "#7F7F7F")
+        #expect(hexColorString([0.5, 0.5, 0.5]) == "#808080")
     }
 }

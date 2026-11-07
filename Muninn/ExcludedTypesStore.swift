@@ -31,7 +31,7 @@ class ExcludedTypesStore {
             let types = try JSONDecoder().decode(Set<ClipboardContentType>.self, from: data)
             excludedTypes = types
         } catch {
-            print("Muninn: failed to load excluded types: \(error)")
+            Log.storage.error("failed to load excluded types: \(error.localizedDescription)")
         }
     }
 
@@ -40,7 +40,7 @@ class ExcludedTypesStore {
             let data = try JSONEncoder().encode(excludedTypes)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("Muninn: failed to save excluded types: \(error)")
+            Log.storage.error("failed to save excluded types: \(error.localizedDescription)")
         }
     }
 }

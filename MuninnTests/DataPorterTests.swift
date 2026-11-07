@@ -575,7 +575,7 @@ struct DataPorterTests {
                 hasSeenOnboarding: true,
                 popoverHeight: 600.0,
                 popoverWidth: 450.0,
-                sensitiveHandling: "allow"
+                sensitiveHandling: "mask"
             )
             let envelope = makeEnvelope(settings: settings)
             let file = try writeExportFile(envelope, in: dir)
@@ -602,7 +602,7 @@ struct DataPorterTests {
             #expect(settingsStore.hasSeenOnboarding == true)
             #expect(settingsStore.popoverHeight == 600.0)
             #expect(settingsStore.popoverWidth == 450.0)
-            #expect(settingsStore.sensitiveHandling == "allow")
+            #expect(settingsStore.sensitiveHandling == "mask")
         }
     }
 
@@ -790,6 +790,67 @@ struct DataPorterTests {
             let restoredBlob = dir.appendingPathComponent("blobs/test.png")
             #expect(FileManager.default.fileExists(atPath: restoredBlob.path))
             #expect(try Data(contentsOf: restoredBlob) == blobData)
+        }
+    }
+
+    // MARK: - Untrusted import files
+
+    @Test("import skips blobs whose names would escape the blob directory")
+    func importRejectsTraversalBlobs() throws {
+        try withTempEnv { dir in
+            let evil = Data("evil".utf8).base64EncodedString()
+            let good = Data("good".utf8).base64EncodedString()
+            let envelope = makeEnvelope(
+                history: [HistoryItem(id: UUID(), value: "x", timestamp: Date(), contentType: .image, blobFile: "../history.json")],
+                blobs: ["../history.json": evil, "good.png": good]
+            )
+            let file = try writeExportFile(envelope, in: dir)
+            let (history, clips, apps, types, settings) = makeStores()
+
+            let result = try DataPorter.importData(from: file, merge: false, historyStore: history, clipStore: clips,
+                                                   excludedAppsStore: apps, excludedTypesStore: types, settingsStore: settings)
+
+            #expect(result.failedBlobCount == 1)
+            #expect(FileManager.default.fileExists(atPath: dir.appendingPathComponent("blobs/good.png").path))
+            // history.json holds the imported items, not the attacker's bytes
+            let saved = try String(contentsOf: dir.appendingPathComponent("history.json"), encoding: .utf8)
+            #expect(!saved.contains("evil"))
+            #expect(history.items.first?.blobFile == nil)
+        }
+    }
+
+    @Test("replace import ignores out-of-range history limits and never accepts sensitiveHandling = allow")
+    func importValidatesSettings() throws {
+        try withTempEnv { dir in
+            let before = SettingsStore()
+            before.historyLimit = 100
+            before.sensitiveHandling = "skip"
+            let envelope = makeEnvelope(settings: DataPorter.ExportEnvelope.Settings(
+                historyLimit: -5, pasteAsPlainText: false, sensitiveHandling: "allow"))
+            let file = try writeExportFile(envelope, in: dir)
+            let (history, clips, apps, types, _) = makeStores()
+
+            try DataPorter.importData(from: file, merge: false, historyStore: history, clipStore: clips,
+                                      excludedAppsStore: apps, excludedTypesStore: types, settingsStore: before)
+
+            #expect(before.historyLimit == 100)
+            #expect(before.sensitiveHandling == "skip")
+        }
+    }
+
+    @Test("export leaves out sensitive items")
+    func exportOmitsSensitive() throws {
+        try withTempEnv { dir in
+            let items = [
+                HistoryItem(id: UUID(), value: "normal", timestamp: Date(), contentType: .text),
+                HistoryItem(id: UUID(), value: "hunter2", timestamp: Date(), contentType: .text, isSensitive: true),
+            ]
+            try JSONEncoder().encode(items).write(to: dir.appendingPathComponent("history.json"))
+
+            let data = try DataPorter.buildExportData()
+            let text = String(decoding: data, as: UTF8.self)
+            #expect(text.contains("normal"))
+            #expect(!text.contains("hunter2"))
         }
     }
 }

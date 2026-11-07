@@ -9,7 +9,10 @@ enum OCRService {
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
+            // Vision normally reports failure through the handler, but make sure `completion` runs exactly once.
+            let finished = OnceFlag()
             let request = VNRecognizeTextRequest { request, _ in
+                guard finished.claim() else { return }
                 let text = (request.results as? [VNRecognizedTextObservation])?
                     .compactMap { $0.topCandidates(1).first?.string }
                     .joined(separator: "\n")
@@ -18,7 +21,11 @@ enum OCRService {
             }
             request.recognitionLevel = .accurate
             request.automaticallyDetectsLanguage = true
-            try? VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+            do {
+                try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+            } catch {
+                if finished.claim() { DispatchQueue.main.async { completion(nil) } }
+            }
         }
     }
 }

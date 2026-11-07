@@ -21,6 +21,10 @@ class ClipStore {
             let data = try Data(contentsOf: fileURL)
             clips = try JSONDecoder().decode([Clip].self, from: data)
         } catch {
+            // The file exists but can't be read. Keep a copy before replacing it, so snippets aren't lost silently.
+            let backup = fileURL.deletingPathExtension().appendingPathExtension("json.bak")
+            try? FileManager.default.removeItem(at: backup)
+            try? FileManager.default.copyItem(at: fileURL, to: backup)
             clips = Self.exampleClips
             save()
         }
@@ -31,7 +35,7 @@ class ClipStore {
             let data = try JSONEncoder().encode(clips)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("Muninn: failed to save clips: \(error)")
+            Log.storage.error("failed to save clips: \(error.localizedDescription)")
         }
     }
 
@@ -68,8 +72,8 @@ class ClipStore {
     }
 
     private static let exampleClips: [Clip] = [
-        Clip(name: "Name", value: "Nate"),
-        Clip(name: "Email", value: "nate@example.com"),
+        Clip(name: "Name", value: "Jane Doe"),
+        Clip(name: "Email", value: "jane@example.com"),
         Clip(name: "Phone", value: "+1 (555) 123-4567"),
         Clip(name: "Website", value: "https://example.com"),
     ]

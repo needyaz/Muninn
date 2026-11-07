@@ -216,8 +216,6 @@ private struct ActivityHeatmap: View {
 
         // Build a lookup from date string to count
         var lookup: [String: Int] = [:]
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
         for dc in dailyCounts {
             lookup[dc.date] = dc.count
         }
@@ -233,7 +231,7 @@ private struct ActivityHeatmap: View {
                 guard daysBack >= 0, let date = calendar.date(byAdding: .day, value: -daysBack, to: today) else {
                     continue
                 }
-                let key = formatter.string(from: date)
+                let key = StatsStore.dayFormatter.string(from: date)
                 grid[row][col] = lookup[key] ?? 0
             }
         }
@@ -249,6 +247,12 @@ private struct ActivityHeatmap: View {
         return Color.green.opacity(0.2 + intensity * 0.8)
     }
 
+    private static let tooltipDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        return f
+    }()
+
     private func cellTooltip(row: Int, col: Int, count: Int) -> String {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -258,9 +262,7 @@ private struct ActivityHeatmap: View {
         guard daysBack >= 0, let date = calendar.date(byAdding: .day, value: -daysBack, to: today) else {
             return ""
         }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        let dateStr = formatter.string(from: date)
+        let dateStr = Self.tooltipDateFormatter.string(from: date)
         if count == 0 {
             return String(localized: "No copies on \(dateStr)")
         }

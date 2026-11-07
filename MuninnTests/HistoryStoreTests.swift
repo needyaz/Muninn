@@ -300,4 +300,34 @@ struct HistoryStoreTests {
         #expect(store2.items.count == 1)
         #expect(store2.items[0].value == "persist")
     }
+
+    @Test("deduplicating text deletes the blob of the item it replaces")
+    func dedupDeletesBlob() {
+        let (store, dir) = makeStore()
+        defer { removeTempDir(dir) }
+        let blobDir = dir.appendingPathComponent("blobs", isDirectory: true)
+        try? FileManager.default.createDirectory(at: blobDir, withIntermediateDirectories: true)
+        BlobStorage.blobDirOverride = blobDir
+        defer { BlobStorage.blobDirOverride = nil }
+
+        let blob = BlobStorage.save(Data("rtf".utf8), id: UUID(), ext: "rtf")
+        store.add(HistoryItem(value: "hello", blobFile: blob))
+        store.add(HistoryItem(value: "hello"))
+        #expect(store.items.count == 1)
+        #expect(BlobStorage.load(blob) == nil)
+    }
+
+    @Test("loading drops values saved by older versions for sensitive items")
+    func loadScrubsSensitiveValues() throws {
+        let dir = makeTempDir()
+        defer { removeTempDir(dir) }
+        let old = [HistoryItem(value: "hunter2", contentType: .text, isSensitive: true)]
+        try JSONEncoder().encode(old).write(to: dir.appendingPathComponent("history.json"))
+
+        let store = HistoryStore(settingsStore: SettingsStore(), baseURL: dir)
+        #expect(store.items.count == 1)
+        #expect(store.items[0].value == nil)
+        let saved = try String(contentsOf: dir.appendingPathComponent("history.json"), encoding: .utf8)
+        #expect(!saved.contains("hunter2"))
+    }
 }

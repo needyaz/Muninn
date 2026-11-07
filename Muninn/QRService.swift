@@ -9,13 +9,19 @@ enum QRService {
                 DispatchQueue.main.async { completion(nil) }
                 return
             }
+            let finished = OnceFlag()
             let request = VNDetectBarcodesRequest { request, _ in
+                guard finished.claim() else { return }
                 let value = (request.results as? [VNBarcodeObservation])?
                     .first?.payloadStringValue
                 DispatchQueue.main.async { completion(value) }
             }
             request.symbologies = [.qr, .ean13, .ean8, .code128, .code39, .upce]
-            try? VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+            do {
+                try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+            } catch {
+                if finished.claim() { DispatchQueue.main.async { completion(nil) } }
+            }
         }
     }
 }

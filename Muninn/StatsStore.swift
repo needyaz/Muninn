@@ -17,8 +17,12 @@ class StatsStore {
     var stats = Stats()
 
     private let fileURL: URL
-    private static let dayFormatter: DateFormatter = {
+    /// Day keys ("2026-11-06") must not depend on the user's locale or calendar, or a Buddhist-calendar
+    /// Mac would write a different key than the one the heatmap looks up.
+    static let dayFormatter: DateFormatter = {
         let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian)
         f.dateFormat = "yyyy-MM-dd"
         return f
     }()
@@ -62,7 +66,7 @@ class StatsStore {
             let data = try Data(contentsOf: fileURL)
             stats = try JSONDecoder().decode(Stats.self, from: data)
         } catch {
-            print("Muninn: failed to load stats: \(error)")
+            Log.storage.error("failed to load stats: \(error.localizedDescription)")
         }
     }
 
@@ -71,7 +75,7 @@ class StatsStore {
             let data = try JSONEncoder().encode(stats)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("Muninn: failed to save stats: \(error)")
+            Log.storage.error("failed to save stats: \(error.localizedDescription)")
         }
     }
 }

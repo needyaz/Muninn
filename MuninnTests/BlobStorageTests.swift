@@ -67,4 +67,31 @@ struct BlobStorageTests {
             #expect(result == nil)
         }
     }
+
+    // MARK: - Filename validation
+
+    @Test("accepts the names Muninn generates and rejects anything that could leave the blob directory")
+    func filenameValidation() {
+        #expect(BlobStorage.isValidFilename("\(UUID().uuidString).png"))
+        #expect(BlobStorage.isValidFilename("test-blob.png"))
+        for bad in ["", ".", "..", "../history.json", "a/b.png", "/etc/passwd", ".hidden", "a\\b", "x\u{0}.png", "na\u{ef}ve.png",
+                    String(repeating: "a", count: 200)] {
+            #expect(!BlobStorage.isValidFilename(bad), "\(bad.debugDescription) should be rejected")
+        }
+    }
+
+    @Test("load, delete, restore and copy ignore traversal names")
+    func traversalNamesAreIgnored() throws {
+        try withTempBlobDir { dir in
+            let outside = dir.deletingLastPathComponent().appendingPathComponent("secret.txt")
+            try Data("secret".utf8).write(to: outside)
+
+            #expect(BlobStorage.load("../secret.txt") == nil)
+            BlobStorage.delete("../secret.txt")
+            #expect(FileManager.default.fileExists(atPath: outside.path))
+            BlobStorage.restore(Data("x".utf8), filename: "../planted.txt")
+            #expect(!FileManager.default.fileExists(atPath: dir.deletingLastPathComponent().appendingPathComponent("planted.txt").path))
+            #expect(BlobStorage.copy("../secret.txt", newID: UUID()) == nil)
+        }
+    }
 }

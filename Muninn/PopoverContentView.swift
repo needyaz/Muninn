@@ -97,7 +97,6 @@ struct PopoverContentView: View {
                         if !filteredClips.isEmpty {
                             snippetsSectionHeader()
                             ForEach(Array(filteredClips.enumerated()), id: \.element.id) { idx, clip in
-                                let globalIdx = idx
                                 Button {
                                     copyAndPaste(clip: clip)
                                 } label: {
@@ -118,7 +117,7 @@ struct PopoverContentView: View {
                                 .buttonStyle(.plain)
                                 .background(
                                     RoundedRectangle(cornerRadius: 4)
-                                        .fill(selectedIndex == globalIdx ? Color.accentColor.opacity(0.2) : Color.clear)
+                                        .fill(selectedIndex == idx ? Color.accentColor.opacity(0.2) : Color.clear)
                                 )
                                 .background(HoverBackground())
                                 .onDrag {
@@ -144,7 +143,7 @@ struct PopoverContentView: View {
                                         }
                                     }
                                 }
-                                .id("item-\(globalIdx)")
+                                .id("item-\(idx)")
                             }
                         }
 
@@ -152,10 +151,10 @@ struct PopoverContentView: View {
                         if !filteredHistory.isEmpty {
                             sectionHeader("HISTORY")
                             ForEach(Array(filteredHistory.enumerated()), id: \.element.id) { idx, item in
-                                let globalIdx = filteredClips.count + idx
+                                let idx = filteredClips.count + idx
                                 HistoryRow(
                                     item: item,
-                                    isSelected: selectedIndex == globalIdx,
+                                    isSelected: selectedIndex == idx,
                                     isMultiSelected: selectedIDs.contains(item.id),
                                     isInMultiSelectMode: !selectedIDs.isEmpty,
                                     showRichPreview: settingsStore.enableRichPreviews,
@@ -178,7 +177,7 @@ struct PopoverContentView: View {
                                     let transformed = applyTransform(text, transform)
                                     copyAndPasteText(transformed)
                                 }
-                                .id("item-\(globalIdx)")
+                                .id("item-\(idx)")
                             }
                         }
 
@@ -436,6 +435,7 @@ struct PopoverContentView: View {
     }
 
     private func pinItem(_ item: HistoryItem) {
+        guard item.isSensitive != true else { return } // a masked item has no value to save
         let newID = UUID()
         var newBlobFile: String?
         if let blob = item.blobFile {
@@ -543,17 +543,11 @@ struct PopoverContentView: View {
     }
 
     private func copyOnly(text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-        monitor.didSelfCopy()
+        PasteboardWriter.copy(text)
     }
 
     private func copyAndPasteText(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-        monitor.didSelfCopy()
+        PasteboardWriter.copy(text)
         NSApp.keyWindow?.close()
         previousApp?.activate()
     }
@@ -624,10 +618,6 @@ struct PopoverContentView: View {
         previousApp?.activate()
     }
 
-    private func relativeTime(_ date: Date) -> String {
-        Self.formatRelativeTime(date)
-    }
-
     static func formatRelativeTime(_ date: Date, now: Date = Date()) -> String {
         let seconds = Int(now.timeIntervalSince(date))
         if seconds < 60 { return "now" }
@@ -642,6 +632,7 @@ struct PopoverContentView: View {
     // MARK: - Resize drag via mouse monitor
 
     private func installMouseMonitor() {
+        removeMouseMonitor()
         let drag = resizeDrag
         let settings = settingsStore
         mouseEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp]) { event in
@@ -700,6 +691,7 @@ struct PopoverContentView: View {
     }
 
     private func installKeyMonitor() {
+        removeKeyMonitor() // never stack a second monitor if onAppear fires twice
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             return handleKeyEvent(event) ? nil : event
         }
@@ -840,494 +832,5 @@ struct PopoverContentView: View {
             }
         }
         return provider
-    }
-}
-
-// MARK: - Filter chip
-
-private struct FilterChip: View {
-    let label: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.caption)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.06))
-                )
-                .foregroundStyle(isSelected ? Color.accentColor : .primary)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - App filter chip
-
-private struct AppFilterChip: View {
-    let bundleID: String
-    let name: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if let icon = AppIconCache.shared.icon(for: bundleID) {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 12, height: 12)
-                }
-                Text(name)
-                    .font(.caption)
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isSelected ? Color.accentColor.opacity(0.2) : Color.primary.opacity(0.06))
-            )
-            .foregroundStyle(isSelected ? Color.accentColor : .primary)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Source app icon cache
-
-class AppIconCache {
-    static let shared = AppIconCache()
-    private var cache: [String: NSImage] = [:]
-
-    func icon(for bundleID: String) -> NSImage? {
-        if let cached = cache[bundleID] { return cached }
-        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else { return nil }
-        let icon = NSWorkspace.shared.icon(forFile: url.path)
-        cache[bundleID] = icon
-        return icon
-    }
-
-    func appName(for bundleID: String) -> String {
-        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
-            let name = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
-                ?? Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleName") as? String
-                ?? url.deletingPathExtension().lastPathComponent
-            return name
-        }
-        return bundleID
-    }
-}
-
-// MARK: - History row with delete on hover
-
-private struct HistoryRow: View {
-    @Environment(SettingsStore.self) private var settingsStore
-
-    let item: HistoryItem
-    var isSelected: Bool = false
-    var isMultiSelected: Bool = false
-    var isInMultiSelectMode: Bool = false
-    var showRichPreview: Bool = false
-    var isScanning: Bool = false
-    var onTap: () -> Void
-    var onPin: () -> Void
-    var onDelete: () -> Void
-    var onTransform: ((_ text: String, _ transform: TextTransform) -> Void)?
-
-    private static let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "tiff", "gif", "bmp", "webp", "heic"]
-
-    @State private var isHovered = false
-
-    var body: some View {
-        Button {
-            onTap()
-        } label: {
-            HStack {
-                // Multi-select indicator
-                if isInMultiSelectMode {
-                    Image(systemName: isMultiSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 13))
-                        .foregroundStyle(isMultiSelected ? Color.accentColor : Color.secondary.opacity(0.5))
-                }
-
-                // Source app icon
-                if let bundleID = item.sourceAppBundleID,
-                   let icon = AppIconCache.shared.icon(for: bundleID) {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 14, height: 14)
-                }
-
-                historyPreviewContent
-                Spacer()
-                if isHovered {
-                    Button {
-                        onPin()
-                    } label: {
-                        Image(systemName: "pin")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .tooltip(String(localized: "Save as snippet"))
-                    Button {
-                        onDelete()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .tooltip(String(localized: "Delete"))
-                } else {
-                    Text(PopoverContentView.formatRelativeTime(item.timestamp))
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(
-                    isMultiSelected ? Color.accentColor.opacity(0.15) :
-                    isSelected ? Color.accentColor.opacity(0.2) :
-                    isHovered ? Color.primary.opacity(0.1) : Color.clear
-                )
-        )
-        .onHover { isHovered = $0 }
-        .onDrag {
-            PopoverContentView.makeItemProvider(
-                contentType: item.contentType,
-                value: item.value,
-                blobFile: item.blobFile,
-                fileURLs: item.fileURLs,
-                colorComponents: item.colorComponents
-            )
-        }
-        .if(item.contentType == .text && item.value != nil && item.isSensitive != true) { view in
-            view.contextMenu {
-                Button("Copy") {
-                    let pasteboard = NSPasteboard.general
-                    pasteboard.clearContents()
-                    pasteboard.setString(item.value!, forType: .string)
-                }
-                Divider()
-                ForEach(TextTransform.allCases, id: \.self) { transform in
-                    Button(transform.displayName) {
-                        onTransform?(item.value!, transform)
-                    }
-                }
-            }
-        }
-        .if(item.contentType == .image && ((settingsStore.enableOCR && item.ocrText != nil) || (settingsStore.enableQRDetection && item.detectedBarcode != nil))) { view in
-            view.contextMenu {
-                if settingsStore.enableOCR, item.ocrText != nil {
-                    Button("Copy Text") {
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(item.ocrText!, forType: .string)
-                    }
-                }
-                if settingsStore.enableQRDetection, let barcode = item.detectedBarcode {
-                    let isURL = barcode.hasPrefix("http://") || barcode.hasPrefix("https://")
-                    Button(isURL ? "Copy Link" : "Copy Code") {
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(barcode, forType: .string)
-                    }
-                    if isURL {
-                        Button("Open in Browser") {
-                            if let url = URL(string: barcode) {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        .if((item.contentType == .pdf || (item.contentType == .fileURL && (item.blobFile.map { ($0 as NSString).pathExtension.lowercased() == "pdf" } ?? false))) && settingsStore.enablePDFTextExtraction && item.ocrText != nil) { view in
-            view.contextMenu {
-                Button("Copy Text") {
-                    let pasteboard = NSPasteboard.general
-                    pasteboard.clearContents()
-                    pasteboard.setString(item.ocrText!, forType: .string)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var historyPreviewContent: some View {
-        if item.isSensitive == true {
-            Label("Sensitive content", systemImage: "eye.slash")
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-        } else {
-            switch item.contentType {
-            case .image:
-                if let blob = item.blobFile, let data = BlobStorage.load(blob),
-                   let nsImage = NSImage(data: data) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Image(nsImage: nsImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxHeight: showRichPreview && isHovered ? 120 : 32)
-                                .animation(.easeInOut(duration: 0.15), value: isHovered)
-                            if let name = item.value {
-                                Text(name)
-                                    .lineLimit(1)
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                            }
-                            if isScanning {
-                                ProgressView()
-                                    .scaleEffect(0.6)
-                                    .help("Scanning…")
-                            }
-                        }
-                        if settingsStore.enableOCR, let ocrText = item.ocrText {
-                            Text(ocrText)
-                                .lineLimit(isHovered ? 3 : 1)
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
-                        if settingsStore.enableQRDetection, let barcode = item.detectedBarcode {
-                            let isURL = barcode.hasPrefix("http://") || barcode.hasPrefix("https://")
-                            Button {
-                                let pasteboard = NSPasteboard.general
-                                pasteboard.clearContents()
-                                pasteboard.setString(barcode, forType: .string)
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: isURL ? "link" : "barcode")
-                                        .font(.caption2)
-                                        .foregroundStyle(.tertiary)
-                                    Text(barcode)
-                                        .lineLimit(1)
-                                        .font(.caption)
-                                        .foregroundStyle(.tertiary)
-                                }
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                } else {
-                    Label(item.value ?? "Image", systemImage: "photo")
-                        .lineLimit(1)
-                }
-            case .pdf:
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Label("PDF Document", systemImage: "doc.richtext")
-                            .lineLimit(1)
-                        if isScanning {
-                            ProgressView()
-                                .scaleEffect(0.6)
-                                .help("Extracting text…")
-                        }
-                    }
-                    if settingsStore.enablePDFTextExtraction, let text = item.ocrText {
-                        Text(text)
-                            .lineLimit(isHovered ? 3 : 1)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-            case .fileURL:
-                if showRichPreview,
-                   let blob = item.blobFile,
-                   Self.imageExtensions.contains((blob as NSString).pathExtension.lowercased()),
-                   let data = BlobStorage.load(blob),
-                   let nsImage = NSImage(data: data) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label(item.preview, systemImage: "doc")
-                            .lineLimit(1)
-                        if isHovered {
-                            Image(nsImage: nsImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxHeight: 120)
-                        }
-                    }
-                    .animation(.easeInOut(duration: 0.15), value: isHovered)
-                } else if settingsStore.enablePDFTextExtraction,
-                          let blob = item.blobFile,
-                          (blob as NSString).pathExtension.lowercased() == "pdf" {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Label(item.preview, systemImage: "doc.richtext")
-                                .lineLimit(1)
-                            if isScanning {
-                                ProgressView()
-                                    .scaleEffect(0.6)
-                                    .help("Extracting text…")
-                            }
-                        }
-                        if let text = item.ocrText {
-                            Text(text)
-                                .lineLimit(isHovered ? 3 : 1)
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                } else {
-                    Label(item.preview, systemImage: "doc")
-                        .lineLimit(1)
-                }
-            case .color:
-                if let comps = item.colorComponents, comps.count >= 3 {
-                    HStack(spacing: 6) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color(red: comps[0], green: comps[1], blue: comps[2], opacity: comps.count > 3 ? comps[3] : 1))
-                            .frame(width: showRichPreview ? 24 : 16, height: showRichPreview ? 24 : 16)
-                        if showRichPreview {
-                            Text(hexColorString(comps))
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
-                        } else {
-                            Text("Color")
-                        }
-                    }
-                } else {
-                    Text("Color")
-                }
-            case .text:
-                Text(item.preview)
-                    .lineLimit(1)
-            }
-        }
-    }
-}
-
-// MARK: - Bulk action bar
-
-private struct BulkActionBar: View {
-    let count: Int
-    let onDelete: () -> Void
-    let onCancel: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Text("\(count) selected")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button {
-                onDelete()
-            } label: {
-                Label("Delete", systemImage: "trash")
-                    .font(.caption)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.red)
-            Button("Cancel") {
-                onCancel()
-            }
-            .buttonStyle(.plain)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.regularMaterial)
-                .shadow(radius: 3)
-        )
-    }
-}
-
-// MARK: - Undo toast
-
-private struct UndoToast: View {
-    let label: String
-    let onUndo: () -> Void
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button("Undo") {
-                onUndo()
-            }
-            .buttonStyle(.plain)
-            .font(.caption.bold())
-            .foregroundStyle(Color.accentColor)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(.regularMaterial)
-                .shadow(radius: 3)
-        )
-    }
-}
-
-// MARK: - Resize drag state
-
-private class ResizeDragState {
-    var isHovering = false
-    var startY: CGFloat?
-    var startHeight: Double?
-    var startX: CGFloat?
-    var startWidth: Double?
-}
-
-// MARK: - Hover effect
-
-private struct HoverBackground: View {
-    @State private var isHovered = false
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(isHovered ? Color.primary.opacity(0.1) : Color.clear)
-            .onHover { isHovered = $0 }
-    }
-}
-
-// MARK: - Tooltip
-
-private class TooltipView: NSView {
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
-}
-
-private struct Tooltip: NSViewRepresentable {
-    let text: String
-
-    func makeNSView(context: Context) -> NSView {
-        let view = TooltipView()
-        view.toolTip = text
-        return view
-    }
-
-    func updateNSView(_ nsView: NSView, context: Context) {
-        nsView.toolTip = text
-    }
-}
-
-extension View {
-    func tooltip(_ text: String) -> some View {
-        overlay(Tooltip(text: text))
-    }
-
-    @ViewBuilder
-    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
-        if condition {
-            transform(self)
-        } else {
-            self
-        }
     }
 }

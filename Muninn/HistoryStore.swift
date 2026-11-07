@@ -92,9 +92,22 @@ class HistoryStore {
         do {
             let data = try Data(contentsOf: fileURL)
             items = try JSONDecoder().decode([HistoryItem].self, from: data)
+            scrubSensitiveValues()
         } catch {
-            print("Muninn: failed to load history: \(error)")
+            Log.storage.error("failed to load history: \(error.localizedDescription)")
         }
+    }
+
+    /// Earlier versions kept the real value of masked items. Drop it: sensitive items are placeholders only.
+    private func scrubSensitiveValues() {
+        var changed = false
+        for i in items.indices where items[i].isSensitive == true && (items[i].value != nil || items[i].blobFile != nil) {
+            if let blob = items[i].blobFile { BlobStorage.delete(blob) }
+            items[i].value = nil
+            items[i].blobFile = nil
+            changed = true
+        }
+        if changed { save() }
     }
 
     func save() {
@@ -102,13 +115,16 @@ class HistoryStore {
             let data = try JSONEncoder().encode(items)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("Muninn: failed to save history: \(error)")
+            Log.storage.error("failed to save history: \(error.localizedDescription)")
         }
     }
 
     func add(_ item: HistoryItem) {
         // Deduplicate only text items by value
         if item.contentType == .text, let value = item.value {
+            for old in items where old.contentType == .text && old.value == value {
+                if let blob = old.blobFile { BlobStorage.delete(blob) }
+            }
             items.removeAll { $0.contentType == .text && $0.value == value }
         }
         // Insert at top
@@ -126,7 +142,7 @@ class HistoryStore {
             HistoryItem(value: "https://developer.apple.com/documentation/swiftui", timestamp: ago(30), contentType: .text, sourceAppBundleID: "com.apple.Safari"),
             HistoryItem(value: "func fetchUser(id: String) async throws -> User {\n    let url = URL(string: \"\\(baseURL)/users/\\(id)\")!\n    let (data, _) = try await URLSession.shared.data(from: url)\n    return try JSONDecoder().decode(User.self, from: data)\n}", timestamp: ago(120), contentType: .text, sourceAppBundleID: "com.microsoft.VSCode"),
             HistoryItem(value: "Meeting notes: Sync with design team at 2pm. Review new onboarding flow mockups. Confirm launch date for Q2 release.", timestamp: ago(300), contentType: .text, sourceAppBundleID: "com.apple.Notes"),
-            HistoryItem(value: "nate@luci.blue", timestamp: ago(600), contentType: .text, sourceAppBundleID: "com.apple.mail"),
+            HistoryItem(value: "jane@example.com", timestamp: ago(600), contentType: .text, sourceAppBundleID: "com.apple.mail"),
             HistoryItem(value: "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.", timestamp: ago(900), contentType: .text, sourceAppBundleID: "com.google.Chrome"),
             HistoryItem(value: "SELECT u.name, COUNT(o.id) as order_count\nFROM users u\nLEFT JOIN orders o ON o.user_id = u.id\nWHERE u.created_at > NOW() - INTERVAL '30 days'\nGROUP BY u.id\nORDER BY order_count DESC;", timestamp: ago(1800), contentType: .text, sourceAppBundleID: "com.tinyapp.TablePlus"),
             HistoryItem(value: "4A90E2", timestamp: ago(2400), contentType: .color, colorComponents: [0.29, 0.565, 0.886, 1.0], sourceAppBundleID: "com.figma.Desktop"),

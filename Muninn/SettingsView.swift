@@ -230,8 +230,7 @@ private struct DataTab: View {
     @Environment(ClipStore.self) private var clipStore
     @Environment(ExcludedAppsStore.self) private var excludedAppsStore
     @Environment(ExcludedTypesStore.self) private var excludedTypesStore
-    @Environment(\.openWindow) private var openWindow
-
+    
     @State private var showImportConfirmation = false
     @State private var importURL: URL?
     @State private var errorMessage: String?
@@ -446,7 +445,7 @@ private struct AboutTab: View {
             Divider()
                 .padding(.horizontal, 80)
 
-            // Blue Luci branding
+            // Blue Luci branding. The name and logo are not covered by the GPL (see README > License).
             VStack(spacing: 6) {
                 Text("Made by")
                     .font(.caption)
@@ -456,19 +455,17 @@ private struct AboutTab: View {
                     .scaledToFit()
                     .frame(height: 64)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                Text("© \(currentYear) Blue Luci. All rights reserved.")
+                Text("Open source under the GPLv3. The Blue Luci name and logo are not covered by that license.")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
             }
             .padding(.vertical, 20)
 
             Spacer()
         }
         .frame(width: 500, height: 420)
-    }
-
-    private var currentYear: String {
-        String(Calendar.current.component(.year, from: Date()))
     }
 }
 

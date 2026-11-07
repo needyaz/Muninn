@@ -19,7 +19,8 @@ enum MuninnIntentError: Error, CustomLocalizedStringResourceConvertible {
 private func loadHistory() -> [HistoryItem] {
     let url = StoragePaths.base.appendingPathComponent("history.json")
     guard let data = try? Data(contentsOf: url) else { return [] }
-    return (try? JSONDecoder().decode([HistoryItem].self, from: data)) ?? []
+    // Sensitive items are never handed to Shortcuts.
+    return ((try? JSONDecoder().decode([HistoryItem].self, from: data)) ?? []).filter { $0.isSensitive != true }
 }
 
 private func loadClips() -> [Clip] {
@@ -68,7 +69,7 @@ enum TextTransformType: String, AppEnum {
 
 struct GetClipboardHistory: AppIntent {
     static var title: LocalizedStringResource = "Get Clipboard History"
-    static var description: IntentDescription = "Returns the most recent text items from Muninn history."
+    static var description: IntentDescription = "Returns the most recent text items from Muninn history (up to 100). Sensitive items are never included."
 
     @Parameter(title: "Count", default: 10)
     var count: Int
@@ -76,7 +77,7 @@ struct GetClipboardHistory: AppIntent {
     func perform() async throws -> some IntentResult & ReturnsValue<[String]> {
         let items = loadHistory()
             .filter { $0.contentType == .text }
-            .prefix(count)
+            .prefix(min(max(count, 0), 100))
             .compactMap(\.value)
         return .result(value: Array(items))
     }
@@ -116,9 +117,7 @@ struct CopySnippetByName: AppIntent {
               let value = clip.value else {
             throw MuninnIntentError.snippetNotFound
         }
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(value, forType: .string)
+        PasteboardWriter.copy(value)
         return .result(value: value)
     }
 }

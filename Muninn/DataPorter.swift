@@ -30,21 +30,32 @@ enum DataPorter {
 
     enum PorterError: LocalizedError {
         case unsupportedVersion(Int)
+        case fileTooLarge
 
         var errorDescription: String? {
             switch self {
             case .unsupportedVersion(let v):
                 return "Unsupported export version: \(v). This file may have been created by a newer version of Muninn."
+            case .fileTooLarge:
+                return "This file is too large to be a Muninn export."
             }
         }
     }
+
+    /// Imports are read fully into memory, so refuse anything implausibly large.
+    static let maxImportBytes = 1_000_000_000
+
+    /// Settings in an import file are untrusted: only these values are accepted for `sensitiveHandling`
+    /// (never "allow", so an import can't quietly weaken privacy), and the history limit is clamped.
+    static let allowedSensitiveHandling: Set<String> = ["skip", "mask"]
+    static let historyLimitRange = 25...500
 
     static func buildExportData() throws -> Data {
         // Read history
         let historyURL = StoragePaths.base.appendingPathComponent("history.json")
         let history: [HistoryItem]
         if let data = try? Data(contentsOf: historyURL) {
-            history = (try? JSONDecoder().decode([HistoryItem].self, from: data)) ?? []
+            history = ((try? JSONDecoder().decode([HistoryItem].self, from: data)) ?? []).filter { $0.isSensitive != true }
         } else {
             history = []
         }
@@ -144,6 +155,8 @@ enum DataPorter {
         excludedTypesStore: ExcludedTypesStore,
         settingsStore: SettingsStore
     ) throws -> ImportResult {
+        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+        guard size <= maxImportBytes else { throw PorterError.fileTooLarge }
         let data = try Data(contentsOf: url)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -155,43 +168,52 @@ enum DataPorter {
 
         let blobDir = StoragePaths.blobs
 
-        var newBlobFilenames: Set<String> = []
+        // Decode and validate every blob before touching anything on disk.
         var failedBlobCount = 0
+        var decodedBlobs: [String: Data] = [:]
+        for (filename, base64) in envelope.blobs {
+            guard BlobStorage.isValidFilename(filename), let blobData = Data(base64Encoded: base64) else {
+                failedBlobCount += 1
+                continue
+            }
+            decodedBlobs[filename] = blobData
+        }
 
+        // An imported item may only refer to a blob that is valid and actually present.
+        func sanitized(_ name: String?) -> String? {
+            guard let name, BlobStorage.isValidFilename(name) else { return nil }
+            return name
+        }
+
+        var newBlobFilenames: Set<String> = []
         if merge {
             // Write only new blobs (don't overwrite existing)
-            for (filename, base64) in envelope.blobs {
+            for (filename, blobData) in decodedBlobs {
                 let dest = blobDir.appendingPathComponent(filename)
-                if !FileManager.default.fileExists(atPath: dest.path) {
-                    if let blobData = Data(base64Encoded: base64) {
-                        do {
-                            try blobData.write(to: dest, options: .atomic)
-                            newBlobFilenames.insert(filename)
-                        } catch {
-                            failedBlobCount += 1
-                        }
-                    } else {
-                        failedBlobCount += 1
-                    }
+                guard !FileManager.default.fileExists(atPath: dest.path) else { continue }
+                do {
+                    try blobData.write(to: dest, options: .atomic)
+                    newBlobFilenames.insert(filename)
+                } catch {
+                    failedBlobCount += 1
                 }
             }
         } else {
-            // Replace: clear existing blobs and write all
+            // Replace: stage the new blobs next to the old ones, then swap, so a failure part-way
+            // leaves the existing blobs alone.
+            let staging = StoragePaths.base.appendingPathComponent("blobs-import-\(UUID().uuidString)", isDirectory: true)
+            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: staging) }
+            for (filename, blobData) in decodedBlobs {
+                try blobData.write(to: staging.appendingPathComponent(filename), options: .atomic)
+            }
             if let existing = try? FileManager.default.contentsOfDirectory(atPath: blobDir.path) {
                 for file in existing {
                     try? FileManager.default.removeItem(at: blobDir.appendingPathComponent(file))
                 }
             }
-            for (filename, base64) in envelope.blobs {
-                if let blobData = Data(base64Encoded: base64) {
-                    do {
-                        try blobData.write(to: blobDir.appendingPathComponent(filename), options: .atomic)
-                    } catch {
-                        failedBlobCount += 1
-                    }
-                } else {
-                    failedBlobCount += 1
-                }
+            for filename in decodedBlobs.keys {
+                try? FileManager.default.moveItem(at: staging.appendingPathComponent(filename), to: blobDir.appendingPathComponent(filename))
             }
         }
 
@@ -208,6 +230,8 @@ enum DataPorter {
 
         var importedHistory = envelope.history
         var importedClips = envelope.clips
+        for i in importedHistory.indices { importedHistory[i].blobFile = sanitized(importedHistory[i].blobFile) }
+        for i in importedClips.indices { importedClips[i].blobFile = sanitized(importedClips[i].blobFile) }
 
         for i in importedHistory.indices {
             if importedHistory[i].contentType == .fileURL,
@@ -215,6 +239,7 @@ enum DataPorter {
                let blobData = BlobStorage.load(blob),
                let originalPath = importedHistory[i].fileURLs?.first {
                 let filename = (originalPath as NSString).lastPathComponent
+                guard BlobStorage.isValidFilename(filename) else { continue }
                 let destURL = filesDir.appendingPathComponent(filename)
                 if !FileManager.default.fileExists(atPath: destURL.path) {
                     try? blobData.write(to: destURL, options: .atomic)
@@ -229,6 +254,7 @@ enum DataPorter {
                let blobData = BlobStorage.load(blob),
                let originalPath = importedClips[i].fileURLs?.first {
                 let filename = (originalPath as NSString).lastPathComponent
+                guard BlobStorage.isValidFilename(filename) else { continue }
                 let destURL = filesDir.appendingPathComponent(filename)
                 if !FileManager.default.fileExists(atPath: destURL.path) {
                     try? blobData.write(to: destURL, options: .atomic)
@@ -291,53 +317,41 @@ enum DataPorter {
             newExcludedTypeCount = replacedTypes.count
 
             // Apply settings only on replace
-            let defaults = UserDefaults.standard
-            defaults.set(envelope.settings.historyLimit, forKey: "historyLimit")
-            defaults.set(envelope.settings.pasteAsPlainText, forKey: "pasteAsPlainText")
-            settingsStore.historyLimit = envelope.settings.historyLimit
+            if historyLimitRange.contains(envelope.settings.historyLimit) {
+                settingsStore.historyLimit = envelope.settings.historyLimit
+            }
             settingsStore.pasteAsPlainText = envelope.settings.pasteAsPlainText
             if let enableStats = envelope.settings.enableStats {
-                defaults.set(enableStats, forKey: "enableStats")
                 settingsStore.enableStats = enableStats
             }
             if let enableRichPreviews = envelope.settings.enableRichPreviews {
-                defaults.set(enableRichPreviews, forKey: "enableRichPreviews")
                 settingsStore.enableRichPreviews = enableRichPreviews
             }
             if let captureSound = envelope.settings.captureSound {
-                defaults.set(captureSound, forKey: "captureSound")
                 settingsStore.captureSound = captureSound
             }
             if let captureScreenshots = envelope.settings.captureScreenshots {
-                defaults.set(captureScreenshots, forKey: "captureScreenshots")
                 settingsStore.captureScreenshots = captureScreenshots
             }
             if let enableOCR = envelope.settings.enableOCR {
-                defaults.set(enableOCR, forKey: "enableOCR")
                 settingsStore.enableOCR = enableOCR
             }
             if let enableQRDetection = envelope.settings.enableQRDetection {
-                defaults.set(enableQRDetection, forKey: "enableQRDetection")
                 settingsStore.enableQRDetection = enableQRDetection
             }
             if let enablePDFTextExtraction = envelope.settings.enablePDFTextExtraction {
-                defaults.set(enablePDFTextExtraction, forKey: "enablePDFTextExtraction")
                 settingsStore.enablePDFTextExtraction = enablePDFTextExtraction
             }
             if let hasSeenOnboarding = envelope.settings.hasSeenOnboarding {
-                defaults.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
                 settingsStore.hasSeenOnboarding = hasSeenOnboarding
             }
             if let popoverHeight = envelope.settings.popoverHeight, popoverHeight > 0 {
-                defaults.set(popoverHeight, forKey: "popoverHeight")
                 settingsStore.popoverHeight = popoverHeight
             }
             if let popoverWidth = envelope.settings.popoverWidth, popoverWidth > 0 {
-                defaults.set(popoverWidth, forKey: "popoverWidth")
                 settingsStore.popoverWidth = popoverWidth
             }
-            if let sensitiveHandling = envelope.settings.sensitiveHandling {
-                defaults.set(sensitiveHandling, forKey: "sensitiveHandling")
+            if let sensitiveHandling = envelope.settings.sensitiveHandling, allowedSensitiveHandling.contains(sensitiveHandling) {
                 settingsStore.sensitiveHandling = sensitiveHandling
             }
         }

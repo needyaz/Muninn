@@ -31,7 +31,7 @@ class ExcludedAppsStore {
             let ids = try JSONDecoder().decode(Set<String>.self, from: data)
             excludedBundleIDs = ids
         } catch {
-            print("Muninn: failed to load excluded apps: \(error)")
+            Log.storage.error("failed to load excluded apps: \(error.localizedDescription)")
         }
     }
 
@@ -40,7 +40,7 @@ class ExcludedAppsStore {
             let data = try JSONEncoder().encode(excludedBundleIDs)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("Muninn: failed to save excluded apps: \(error)")
+            Log.storage.error("failed to save excluded apps: \(error.localizedDescription)")
         }
     }
 }

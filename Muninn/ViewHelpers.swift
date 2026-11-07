@@ -61,10 +61,8 @@ func filterHistoryItems(
 /// Returns `"#000000"` if fewer than three components are provided.
 func hexColorString(_ components: [Double]) -> String {
     guard components.count >= 3 else { return "#000000" }
-    return String(
-        format: "#%02X%02X%02X",
-        Int(components[0] * 255),
-        Int(components[1] * 255),
-        Int(components[2] * 255)
-    )
+    func byte(_ component: Double) -> Int {
+        component.isFinite ? Int((min(max(component, 0), 1) * 255).rounded()) : 0
+    }
+    return String(format: "#%02X%02X%02X", byte(components[0]), byte(components[1]), byte(components[2]))
 }

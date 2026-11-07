@@ -100,4 +100,17 @@ struct ClipStoreTests {
         let store = ClipStore(baseURL: dir)
         #expect(!store.clips.isEmpty) // falls back to example clips
     }
+
+    @Test("an unreadable clips.json is backed up before example clips replace it")
+    func corruptFileIsBackedUp() throws {
+        let dir = makeTempDir()
+        defer { removeTempDir(dir) }
+        let file = dir.appendingPathComponent("clips.json")
+        try Data("not json".utf8).write(to: file)
+
+        let store = ClipStore(baseURL: dir)
+        #expect(!store.clips.isEmpty)
+        let backup = dir.appendingPathComponent("clips.json.bak")
+        #expect(try String(contentsOf: backup, encoding: .utf8) == "not json")
+    }
 }
