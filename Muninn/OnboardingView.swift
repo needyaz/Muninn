@@ -20,7 +20,7 @@ struct OnboardingView: View {
             symbol: "hand.tap",
             title: "Browsing & Pasting",
             bullets: [
-                "Click any item to copy it and paste it into your previous app",
+                "Click any item to copy it, then press Cmd+V in your previous app",
                 "Option-click to toggle between plain text and rich text",
                 "Right-click a text item for transforms: uppercase, lowercase, trim, and more",
                 "Drag items directly out of the window into other apps",
@@ -33,7 +33,7 @@ struct OnboardingView: View {
                 "Hover over any history item and click the pin icon to save it as a snippet",
                 "Snippets appear at the top of the list, always ready",
                 "Open the snippet picker with a global hotkey (set in Settings > Shortcut)",
-                "In the picker, use Cmd+1–9 to quickly paste the first nine results",
+                "In the picker, use Cmd+1–9 to copy one of the first nine results, then press Cmd+V",
             ]
         ),
         OnboardingPage(
@@ -41,7 +41,7 @@ struct OnboardingView: View {
             title: "Power Features",
             bullets: [
                 "Cmd+click to select multiple items, then Delete to remove them all at once",
-                "Use ↑↓ to navigate and Return to paste from the keyboard",
+                "Use ↑↓ to navigate and Return to copy the selected item, then press Cmd+V",
                 "Search by keyword, or use the filter chips to browse by content type",
                 "Color items are searchable by hex value, e.g. #FF0000",
             ]
@@ -94,7 +94,7 @@ struct OnboardingView: View {
                     .buttonStyle(.borderedProminent)
                 } else {
                     Button("Get Started") {
-                        settingsStore.hasSeenOnboarding = true
+                        settingsStore.markOnboardingSeen()
                         dismiss()
                     }
                     .buttonStyle(.borderedProminent)
@@ -103,6 +103,8 @@ struct OnboardingView: View {
             }
             .padding(16)
         }
+        .onDisappear { settingsStore.markOnboardingSeen() }
+        .background(WindowCloseObserver { settingsStore.markOnboardingSeen() })
     }
 
     private func pageView(_ pg: OnboardingPage) -> some View {
@@ -139,4 +141,33 @@ private struct OnboardingPage {
     let symbol: String
     let title: String
     let bullets: [String]
+}
+
+/// Calls `onClose` when the hosting window closes (close button, Cmd+W, File > Close).
+struct WindowCloseObserver: NSViewRepresentable {
+    let onClose: () -> Void
+
+    final class Coordinator {
+        var token: NSObjectProtocol?
+        deinit { if let token { NotificationCenter.default.removeObserver(token) } }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { attach(view, context.coordinator) }
+        return view
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        if context.coordinator.token == nil { attach(view, context.coordinator) }
+    }
+
+    private func attach(_ view: NSView, _ coordinator: Coordinator) {
+        guard coordinator.token == nil, let window = view.window else { return }
+        coordinator.token = NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification, object: window, queue: .main
+        ) { _ in onClose() }
+    }
 }

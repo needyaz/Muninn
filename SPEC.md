@@ -15,8 +15,8 @@ Named for Odin's raven of memory.
 ### Core Loop
 1. **Capture** — Monitors `NSPasteboard` every 0.5s. On change, records the item (with content type, source app, timestamp) and optionally runs OCR or barcode detection.
 2. **Browse** — Menu bar popover shows clipboard history and saved snippets. Searchable, filterable by content type, keyboard-navigable.
-3. **Paste** — Click or press Return to copy an item back to the pasteboard and paste into the previously-focused app.
-4. **Organize** — Save frequently-used items as named snippets. Access them via the snippet picker panel (floating window, Cmd+1–9 shortcuts).
+3. **Paste** — Click or press Return to copy an item back to the pasteboard, close the popover and reactivate the previously-focused app; the user presses Cmd+V. Muninn posts no key events and needs no Accessibility permission.
+4. **Organize** — Save frequently-used items as named snippets. Access them via the snippet picker panel (floating window; Cmd+1–9 copies a snippet, then the user presses Cmd+V).
 
 ---
 
@@ -132,7 +132,6 @@ Named for Odin's raven of memory.
 | Settings included in export, restored on Replace | ✅ Done |
 | File URL items restored to `~/Library/…/Muninn/files/` | ✅ Done |
 | Migration from ClipBar app name (old path) | ✅ Done |
-| Migration from `~/.config/clipbar` (legacy path) | ✅ Done |
 
 ### Siri Shortcuts / App Intents
 
