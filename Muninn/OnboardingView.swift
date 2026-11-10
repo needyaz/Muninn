@@ -147,27 +147,29 @@ private struct OnboardingPage {
 struct WindowCloseObserver: NSViewRepresentable {
     let onClose: () -> Void
 
-    final class Coordinator {
-        var token: NSObjectProtocol?
+    final class ObserverView: NSView {
+        var onClose: () -> Void = {}
+        private var token: NSObjectProtocol?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            if let token { NotificationCenter.default.removeObserver(token); self.token = nil }
+            guard let window else { return }
+            token = NotificationCenter.default.addObserver(
+                forName: NSWindow.willCloseNotification, object: window, queue: .main
+            ) { [weak self] _ in self?.onClose() }
+        }
+
         deinit { if let token { NotificationCenter.default.removeObserver(token) } }
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async { attach(view, context.coordinator) }
+    func makeNSView(context: Context) -> ObserverView {
+        let view = ObserverView()
+        view.onClose = onClose
         return view
     }
 
-    func updateNSView(_ view: NSView, context: Context) {
-        if context.coordinator.token == nil { attach(view, context.coordinator) }
-    }
-
-    private func attach(_ view: NSView, _ coordinator: Coordinator) {
-        guard coordinator.token == nil, let window = view.window else { return }
-        coordinator.token = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification, object: window, queue: .main
-        ) { _ in onClose() }
+    func updateNSView(_ view: ObserverView, context: Context) {
+        view.onClose = onClose
     }
 }

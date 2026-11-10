@@ -2,61 +2,64 @@ import Foundation
 
 @Observable
 class SettingsStore {
+    /// Where every setting is read from and written to (the standard defaults, or a private suite in tests and screenshots).
+    private let defaults: UserDefaults
+
     var historyLimit: Int {
-        didSet { UserDefaults.standard.set(historyLimit, forKey: "historyLimit") }
+        didSet { defaults.set(historyLimit, forKey: "historyLimit") }
     }
 
     var pasteAsPlainText: Bool {
-        didSet { UserDefaults.standard.set(pasteAsPlainText, forKey: "pasteAsPlainText") }
+        didSet { defaults.set(pasteAsPlainText, forKey: "pasteAsPlainText") }
     }
 
     var enableStats: Bool {
-        didSet { UserDefaults.standard.set(enableStats, forKey: "enableStats") }
+        didSet { defaults.set(enableStats, forKey: "enableStats") }
     }
 
     var enableRichPreviews: Bool {
-        didSet { UserDefaults.standard.set(enableRichPreviews, forKey: "enableRichPreviews") }
+        didSet { defaults.set(enableRichPreviews, forKey: "enableRichPreviews") }
     }
 
     var captureSound: String {
-        didSet { UserDefaults.standard.set(captureSound, forKey: "captureSound") }
+        didSet { defaults.set(captureSound, forKey: "captureSound") }
     }
 
     var captureScreenshots: Bool {
-        didSet { UserDefaults.standard.set(captureScreenshots, forKey: "captureScreenshots") }
+        didSet { defaults.set(captureScreenshots, forKey: "captureScreenshots") }
     }
 
     var enableOCR: Bool {
-        didSet { UserDefaults.standard.set(enableOCR, forKey: "enableOCR") }
+        didSet { defaults.set(enableOCR, forKey: "enableOCR") }
     }
 
     var enableQRDetection: Bool {
-        didSet { UserDefaults.standard.set(enableQRDetection, forKey: "enableQRDetection") }
+        didSet { defaults.set(enableQRDetection, forKey: "enableQRDetection") }
     }
 
     var enablePDFTextExtraction: Bool {
-        didSet { UserDefaults.standard.set(enablePDFTextExtraction, forKey: "enablePDFTextExtraction") }
+        didSet { defaults.set(enablePDFTextExtraction, forKey: "enablePDFTextExtraction") }
     }
 
     var hasSeenOnboarding: Bool {
-        didSet { UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding") }
+        didSet { defaults.set(hasSeenOnboarding, forKey: "hasSeenOnboarding") }
     }
 
     var popoverHeight: Double {
-        didSet { UserDefaults.standard.set(popoverHeight, forKey: "popoverHeight") }
+        didSet { defaults.set(popoverHeight, forKey: "popoverHeight") }
     }
 
     var popoverWidth: Double {
-        didSet { UserDefaults.standard.set(popoverWidth, forKey: "popoverWidth") }
+        didSet { defaults.set(popoverWidth, forKey: "popoverWidth") }
     }
 
     /// "skip" = don't record, "mask" = record but hide preview, "allow" = record normally
     var sensitiveHandling: String {
-        didSet { UserDefaults.standard.set(sensitiveHandling, forKey: "sensitiveHandling") }
+        didSet { defaults.set(sensitiveHandling, forKey: "sensitiveHandling") }
     }
 
     var screenshotFolderBookmark: Data? {
-        didSet { UserDefaults.standard.set(screenshotFolderBookmark, forKey: "screenshotFolderBookmark") }
+        didSet { defaults.set(screenshotFolderBookmark, forKey: "screenshotFolderBookmark") }
     }
 
     /// Resolves the stored security-scoped bookmark to a URL. Refreshes stale bookmarks automatically.
@@ -76,6 +79,7 @@ class SettingsStore {
     }
 
     init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         defaults.register(defaults: [
             "historyLimit": 50,
             "pasteAsPlainText": false,

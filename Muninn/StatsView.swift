@@ -211,7 +211,7 @@ private struct ActivityHeatmap: View {
 
     private func buildGrid() -> [[Int]] {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let today = calendar.startOfDay(for: PopoverContentView.currentTime)
         let todayWeekday = calendar.component(.weekday, from: today) // 1=Sun, 7=Sat
 
         // Build a lookup from date string to count

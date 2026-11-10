@@ -14,6 +14,9 @@ APP_PATH  := $(BUILD_DIR)/Build/Products/Debug/$(APP_NAME).app
 # Per-machine settings (TEAM, BUNDLE_ID), gitignored: see make/local.mk.example.
 -include make/local.mk
 
+# The build box declares itself in make/local.mk with `BOX_NAME := prod-build`; see the Release section.
+BOX_NAME ?= dev
+
 SIGNING := $(if $(TEAM),DEVELOPMENT_TEAM=$(TEAM) -allowProvisioningUpdates,CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=)
 XCODEBUILD := xcodebuild -project $(PROJECT) -scheme $(APP_NAME) -configuration Debug -derivedDataPath $(BUILD_DIR) \
   MUNINN_BUNDLE_ID=$(BUNDLE_ID) $(SIGNING)
@@ -48,6 +51,28 @@ logs:
 ## [Build] Build the debug app into ./build
 build: generate
 	$(XCODEBUILD) -quiet build
+
+.PHONY: screenshots
+## [Build] Render the App Store screenshots from the real views with fixture data (quits a running Muninn)
+screenshots: build stop
+	@mkdir -p listing/screenshots/en-US
+	@rm -f "$(HOME)/Library/Containers/$(BUNDLE_ID)/Data/tmp/shots/"*.png
+	@sleep 2  # LaunchServices needs a moment after the quit
+	@# Launch in screenshot mode, then `open` the running app again so it comes forward: controls only draw in
+	@# their live colors (not dimmed) in an active app.
+	@open -W $(APP_PATH) --args --screenshots & \
+	  sleep 3; open $(APP_PATH); wait
+	@rm -f listing/screenshots/en-US/*.png   # so a renamed or removed scene can't leave a stale file behind
+	@cp "$(HOME)/Library/Containers/$(BUNDLE_ID)/Data/tmp/shots/"*.png listing/screenshots/en-US/
+	@ls -1 listing/screenshots/en-US
+
+.PHONY: listing-check
+## [Build] Validate listing/ (metadata.json, app.json, screenshots) against Apple's limits (offline)
+listing-check:
+	@command -v deno >/dev/null 2>&1 || { echo "deno not installed — run: brew install deno"; exit 1; }
+	@deno run --allow-read --allow-env scripts/listing_metadata.ts check
+	@deno run --allow-read scripts/listing_screenshots.ts check
+	@deno run --allow-read scripts/store_setup.ts check
 
 # The Xcode project is generated from project.yml and gitignored. build/test depend on this
 # (it's fast) so newly added source files are always picked up.
@@ -85,9 +110,21 @@ clean: stop
 test: generate stop
 	$(XCODEBUILD) -quiet test -destination 'platform=macOS'
 
+.PHONY: test-listing
+## [Tests] Store-listing tools (Deno): diff/plan logic, Apple's limits, and a check of listing/ (offline, no credentials)
+test-listing: listing-check
+	@command -v deno >/dev/null 2>&1 || { echo "deno not installed — run: brew install deno"; exit 1; }
+	deno test --allow-read scripts/
+
 # ---------------------------------------------------------------------------
 # Release
 # ---------------------------------------------------------------------------
+
+# The App Store targets touch the live App Store Connect API key, so they only exist as make rules on the box that
+# declares BOX_NAME := prod-build in make/local.mk. Elsewhere `make testflight` fails with "No rule to make target".
+ifeq ($(BOX_NAME),prod-build)
+-include make/store.mk
+endif
 
 # Needs a Developer ID Application certificate for your team, an App Store Connect API key (used for notarization)
 # in your environment, and the `gh` CLI signed in. See DISTRIBUTION.md.
