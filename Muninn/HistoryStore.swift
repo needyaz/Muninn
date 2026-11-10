@@ -95,6 +95,10 @@ class HistoryStore {
             scrubSensitiveValues()
         } catch {
             Log.storage.error("failed to load history: \(error.localizedDescription)")
+            // Move (not copy) the unreadable file aside so the next save can't silently overwrite it.
+            let backup = fileURL.appendingPathExtension("bak")
+            try? FileManager.default.removeItem(at: backup)
+            try? FileManager.default.moveItem(at: fileURL, to: backup)
         }
     }
 
@@ -148,7 +152,7 @@ class HistoryStore {
             HistoryItem(value: "4A90E2", timestamp: ago(2400), contentType: .color, colorComponents: [0.29, 0.565, 0.886, 1.0], sourceAppBundleID: "com.figma.Desktop"),
             HistoryItem(value: "brew install ffmpeg --with-options && brew services restart nginx", timestamp: ago(3600), contentType: .text, sourceAppBundleID: "com.apple.Terminal"),
             HistoryItem(value: "Dear team,\n\nPlease find attached the Q1 performance report. Key highlights:\n• Revenue up 18% YoY\n• Customer retention at 94%\n• NPS score improved to 72\n\nLet me know if you have questions.", timestamp: ago(7200), contentType: .text, sourceAppBundleID: "com.apple.mail"),
-            HistoryItem(value: "sk-ant-••••••••••••••••••••••••••••••••••••••••", timestamp: ago(9000), contentType: .text, isSensitive: true),
+            HistoryItem(value: nil, timestamp: ago(9000), contentType: .text, isSensitive: true),
         ]
 
         commitPendingUndo()

@@ -57,6 +57,24 @@ func filterHistoryItems(
     return result
 }
 
+/// The temporary file URL used when an image is dragged out: always directly inside the temporary
+/// directory, with a name that passes `BlobStorage.isValidFilename`.
+func dragImageTempURL(value: String?, blobExtension: String) -> URL {
+    let fallback = "Image.\(blobExtension)"
+    var name = value ?? ""
+    if !BlobStorage.isValidFilename(name) {
+        name = (name as NSString).lastPathComponent
+        name = String(name.unicodeScalars.map { scalar -> Character in
+            (scalar.value < 128 && (CharacterSet.alphanumerics.contains(scalar) || "._-".unicodeScalars.contains(scalar)))
+                ? Character(scalar) : "-"
+        })
+        while name.hasPrefix(".") { name.removeFirst() }
+    }
+    if !BlobStorage.isValidFilename(name) { name = fallback }
+    if !BlobStorage.isValidFilename(name) { name = "Image" }
+    return FileManager.default.temporaryDirectory.appendingPathComponent(name)
+}
+
 /// Converts the first three RGB components (0.0–1.0) to a CSS-style hex color string.
 /// Returns `"#000000"` if fewer than three components are provided.
 func hexColorString(_ components: [Double]) -> String {
