@@ -31,9 +31,12 @@ enum DataPorter {
     enum PorterError: LocalizedError {
         case unsupportedVersion(Int)
         case fileTooLarge
+        case writeFailed
 
         var errorDescription: String? {
             switch self {
+            case .writeFailed:
+                return "The import could not be written. Your existing data was left unchanged."
             case .unsupportedVersion(let v):
                 return "Unsupported export version: \(v). This file may have been created by a newer version of Muninn."
             case .fileTooLarge:
@@ -41,6 +44,14 @@ enum DataPorter {
             }
         }
     }
+
+    /// The write steps of a Replace import; a test can make one of them fail.
+    enum ImportStep: CaseIterable {
+        case history, clips, excludedApps, excludedTypes, blobs, files
+    }
+
+    /// Test-only: when set, a Replace import throws at this step's write.
+    static var failingStepOverride: ImportStep? = nil
 
     /// Imports are read fully into memory, so refuse anything implausibly large.
     static let maxImportBytes = 1_000_000_000
@@ -198,34 +209,29 @@ enum DataPorter {
                     failedBlobCount += 1
                 }
             }
-        } else {
-            // Replace: stage the new blobs next to the old ones, then swap, so a failure part-way
-            // leaves the existing blobs alone.
-            let staging = StoragePaths.base.appendingPathComponent("blobs-import-\(UUID().uuidString)", isDirectory: true)
-            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
-            defer { try? FileManager.default.removeItem(at: staging) }
-            for (filename, blobData) in decodedBlobs {
-                try blobData.write(to: staging.appendingPathComponent(filename), options: .atomic)
-            }
-            if let existing = try? FileManager.default.contentsOfDirectory(atPath: blobDir.path) {
-                for file in existing {
-                    try? FileManager.default.removeItem(at: blobDir.appendingPathComponent(file))
-                }
-            }
-            for filename in decodedBlobs.keys {
-                try? FileManager.default.moveItem(at: staging.appendingPathComponent(filename), to: blobDir.appendingPathComponent(filename))
-            }
         }
 
-        // Restore files from blobs for fileURL items
+        // Restore files from blobs for fileURL items. Merge writes them straight away; Replace only
+        // collects them, so nothing on disk changes until the staged data is swapped in.
         let filesDir = StoragePaths.base.appendingPathComponent("files", isDirectory: true)
-        try? FileManager.default.createDirectory(at: filesDir, withIntermediateDirectories: true)
-        if !merge {
-            if let existing = try? FileManager.default.contentsOfDirectory(atPath: filesDir.path) {
-                for file in existing {
-                    try? FileManager.default.removeItem(at: filesDir.appendingPathComponent(file))
+        if merge { try? FileManager.default.createDirectory(at: filesDir, withIntermediateDirectories: true) }
+        var stagedFiles: [String: Data] = [:]
+
+        func restoreFile(blob: String?, fileURLs: [String]?) -> [String]? {
+            guard let blob,
+                  let blobData = merge ? BlobStorage.load(blob) : decodedBlobs[blob],
+                  let originalPath = fileURLs?.first else { return nil }
+            let filename = (originalPath as NSString).lastPathComponent
+            guard BlobStorage.isValidFilename(filename) else { return nil }
+            let destURL = filesDir.appendingPathComponent(filename)
+            if merge {
+                if !FileManager.default.fileExists(atPath: destURL.path) {
+                    try? blobData.write(to: destURL, options: .atomic)
                 }
+            } else if stagedFiles[filename] == nil {
+                stagedFiles[filename] = blobData
             }
+            return [destURL.path]
         }
 
         var importedHistory = envelope.history
@@ -233,33 +239,14 @@ enum DataPorter {
         for i in importedHistory.indices { importedHistory[i].blobFile = sanitized(importedHistory[i].blobFile) }
         for i in importedClips.indices { importedClips[i].blobFile = sanitized(importedClips[i].blobFile) }
 
-        for i in importedHistory.indices {
-            if importedHistory[i].contentType == .fileURL,
-               let blob = importedHistory[i].blobFile,
-               let blobData = BlobStorage.load(blob),
-               let originalPath = importedHistory[i].fileURLs?.first {
-                let filename = (originalPath as NSString).lastPathComponent
-                guard BlobStorage.isValidFilename(filename) else { continue }
-                let destURL = filesDir.appendingPathComponent(filename)
-                if !FileManager.default.fileExists(atPath: destURL.path) {
-                    try? blobData.write(to: destURL, options: .atomic)
-                }
-                importedHistory[i].fileURLs = [destURL.path]
+        for i in importedHistory.indices where importedHistory[i].contentType == .fileURL {
+            if let urls = restoreFile(blob: importedHistory[i].blobFile, fileURLs: importedHistory[i].fileURLs) {
+                importedHistory[i].fileURLs = urls
             }
         }
-
-        for i in importedClips.indices {
-            if importedClips[i].contentType == .fileURL,
-               let blob = importedClips[i].blobFile,
-               let blobData = BlobStorage.load(blob),
-               let originalPath = importedClips[i].fileURLs?.first {
-                let filename = (originalPath as NSString).lastPathComponent
-                guard BlobStorage.isValidFilename(filename) else { continue }
-                let destURL = filesDir.appendingPathComponent(filename)
-                if !FileManager.default.fileExists(atPath: destURL.path) {
-                    try? blobData.write(to: destURL, options: .atomic)
-                }
-                importedClips[i].fileURLs = [destURL.path]
+        for i in importedClips.indices where importedClips[i].contentType == .fileURL {
+            if let urls = restoreFile(blob: importedClips[i].blobFile, fileURLs: importedClips[i].fileURLs) {
+                importedClips[i].fileURLs = urls
             }
         }
 
@@ -275,10 +262,26 @@ enum DataPorter {
             // Merge: add items that don't already exist (by ID)
             let existingHistoryIDs = Set(historyStore.items.map(\.id))
             let newHistory = importedHistory.filter { !existingHistoryIDs.contains($0.id) }
-            let mergedHistory = historyStore.items + newHistory
+            // Newest first (stable for equal timestamps), then trim to the user's current limit.
+            var mergedHistory = (historyStore.items + newHistory).enumerated()
+                .sorted { $0.element.timestamp != $1.element.timestamp
+                    ? $0.element.timestamp > $1.element.timestamp : $0.offset < $1.offset }
+                .map(\.element)
+            let limit = settingsStore.historyLimit
+            var keptNew = newHistory.count
+            if mergedHistory.count > limit {
+                let evicted = mergedHistory[limit...]
+                let evictedIDs = Set(evicted.map(\.id))
+                keptNew = newHistory.filter { !evictedIDs.contains($0.id) }.count
+                mergedHistory = Array(mergedHistory.prefix(limit))
+                let keptBlobs = Set(mergedHistory.compactMap(\.blobFile))
+                for old in evicted {
+                    if let blob = old.blobFile, !keptBlobs.contains(blob) { BlobStorage.delete(blob) }
+                }
+            }
             let historyData = try encoder.encode(mergedHistory)
             try historyData.write(to: StoragePaths.base.appendingPathComponent("history.json"), options: .atomic)
-            newHistoryCount = newHistory.count
+            newHistoryCount = keptNew
 
             let existingClipIDs = Set(clipStore.clips.map(\.id))
             let newClips = importedClips.filter { !existingClipIDs.contains($0.id) }
@@ -298,25 +301,83 @@ enum DataPorter {
             try excludedTypesData.write(to: StoragePaths.base.appendingPathComponent("excluded_types.json"), options: .atomic)
             newExcludedTypeCount = newExcludedTypes.count - excludedTypesStore.excludedTypes.count
         } else {
-            // Replace all
-            let historyData = try encoder.encode(importedHistory)
-            try historyData.write(to: StoragePaths.base.appendingPathComponent("history.json"), options: .atomic)
-            newHistoryCount = importedHistory.count
+            // Replace all: write everything to a staging folder first, then swap it in.
+            let fm = FileManager.default
+            let base = StoragePaths.base
+            let stage = base.appendingPathComponent("import-staging-\(UUID().uuidString)", isDirectory: true)
+            let backup = base.appendingPathComponent("import-backup-\(UUID().uuidString)", isDirectory: true)
+            let privateDir: [FileAttributeKey: Any] = [.posixPermissions: 0o700]
+            try fm.createDirectory(at: stage, withIntermediateDirectories: true, attributes: privateDir)
+            try fm.createDirectory(at: backup, withIntermediateDirectories: true, attributes: privateDir)
+            defer {
+                try? fm.removeItem(at: stage)
+                try? fm.removeItem(at: backup)
+            }
 
-            let clipsData = try encoder.encode(importedClips)
-            try clipsData.write(to: StoragePaths.base.appendingPathComponent("clips.json"), options: .atomic)
-            newClipCount = importedClips.count
-
-            let excludedData = try encoder.encode(envelope.excludedApps)
-            try excludedData.write(to: StoragePaths.base.appendingPathComponent("excluded_apps.json"), options: .atomic)
-            newExcludedAppCount = envelope.excludedApps.count
+            func stageStep(_ step: ImportStep, _ write: () throws -> Void) throws {
+                if failingStepOverride == step { throw PorterError.writeFailed }
+                try write()
+            }
 
             let replacedTypes = Set(importedExcludedTypes.compactMap { ClipboardContentType(rawValue: $0) })
-            let excludedTypesData = try encoder.encode(replacedTypes)
-            try excludedTypesData.write(to: StoragePaths.base.appendingPathComponent("excluded_types.json"), options: .atomic)
+            try stageStep(.history) {
+                try encoder.encode(importedHistory).write(to: stage.appendingPathComponent("history.json"), options: .atomic)
+            }
+            try stageStep(.clips) {
+                try encoder.encode(importedClips).write(to: stage.appendingPathComponent("clips.json"), options: .atomic)
+            }
+            try stageStep(.excludedApps) {
+                try encoder.encode(envelope.excludedApps).write(to: stage.appendingPathComponent("excluded_apps.json"), options: .atomic)
+            }
+            try stageStep(.excludedTypes) {
+                try encoder.encode(replacedTypes).write(to: stage.appendingPathComponent("excluded_types.json"), options: .atomic)
+            }
+            try stageStep(.blobs) {
+                let dir = stage.appendingPathComponent("blobs", isDirectory: true)
+                try fm.createDirectory(at: dir, withIntermediateDirectories: true, attributes: privateDir)
+                var values = URLResourceValues()
+                values.isExcludedFromBackup = true
+                var mutableDir = dir
+                try? mutableDir.setResourceValues(values)
+                for (filename, blobData) in decodedBlobs {
+                    try blobData.write(to: dir.appendingPathComponent(filename), options: .atomic)
+                }
+            }
+            try stageStep(.files) {
+                let dir = stage.appendingPathComponent("files", isDirectory: true)
+                try fm.createDirectory(at: dir, withIntermediateDirectories: true, attributes: privateDir)
+                for (filename, fileData) in stagedFiles {
+                    try fileData.write(to: dir.appendingPathComponent(filename), options: .atomic)
+                }
+            }
+
+            // Swap in. Each existing item is moved to the backup folder first, so a failure rolls back.
+            var swapped: [String] = []
+            do {
+                for name in ["history.json", "clips.json", "excluded_apps.json", "excluded_types.json", "blobs", "files"] {
+                    let dest = base.appendingPathComponent(name)
+                    if fm.fileExists(atPath: dest.path) {
+                        try fm.moveItem(at: dest, to: backup.appendingPathComponent(name))
+                    }
+                    swapped.append(name)
+                    try fm.moveItem(at: stage.appendingPathComponent(name), to: dest)
+                }
+            } catch {
+                for name in swapped.reversed() {
+                    let dest = base.appendingPathComponent(name)
+                    let saved = backup.appendingPathComponent(name)
+                    try? fm.removeItem(at: dest)
+                    if fm.fileExists(atPath: saved.path) { try? fm.moveItem(at: saved, to: dest) }
+                }
+                throw error
+            }
+
+            newHistoryCount = importedHistory.count
+            newClipCount = importedClips.count
+            newExcludedAppCount = envelope.excludedApps.count
             newExcludedTypeCount = replacedTypes.count
 
-            // Apply settings only on replace
+            // Apply settings only on replace, and only once the swap has succeeded
             if historyLimitRange.contains(envelope.settings.historyLimit) {
                 settingsStore.historyLimit = envelope.settings.historyLimit
             }
