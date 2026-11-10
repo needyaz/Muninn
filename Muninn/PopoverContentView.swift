@@ -519,14 +519,9 @@ struct PopoverContentView: View {
     private func copyAndPaste(item: HistoryItem) {
         let optionHeld = NSEvent.modifierFlags.contains(.option)
         let plainText = optionHeld != settingsStore.pasteAsPlainText
-        writeToPasteboard(
-            contentType: item.contentType,
-            value: item.value,
-            blobFile: item.blobFile,
-            fileURLs: item.fileURLs,
-            colorComponents: item.colorComponents,
-            plainTextOnly: plainText
-        )
+        // A masked item is never pasted and leaves the clipboard as it was (guarded in PasteboardWriter).
+        guard PasteboardWriter.write(item, to: NSPasteboard.general, plainTextOnly: plainText) else { return }
+        finishPaste()
     }
 
     private func copyAndPaste(clip: Clip) {
@@ -560,57 +555,19 @@ struct PopoverContentView: View {
         colorComponents: [Double]?,
         plainTextOnly: Bool = false
     ) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
+        PasteboardWriter.write(
+            contentType: contentType,
+            value: value,
+            blobFile: blobFile,
+            fileURLs: fileURLs,
+            colorComponents: colorComponents,
+            to: NSPasteboard.general,
+            plainTextOnly: plainTextOnly
+        )
+        finishPaste()
+    }
 
-        switch contentType {
-        case .text:
-            if let value {
-                pasteboard.setString(value, forType: .string)
-            }
-            // Restore rich text blob if available (unless plain text mode)
-            if !plainTextOnly, let blob = blobFile, let data = BlobStorage.load(blob) {
-                let ext = (blob as NSString).pathExtension
-                if ext == "rtf" {
-                    pasteboard.setData(data, forType: .rtf)
-                } else if ext == "html" {
-                    pasteboard.setData(data, forType: .html)
-                }
-            }
-
-        case .image:
-            if let blob = blobFile, let data = BlobStorage.load(blob) {
-                let ext = (blob as NSString).pathExtension
-                let type: NSPasteboard.PasteboardType = ext == "png" ? .png : .tiff
-                pasteboard.setData(data, forType: type)
-            }
-
-        case .pdf:
-            if let blob = blobFile, let data = BlobStorage.load(blob) {
-                pasteboard.setData(data, forType: .pdf)
-            }
-
-        case .fileURL:
-            if let paths = fileURLs {
-                let urls = paths.map { URL(fileURLWithPath: $0) as NSURL }
-                pasteboard.writeObjects(urls)
-            }
-
-        case .color:
-            if let comps = colorComponents, comps.count >= 4 {
-                let color = NSColor(
-                    srgbRed: CGFloat(comps[0]),
-                    green: CGFloat(comps[1]),
-                    blue: CGFloat(comps[2]),
-                    alpha: CGFloat(comps[3])
-                )
-                pasteboard.setData(
-                    try? NSKeyedArchiver.archivedData(withRootObject: color, requiringSecureCoding: true),
-                    forType: .color
-                )
-            }
-        }
-
+    private func finishPaste() {
         monitor.didSelfCopy()
 
         // Dismiss popover and refocus previous app so user can Cmd+V
@@ -806,8 +763,7 @@ struct PopoverContentView: View {
         case .image:
             if let blob = blobFile, let data = BlobStorage.load(blob) {
                 let ext = (blob as NSString).pathExtension
-                let filename = value ?? "Image.\(ext)"
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                let tempURL = dragImageTempURL(value: value, blobExtension: ext)
                 try? data.write(to: tempURL, options: .atomic)
                 provider.registerObject(tempURL as NSURL, visibility: .all)
             }

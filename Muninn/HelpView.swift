@@ -5,14 +5,14 @@ struct HelpView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 helpSection("Pasting") {
-                    helpRow("Click an item", detail: "Copies it and pastes into your previous app")
+                    helpRow("Click an item", detail: "Copies it and returns to your previous app; press Cmd+V to paste")
                     helpRow("Option-click", detail: "Toggle between plain text and rich text (or reverse if plain text is your default)")
                     helpRow("Drag an item out", detail: "Drop into any other app")
                 }
 
                 helpSection("Keyboard Navigation") {
                     helpRow("↑ / ↓", detail: "Move selection up and down")
-                    helpRow("Return", detail: "Paste the selected item")
+                    helpRow("Return", detail: "Copy the selected item; press Cmd+V to paste")
                     helpRow("Escape", detail: "Clear selection, or close the popover")
                     helpRow("Delete / Backspace", detail: "Delete selected items (with undo)")
                 }
@@ -33,7 +33,7 @@ struct HelpView: View {
                 helpSection("Snippets") {
                     helpRow("Pin icon (on hover)", detail: "Save any history item as a named snippet")
                     helpRow("Snippet picker", detail: "Open a floating picker with the global hotkey (set in Settings > Shortcut)")
-                    helpRow("Cmd+1–9", detail: "Quick-paste the first nine results in the snippet picker")
+                    helpRow("Cmd+1–9", detail: "Copy one of the first nine results in the snippet picker, then press Cmd+V")
                 }
 
                 helpSection("Text Transforms") {

@@ -70,8 +70,12 @@ class SettingsStore {
         return url
     }
 
-    init() {
-        let defaults = UserDefaults.standard
+    /// Marks the onboarding as seen; called on every close path of the onboarding window.
+    func markOnboardingSeen() {
+        hasSeenOnboarding = true
+    }
+
+    init(defaults: UserDefaults = .standard) {
         defaults.register(defaults: [
             "historyLimit": 50,
             "pasteAsPlainText": false,

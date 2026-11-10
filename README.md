@@ -33,14 +33,14 @@ Save frequently used clips as named snippets for instant access. Snippets appear
 
 ### Snippet Picker
 
-A floating panel for quickly searching and pasting snippets without opening the main popover. Trigger it with a configurable global hotkey (set in Settings > Shortcuts).
+A floating panel for quickly searching and copying snippets without opening the main popover. Trigger it with a configurable global hotkey (set in Settings > Shortcuts).
 
 - **Search** — type to filter snippets by name or content
-- **Cmd+1–9** — quick-select the first nine results
-- **Arrow keys + Enter** — navigate and paste
+- **Cmd+1–9** — copy one of the first nine results, then press Cmd+V
+- **Arrow keys + Enter** — navigate and copy the item, then press Cmd+V
 - **Escape** — dismiss
 
-The selected snippet is copied to your clipboard and focus returns to the previous app.
+The selected snippet is copied to your clipboard and focus returns to the previous app; press Cmd+V to paste it.
 
 ### Sensitive Content Handling
 
@@ -69,7 +69,7 @@ Right-click any text history item or text snippet to access transformations:
 - **Trim Whitespace**
 - **Remove Blank Lines**
 
-Selecting a transform copies the transformed text to your clipboard and pastes it. A **Copy** option is also available to copy without pasting.
+Selecting a transform copies the transformed text to your clipboard; press Cmd+V to paste it. A **Copy** option is also available to copy the original text unchanged.
 
 ### Multi-Select
 
@@ -86,7 +86,7 @@ A floating action bar appears when two or more items are selected.
 ### Keyboard Navigation
 
 - **Arrow keys** — move selection up and down through items
-- **Enter** — paste the selected item
+- **Enter** — copy the selected item, then press Cmd+V in the previous app
 - **Escape** — clear multi-selection, or close the popover if nothing is selected
 - **Global hotkey** — configurable shortcut to toggle Muninn from anywhere
 - **Snippet picker hotkey** — configurable shortcut to open the floating snippet picker
@@ -125,7 +125,7 @@ Muninn exposes actions to the macOS Shortcuts app via AppIntents:
 - **Get Clipboard History** — returns the N most recent text items (default: 10, at most 100)
 - **Search Clipboard History** — search history items by text query
 - **Copy Snippet by Name** — find a snippet by name and copy it to your clipboard
-- **Get Latest Clipboard Item** — returns the most recent text item; returns a content description (e.g. "Image", "Color") if no text items exist
+- **Get Latest Clipboard Item** — returns the most recent text item; if no text items exist, returns the newest item's preview (OCR text or a file name)
 - **Transform Text** — apply a text transformation (uppercase, lowercase, capitalize, trim whitespace, remove blank lines)
 
 All actions appear in Shortcuts.app with suggested phrases for Siri. Sensitive items are never returned. Note that any shortcut you run can read your history through these actions.
@@ -203,7 +203,7 @@ Access via Settings > Stats. Statistics can be reset at any time.
 
 ### Onboarding
 
-A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. It won't appear again after you click "Get Started." You can reopen it any time from Settings > About > **Show Welcome Tour**.
+A four-page walkthrough window opens automatically on first launch, covering clipboard history, pasting, snippets, and power features. Closing the window in any way (Get Started, the close button or Cmd+W) marks it as seen, so it won't appear again. You can reopen it any time from Settings > About > **Show Welcome Tour**.
 
 ### Help
 
