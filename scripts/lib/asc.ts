@@ -5,7 +5,9 @@
  * The offline `check` commands never reach this file's network code.
  */
 
-export const BUNDLE_ID = "blue.luci.Ding";
+export const BUNDLE_ID = "blue.luci.Muninn";
+/** The App Store Connect id of Muninn's app record (also `appStoreId` in listing/metadata.json). */
+export const APP_STORE_ID = "6759760573";
 export const PLATFORM = "MAC_OS";
 export const ASC_BASE = "https://api.appstoreconnect.apple.com/v1";
 
@@ -63,10 +65,18 @@ export async function asc(jwt: string, path: string, init?: RequestInit): Promis
   return response.status === 204 ? null : await response.json();
 }
 
+/** Throws unless the app found for the bundle ID is Muninn's app record, so no tool writes to a different app. */
+export function assertAppId(id: string): void {
+  if (id !== APP_STORE_ID) {
+    throw new Error(`The app with bundle ID ${BUNDLE_ID} has id ${id}, expected ${APP_STORE_ID}: refusing to touch it.`);
+  }
+}
+
 export async function findApp(jwt: string): Promise<string> {
   const apps = await asc(jwt, `/apps?filter[bundleId]=${BUNDLE_ID}`);
   const id = apps.data[0]?.id;
   if (!id) throw new Error(`No App Store Connect app has bundle ID ${BUNDLE_ID}. Create the app record first.`);
+  assertAppId(String(id));
   return id;
 }
 

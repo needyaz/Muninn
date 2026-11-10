@@ -5,7 +5,8 @@ struct PopoverContentView: View {
     @Environment(SettingsStore.self) private var settingsStore
     @Environment(ClipStore.self) private var clipStore
     @Environment(HistoryStore.self) private var historyStore
-    @Environment(ClipboardMonitor.self) private var monitor
+    /// Nil only in the debug screenshot mode, which never creates a clipboard monitor.
+    @Environment(ClipboardMonitor.self) private var monitor: ClipboardMonitor?
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
 
@@ -19,6 +20,13 @@ struct PopoverContentView: View {
     @State private var eventMonitor: Any?
     @State private var mouseEventMonitor: Any?
     @State private var resizeDrag = ResizeDragState()
+
+    /// The initial search text and filters let the screenshot scenes show a filtered list; normal use passes none.
+    init(initialSearch: String = "", initialContentTypeFilter: ClipboardContentType? = nil, initialSourceAppFilter: String? = nil) {
+        _search = State(initialValue: initialSearch)
+        _contentTypeFilter = State(initialValue: initialContentTypeFilter)
+        _sourceAppFilter = State(initialValue: initialSourceAppFilter)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -246,9 +254,9 @@ struct PopoverContentView: View {
             // Footer
             HStack {
                 // Pause / Resume
-                if monitor.isPaused {
+                if monitor?.isPaused == true {
                     Button {
-                        monitor.resume()
+                        monitor?.resume()
                     } label: {
                         Image(systemName: "play")
                     }
@@ -257,13 +265,13 @@ struct PopoverContentView: View {
                     .tooltip(String(localized: "Resume clipboard monitoring"))
                 } else {
                     Menu {
-                        Button("1 minute") { monitor.pause(for: 60) }
-                        Button("5 minutes") { monitor.pause(for: 300) }
-                        Button("10 minutes") { monitor.pause(for: 600) }
-                        Button("30 minutes") { monitor.pause(for: 1800) }
-                        Button("1 hour") { monitor.pause(for: 3600) }
+                        Button("1 minute") { monitor?.pause(for: 60) }
+                        Button("5 minutes") { monitor?.pause(for: 300) }
+                        Button("10 minutes") { monitor?.pause(for: 600) }
+                        Button("30 minutes") { monitor?.pause(for: 1800) }
+                        Button("1 hour") { monitor?.pause(for: 3600) }
                         Divider()
-                        Button("Until resumed") { monitor.pause(for: nil) }
+                        Button("Until resumed") { monitor?.pause(for: nil) }
                     } label: {
                         Image(systemName: "pause")
                             .foregroundStyle(.secondary)
@@ -568,14 +576,22 @@ struct PopoverContentView: View {
     }
 
     private func finishPaste() {
-        monitor.didSelfCopy()
+        ClipboardMonitor.noteSelfCopy()
 
         // Dismiss popover and refocus previous app so user can Cmd+V
         NSApp.keyWindow?.close()
         previousApp?.activate()
     }
 
-    static func formatRelativeTime(_ date: Date, now: Date = Date()) -> String {
+    /// The current time; in the debug screenshot mode it is the fixtures' frozen clock.
+    static var currentTime: Date {
+        #if DEBUG
+        if ScreenshotMode.isRequested { return ScreenshotFixtures.now }
+        #endif
+        return Date()
+    }
+
+    static func formatRelativeTime(_ date: Date, now: Date = PopoverContentView.currentTime) -> String {
         let seconds = Int(now.timeIntervalSince(date))
         if seconds < 60 { return "now" }
         let minutes = seconds / 60

@@ -27,7 +27,15 @@ class ClipboardMonitor {
         lastScreenshotFilename = filename
     }
 
+    #if DEBUG
+    /// Instances ever created, so a test can prove the screenshot mode never makes one.
+    static var createdCount = 0
+    #endif
+
     init(historyStore: HistoryStore, excludedAppsStore: ExcludedAppsStore, excludedTypesStore: ExcludedTypesStore, settingsStore: SettingsStore, statsStore: StatsStore) {
+        #if DEBUG
+        Self.createdCount += 1
+        #endif
         self.historyStore = historyStore
         self.excludedAppsStore = excludedAppsStore
         self.excludedTypesStore = excludedTypesStore

@@ -1,10 +1,13 @@
-# TestFlight release targets. Build box only: the root Makefile includes this
+# App Store release targets. Build box only: the root Makefile includes this
 # file only when make/local.mk declares `BOX_NAME := prod-build`, so on every
 # other machine these targets don't exist as make rules. The real boundary is
 # still that the App Store Connect API key must only ever be on the build box;
 # this file makes the intended restriction structural.
 #
-# Ding is a pure Xcode project with automatic signing, so `xcodebuild archive`
+# `github-release` is deliberately not defined here: the root Makefile's target
+# (Developer ID build, TEAM check, direct_release.sh) is the only one, everywhere.
+#
+# Muninn is a pure Xcode project with automatic signing, so `xcodebuild archive`
 # plus `-exportArchive` with the API key (-authenticationKey*) manages the
 # distribution certificate and profiles (cloud signing) and does the TestFlight
 # upload itself (`destination: upload` in make/ExportOptions-upload.plist).
@@ -14,10 +17,9 @@
 #   ASC_ISSUER_ID     App Store Connect issuer ID
 #   ASC_KEY_FILEPATH  absolute path to the AuthKey_<KEY_ID>.p8 file
 #
-# Like another app, the build number is `git rev-list --count HEAD` and the marketing
-# version is 1.0.<that number>; both are passed to xcodebuild as
-# CURRENT_PROJECT_VERSION / MARKETING_VERSION so the app and its bundled MCP
-# helper always agree.
+# The build number is `git rev-list --count HEAD` and the marketing version is
+# 1.0.<that number>; both are passed to xcodebuild as CURRENT_PROJECT_VERSION /
+# MARKETING_VERSION.
 
 RELEASE_TOOLS := git xcodebuild xcodegen deno
 
@@ -47,15 +49,15 @@ pull:
 # App Store listing: text (scripts/listing_metadata.ts, desired state in
 # listing/metadata.json) and screenshots (scripts/listing_screenshots.ts,
 # desired state = listing/screenshots/<locale>/, rendered by `make screenshots`).
-# Same targets as another app. dump/diff only read; apply writes and then reads back.
+# dump/diff only read; apply writes and then reads back.
 #
 # Description, keywords and review notes need an EDITABLE appStoreVersion; if
 # none exists, listing-apply creates one as VERSION (and renames an editable one
 # with another name, e.g. made by hand), which defaults to the
 # 1.0.<git commit count>, the exact string `make testflight` stamps into the
-# binary, so run it right after testflight with no new commits in between (same
-# caveat as another app). Screenshots need that version and the locale to exist, so they
-# run right after listing-apply. promotionalText patches the live version anytime.
+# binary, so run it right after testflight with no new commits in between.
+# Screenshots need that version and the locale to exist, so they run right after
+# listing-apply. promotionalText patches the live version anytime.
 # ---------------------------------------------------------------------------
 
 VERSION ?= 1.0.$(shell git rev-list --count HEAD)
@@ -65,7 +67,7 @@ LISTING_DENO := deno run --allow-net --allow-env --allow-read
 ## [Release|box:prod-build] Diff the app's one-time store settings (category, age rating, price, ...) vs listing/app.json (read-only)
 store-setup-diff: _preflight-listing
 	$(LISTING_DENO) scripts/store_setup.ts diff
-## [Release|box:prod-build] Apply category, age rating, content rights, price and availability, then read back and verify
+## [Release|box:prod-build] Apply category, age rating, content rights and price, then read back and verify
 store-setup-apply: _preflight-listing
 	$(LISTING_DENO) scripts/store_setup.ts apply
 
@@ -98,13 +100,13 @@ _preflight-listing: listing-check
 	  (echo "✗ ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_FILEPATH must be set: see DISTRIBUTION.md" && exit 1)
 
 .PHONY: testflight
-## [Release] Archive and upload Ding to TestFlight (build number = commit count)
+## [Release|box:prod-build] Archive and upload Muninn to TestFlight (build number = commit count)
 testflight:
 	@$(MAKE) --no-print-directory _preflight
 	@$(MAKE) --no-print-directory pull
 	@$(MAKE) --no-print-directory _testflight
 
-# Has App Store Connect already got this build number? (scripts/asc_build_check.ts, as in another app and another app.)
+# Has App Store Connect already got this build number? (scripts/asc_build_check.ts)
 #   REUSE  -> already up (valid or processing): skip the build and upload
 #   BURNED -> the number belongs to a failed/invalid/expired build: stop, a new commit is needed
 #   ABSENT, or any error -> build as usual; the check never blocks a release
@@ -120,26 +122,15 @@ _testflight:
 	   *)      $(MAKE) --no-print-directory _build-upload;; \
 	 esac
 
-# A notarized build for download outside the Mac App Store, attached to a GitHub Release for the tag v<VERSION>.
-# Not part of `release`: it's a second distribution channel. Needs a Developer ID certificate (cloud signing with the
-# API key should create it) and the `gh` CLI signed in on the build box.
-.PHONY: github-release
-## [Release] Build a Developer ID-signed, notarized Ding and attach it to a GitHub Release (v1.0.<commit count>)
-github-release:
-	@$(MAKE) --no-print-directory _preflight RELEASE_TOOLS="git xcodebuild xcodegen gh"
-	@$(MAKE) --no-print-directory pull
-	@$(MAKE) --no-print-directory generate
-	VERSION=$(VERSION) BUILD=$$(git rev-list --count HEAD) BUNDLE_ID=$(BUNDLE_ID) ./scripts/direct_release.sh
-
 .PHONY: beta
-## [Release] Promote the current build to the public TestFlight beta (re-run until Apple finishes processing)
+## [Release|box:prod-build] Promote the current build to the public TestFlight beta (re-run until Apple finishes processing)
 beta: _preflight-listing
 	deno run --allow-net --allow-env --allow-read scripts/asc_promote_beta.ts $$(git rev-list --count HEAD)
 
-# One command, as another app's release-ios: build and upload, then everything the store needs, then submit for review, in
+# One command: build and upload, then everything the store needs, then submit for review, in
 # this order. Each step is also its own target.
 .PHONY: release
-## [Release] Full release: TestFlight upload, app settings, listing, screenshots, submit for App Review
+## [Release|box:prod-build] Full release: TestFlight upload, app settings, listing, screenshots, submit for App Review
 release:
 	@$(MAKE) --no-print-directory _preflight
 	@$(MAKE) --no-print-directory pull
@@ -153,12 +144,12 @@ release:
 	@echo "✓ release $(VERSION) built, uploaded, listed and submitted for App Review"
 
 .PHONY: withdraw
-## [Release] Withdraw the version waiting for App Review so it can be edited (loses its place in the queue; DRY=1 to preview)
+## [Release|box:prod-build] Withdraw the version waiting for App Review so it can be edited (loses its place in the queue; DRY=1 to preview)
 withdraw: _preflight-listing
 	deno run --allow-net --allow-env --allow-read scripts/submit.ts --withdraw $(if $(DRY),--dry-run)
 
 .PHONY: submit
-## [Release] Attach the build to version VERSION and submit it to App Review (also the last step of `release`; DRY=1 to preview)
+## [Release|box:prod-build] Attach the build to version VERSION and submit it to App Review (also the last step of `release`; DRY=1 to preview)
 submit: _preflight-listing
 	deno run --allow-net --allow-env --allow-read scripts/submit.ts --version $(VERSION) $(if $(DRY),--dry-run)
 
@@ -172,6 +163,7 @@ _build-upload: generate
 	  -project $(PROJECT) -scheme $(APP_NAME) -configuration Release \
 	  -destination 'generic/platform=macOS' \
 	  -archivePath $(ARCHIVE_PATH) \
+	  MUNINN_BUNDLE_ID=$(BUNDLE_ID) \
 	  CURRENT_PROJECT_VERSION=$$n MARKETING_VERSION=1.0.$$n \
 	  -allowProvisioningUpdates $(ASC_AUTH) && \
 	 xcodebuild -exportArchive \

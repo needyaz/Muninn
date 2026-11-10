@@ -6,3 +6,7 @@
 #
 # A bundle ID you own, if you build a copy under your own team.
 # BUNDLE_ID := com.example.Muninn
+#
+# Only on the release build box: turns on the App Store targets in make/store.mk (testflight, release, listing-apply, ...).
+# They also need ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_FILEPATH in the environment; see DISTRIBUTION.md.
+# BOX_NAME := prod-build

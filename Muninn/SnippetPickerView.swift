@@ -4,7 +4,8 @@ import SwiftUI
 struct SnippetPickerView: View {
     let clipStore: ClipStore
     let settingsStore: SettingsStore
-    let monitor: ClipboardMonitor
+    /// Nil only in the debug screenshot mode, which never creates a clipboard monitor.
+    let monitor: ClipboardMonitor?
     let previousApp: NSRunningApplication?
     let onDismiss: () -> Void
 
@@ -255,7 +256,7 @@ struct SnippetPickerView: View {
             }
         }
 
-        monitor.didSelfCopy()
+        ClipboardMonitor.noteSelfCopy()
         onDismiss()
         previousApp?.activate()
     }

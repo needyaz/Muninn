@@ -23,7 +23,7 @@ export function buildNumberFromVersion(version: string): string | null {
 export function explainRefusal(error: string): string | null {
   if (error.includes("APP_DATA_USAGES_REQUIRED")) {
     return "Apple needs the app's privacy answers first, and they can only be given in the web UI: App Store Connect > the app > App Privacy > " +
-      "Get Started. For Ding choose \"No, we do not collect data from this app\", Save, then Publish. Everything else is already in place: " +
+      "Get Started. For Muninn choose \"No, we do not collect data from this app\", Save, then Publish. Everything else is already in place: " +
       "run `make submit` afterwards.";
   }
   return null;

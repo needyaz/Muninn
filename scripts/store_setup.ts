@@ -1,8 +1,9 @@
 /**
- * The App Store Connect settings that belong to the app, not to a version: content rights, category, age rating,
- * price and availability. Desired state is listing/app.json. Idempotent: `diff` reads, `apply` writes only what
- * differs and then reads back. (Copyright, release type and the review contact live with the version, in
- * listing_metadata.ts. The privacy "nutrition label" has no API and is answered once in the web UI.)
+ * The App Store Connect settings that belong to the app, not to a version: content rights, category, age rating
+ * and price. Desired state is listing/app.json. Idempotent: `diff` reads, `apply` writes only what
+ * differs and then reads back. A setting the file does not mention is never touched (it says nothing about
+ * availability, so where the live app is sold never changes). (Copyright, release type and the review contact live
+ * with the version, in listing_metadata.ts. The privacy "nutrition label" has no API and is answered once in the web UI.)
  *
  *   deno run --allow-read scripts/store_setup.ts check
  *   deno run --allow-net --allow-env --allow-read scripts/store_setup.ts diff
@@ -20,7 +21,8 @@ export interface AppDesired {
   /** Every age rating question: "NONE" / true / false. */
   ageRating: Record<string, string | boolean>;
   free: boolean;
-  allTerritories: boolean;
+  /** Optional: only when present does the tool touch availability. Muninn's app.json leaves it out. */
+  allTerritories?: boolean;
 }
 
 export const CONTENT_RIGHTS = ["DOES_NOT_USE_THIRD_PARTY_CONTENT", "USES_THIRD_PARTY_CONTENT"];
@@ -63,10 +65,12 @@ async function read(jwt: string, appId: string, want: AppDesired): Promise<{ liv
   } catch { /* no schedule yet */ }
 
   let allTerritories: boolean | undefined;
-  try {
-    await asc(jwt, `/apps/${appId}/appAvailabilityV2`);
-    allTerritories = true;
-  } catch { /* not set yet */ }
+  if (want.allTerritories) {
+    try {
+      await asc(jwt, `/apps/${appId}/appAvailabilityV2`);
+      allTerritories = true;
+    } catch { /* not set yet */ }
+  }
 
   return {
     infoId: info.id,

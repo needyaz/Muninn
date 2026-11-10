@@ -7,7 +7,7 @@
  * reason on stderr and exits non-zero; the release recipe treats that as "unknown" and builds as usual, so this check
  * can never be the thing that stops a release.
  *
- * Why (from another app and another app): the build number is `git rev-list --count HEAD`, so re-running a release without a new
+ * Why: the build number is `git rev-list --count HEAD`, so re-running a release without a new
  * commit re-uploads the same number, and Apple answers a duplicate with opaque 500s that look like an outage. REUSE
  * lets the recipe skip the build and upload and carry on. BURNED means the number belongs to a failed, invalid or
  * expired build, which only a new commit can get past.

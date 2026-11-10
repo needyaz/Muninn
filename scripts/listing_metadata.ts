@@ -16,7 +16,7 @@
  * Needs ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_FILEPATH (build box only).
  */
 
-import { asc, ascJwt, createVersion, EDITABLE_STATES, fail, findApp, IN_REVIEW_STATES, type Json, macVersions, pass, pickTarget, step } from "./lib/asc.ts";
+import { APP_STORE_ID, asc, ascJwt, createVersion, EDITABLE_STATES, fail, findApp, IN_REVIEW_STATES, type Json, macVersions, pass, pickTarget, step } from "./lib/asc.ts";
 
 const DESIRED_PATH = new URL("../listing/metadata.json", import.meta.url).pathname;
 
@@ -53,6 +53,8 @@ export type ReviewField = typeof REVIEW_FIELDS[number];
 export type Review = Partial<Record<ReviewField, string>>;
 
 export interface Desired {
+  /** The App Store Connect id of the app this file is for; the tools refuse any other app. */
+  appStoreId?: string;
   localizations: Record<string, Localization>;
   /** Copyright line and how the version is released; sparse like everything else. */
   version?: Partial<Record<VersionField, string>>;
@@ -93,6 +95,13 @@ export function validate(desired: Desired): string[] {
     else if (field === "notes" && value.length > 4000) problems.push(`review: notes is ${value.length} characters; Apple allows 4000`);
   }
   return problems;
+}
+
+/** The file must name Muninn's own app record: `appStoreId` equal to the string "6759760573". */
+export function validateAppStoreId(desired: Desired): string[] {
+  return desired.appStoreId === APP_STORE_ID
+    ? []
+    : [`appStoreId must be the string "${APP_STORE_ID}" (found ${JSON.stringify(desired.appStoreId)})`];
 }
 
 /** What differs between the store and the desired file, over the fields the file mentions. */
@@ -362,7 +371,7 @@ function printChanges(changes: Change[]) {
 async function loadDesired(): Promise<Desired> {
   const desired = JSON.parse(await Deno.readTextFile(DESIRED_PATH)) as Desired;
   desired.review = { ...desired.review, ...reviewContactFromEnv(Deno.env.toObject()) };
-  const problems = validate(desired);
+  const problems = [...validateAppStoreId(desired), ...validate(desired)];
   if (problems.length > 0) {
     for (const p of problems) fail(p);
     Deno.exit(1);

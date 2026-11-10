@@ -14,10 +14,29 @@ struct MuninnApp: App {
     @State private var excludedAppsStore: ExcludedAppsStore
     @State private var excludedTypesStore: ExcludedTypesStore
     @State private var statsStore: StatsStore
-    @State private var monitor: ClipboardMonitor
-    @State private var screenshotMonitor: ScreenshotMonitor
+    /// Nil only in the debug screenshot mode, which never creates either monitor.
+    @State private var monitor: ClipboardMonitor?
+    @State private var screenshotMonitor: ScreenshotMonitor?
 
     init() {
+        #if DEBUG
+        if ScreenshotMode.isRequested {
+            // Fixture data in a temporary folder and a private defaults suite: nothing real is read, and no monitor exists.
+            let stores = ScreenshotFixtures.makeStores(baseURL: ScreenshotMode.makeFixtureDirectory(), defaults: ScreenshotFixtures.makeDefaults())
+            _settingsStore = State(initialValue: stores.settings)
+            _store = State(initialValue: stores.clips)
+            _historyStore = State(initialValue: stores.history)
+            _excludedAppsStore = State(initialValue: stores.excludedApps)
+            _excludedTypesStore = State(initialValue: stores.excludedTypes)
+            _statsStore = State(initialValue: stores.stats)
+            _monitor = State(initialValue: nil)
+            _screenshotMonitor = State(initialValue: nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                MainActor.assumeIsolated { ScreenshotMode.run(stores: stores) }
+            }
+            return
+        }
+        #endif
         StoragePaths.migrateIfNeeded()
         let settings = SettingsStore()
         let history = HistoryStore(settingsStore: settings)
@@ -48,7 +67,7 @@ struct MuninnApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Muninn", image: monitor.isPaused ? "MenuBarIconPaused" : "MenuBarIcon") {
+        MenuBarExtra("Muninn", image: monitor?.isPaused == true ? "MenuBarIconPaused" : "MenuBarIcon") {
             PopoverContentView()
                 .environment(settingsStore)
                 .environment(store)

@@ -9,7 +9,7 @@
  *
  * Screenshots belong to a version's localization, so they can only change while a version is editable and the locale
  * already exists (run listing_metadata.ts apply first). Order is set by upload order, so any difference replaces the
- * whole set for that locale.
+ * whole set for that locale. A locale with no local PNGs is never touched: its live screenshots are left as they are.
  *
  * Needs ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_FILEPATH (build box only).
  */
@@ -98,7 +98,6 @@ async function readLocal(): Promise<{ shots: Record<string, LocalShot[]>; proble
     }
     problems.push(...validateSet(locale, found));
   }
-  if (Object.keys(shots).length === 0) problems.push("no screenshots found");
   return { shots, problems };
 }
 
@@ -114,8 +113,14 @@ if (import.meta.main) {
   }
   const { shots: local, problems } = await readLocal();
   if (problems.length > 0) { problems.forEach(fail); Deno.exit(1); }
+  const noneRendered = Object.keys(local).length === 0;
   if (command === "check") {
+    if (noneRendered) pass("no screenshots in listing/screenshots yet (not rendered: run make screenshots)");
     for (const [locale, list] of Object.entries(local)) pass(`${locale}: ${list.length} screenshot(s), all Mac App Store sizes`);
+    Deno.exit(0);
+  }
+  if (noneRendered && command !== "dump") {
+    pass("No local screenshots (not rendered yet), so the store's screenshots are left as they are.");
     Deno.exit(0);
   }
 

@@ -13,7 +13,15 @@ class ScreenshotMonitor {
     private let onCopied: (Int, String?) -> Void
     private var folderURL: URL?
 
+    #if DEBUG
+    /// Instances ever created, so a test can prove the screenshot mode never makes one.
+    static var createdCount = 0
+    #endif
+
     init(settingsStore: SettingsStore, onCopied: @escaping (Int, String?) -> Void) {
+        #if DEBUG
+        Self.createdCount += 1
+        #endif
         self.settingsStore = settingsStore
         self.onCopied = onCopied
     }
