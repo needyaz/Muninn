@@ -7,16 +7,21 @@ import SwiftUI
 @Suite("Onboarding window close path", .serialized)
 @MainActor
 struct OnboardingWindowCloseTests {
-    @Test("MUN-ONB-003: closing the hosted onboarding window sets hasSeenOnboarding")
-    func windowCloseMarksSeen() async throws {
+    /// Polls `condition` until it holds or `timeout` seconds pass.
+    private func waitFor(timeout: TimeInterval = 5, _ condition: () -> Bool) async -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            if Date() >= deadline { return false }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+        return true
+    }
+
+    @Test("MUN-ONB-003 KEEPS: closing the hosted onboarding window sets hasSeenOnboarding")
+    func test_MUN_ONB_003_KEEPS_windowCloseMarksSeen() async throws {
         let suiteName = "MuninnOnboardingWindow-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
-        let saved = UserDefaults.standard.object(forKey: "hasSeenOnboarding")
-        defer {
-            defaults.removePersistentDomain(forName: suiteName)
-            if let saved { UserDefaults.standard.set(saved, forKey: "hasSeenOnboarding") }
-            else { UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding") }
-        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
         let store = SettingsStore(defaults: defaults)
         #expect(store.hasSeenOnboarding == false)
 
@@ -25,11 +30,13 @@ struct OnboardingWindowCloseTests {
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(rootView: OnboardingView().environment(store))
         window.orderFront(nil)
+        window.contentView?.layoutSubtreeIfNeeded()
         try await Task.sleep(nanoseconds: 300_000_000)
         #expect(store.hasSeenOnboarding == false)
 
         window.performClose(nil)
-        try await Task.sleep(nanoseconds: 300_000_000)
+        let marked = await waitFor { store.hasSeenOnboarding }
+        #expect(marked)
         #expect(store.hasSeenOnboarding == true)
     }
 }
