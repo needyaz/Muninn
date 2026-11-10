@@ -1,5 +1,7 @@
 # Muninn — Product Specification
 
+> The living, traced specification is now in [`spec/`](spec/BASELINE.md); this document is kept for history and may be stale.
+
 ## Overview
 
 Muninn is a macOS 14+ menu bar clipboard manager. It captures everything you copy — text, images, PDFs, colors, and file URLs — and lets you search, re-paste, organize, and analyze your clipboard history. It also manages saved "snippets" (reusable clips) accessible via a global hotkey and a floating picker panel.
