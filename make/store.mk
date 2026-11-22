@@ -31,6 +31,7 @@ ARCHIVE_PATH := $(BUILD_DIR)/archives/$(APP_NAME).xcarchive
 
 .PHONY: _preflight
 _preflight:
+	@test -n "$(TEAM)" || { echo "✗ TEAM is required (your Apple team ID): set it in make/local.mk"; exit 1; }
 	@./scripts/release_preflight.sh $(RELEASE_TOOLS)
 	@test -n "$(ASC_KEY_ID)" && test -n "$(ASC_ISSUER_ID)" && test -n "$(ASC_KEY_FILEPATH)" || \
 	  (echo "✗ ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_FILEPATH must be set: see DISTRIBUTION.md" && exit 1)
@@ -158,16 +159,19 @@ submit: _preflight-listing
 # Apple answers a duplicate with opaque errors, so make a new commit first.
 .PHONY: _build-upload
 _build-upload: generate
+	@test -n "$(TEAM)" || { echo "✗ TEAM is required (your Apple team ID): set it in make/local.mk"; exit 1; }
+	@mkdir -p $(BUILD_DIR) && cp make/ExportOptions-upload.plist $(BUILD_DIR)/ExportOptions-upload.plist && \
+	 /usr/libexec/PlistBuddy -c "Add :teamID string $(TEAM)" $(BUILD_DIR)/ExportOptions-upload.plist
 	@n=$$(git rev-list --count HEAD); echo "→ archiving $(APP_NAME) build $$n"; \
 	 xcodebuild archive -quiet \
 	  -project $(PROJECT) -scheme $(APP_NAME) -configuration Release \
 	  -destination 'generic/platform=macOS' \
 	  -archivePath $(ARCHIVE_PATH) \
-	  MUNINN_BUNDLE_ID=$(BUNDLE_ID) \
+	  MUNINN_BUNDLE_ID=$(BUNDLE_ID) DEVELOPMENT_TEAM=$(TEAM) \
 	  CURRENT_PROJECT_VERSION=$$n MARKETING_VERSION=1.0.$$n \
 	  -allowProvisioningUpdates $(ASC_AUTH) && \
 	 xcodebuild -exportArchive \
 	  -archivePath $(ARCHIVE_PATH) \
-	  -exportOptionsPlist make/ExportOptions-upload.plist \
+	  -exportOptionsPlist $(BUILD_DIR)/ExportOptions-upload.plist \
 	  -allowProvisioningUpdates $(ASC_AUTH) && \
 	 echo "✓ build $$n uploaded to TestFlight (processing happens on Apple's side)"
