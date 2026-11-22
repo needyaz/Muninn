@@ -134,7 +134,7 @@ struct DataSafetyTests {
         let newHistory = [
             HistoryItem(value: "new history", timestamp: Date(timeIntervalSince1970: 1_750_000_000)),
             HistoryItem(value: "report.txt", timestamp: Date(timeIntervalSince1970: 1_750_000_100),
-                        contentType: .fileURL, blobFile: "report.txt", fileURLs: ["/Users/someone/report.txt"]),
+                        contentType: .fileURL, blobFile: "report.txt", fileURLs: ["/home/someone/report.txt"]),
         ]
         return try writeExport(envelope(
             history: newHistory,

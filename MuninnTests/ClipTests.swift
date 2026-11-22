@@ -41,7 +41,7 @@ struct ClipTests {
 
     @Test("preview for fileURL clip with single path")
     func previewFileURLSingle() {
-        let clip = Clip(name: "File", contentType: .fileURL, fileURLs: ["/Users/test/readme.txt"])
+        let clip = Clip(name: "File", contentType: .fileURL, fileURLs: ["/home/test/readme.txt"])
         #expect(clip.preview == "readme.txt")
     }
 

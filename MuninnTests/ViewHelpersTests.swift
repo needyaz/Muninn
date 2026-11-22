@@ -120,7 +120,7 @@ struct FilterHistoryItemsTests {
     @Test("fileURL items searched by path case-insensitively")
     func fileURLSearchByPath() {
         let items = [
-            fileItem(paths: ["/Users/nate/Documents/Report.pdf"]),
+            fileItem(paths: ["/home/test/Documents/Report.pdf"]),
             fileItem(paths: ["/tmp/scratch.txt"]),
         ]
         let result = filterHistoryItems(items, search: "report", typeFilter: nil, enableQRDetection: false)

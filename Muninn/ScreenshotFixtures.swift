@@ -29,7 +29,7 @@ enum ScreenshotFixtures {
         HistoryItem(value: "Team lunch on Friday at 12:30. Booking a table for six near the office.", timestamp: ago(95), contentType: .text, sourceAppBundleID: "com.apple.Notes"),
         HistoryItem(value: "4A90E2", timestamp: ago(210), contentType: .color, colorComponents: [0.29, 0.565, 0.886, 1.0], sourceAppBundleID: "com.apple.TextEdit"),
         HistoryItem(value: "func greet(name: String) -> String {\n    \"Hello, \\(name)!\"\n}", timestamp: ago(420), contentType: .text, sourceAppBundleID: "com.apple.dt.Xcode"),
-        HistoryItem(value: nil, timestamp: ago(640), contentType: .fileURL, fileURLs: ["/Users/jane/Documents/Project Roadmap.pdf"], sourceAppBundleID: "com.apple.finder"),
+        HistoryItem(value: nil, timestamp: ago(640), contentType: .fileURL, fileURLs: ["/home/jane/Documents/Project Roadmap.pdf"], sourceAppBundleID: "com.apple.finder"),
         HistoryItem(value: "Hi Sam,\n\nThanks for the update. The draft looks great and I have only a few small notes.\n\nBest,\nJane", timestamp: ago(900), contentType: .text, sourceAppBundleID: "com.apple.mail"),
         HistoryItem(value: "jane@example.com", timestamp: ago(1_500), contentType: .text, sourceAppBundleID: "com.apple.mail"),
         HistoryItem(value: "brew install wget", timestamp: ago(2_400), contentType: .text, sourceAppBundleID: "com.apple.Terminal"),

@@ -223,7 +223,7 @@ struct DataPorterTests {
                 timestamp: Date(),
                 contentType: .fileURL,
                 blobFile: blobFilename,
-                fileURLs: ["/Users/test/Documents/photo.png"]
+                fileURLs: ["/home/test/Documents/photo.png"]
             )
             let envelope = makeEnvelope(
                 history: [historyItem],
@@ -368,7 +368,7 @@ struct DataPorterTests {
                 name: "My File",
                 contentType: .fileURL,
                 blobFile: blobFilename,
-                fileURLs: ["/Users/test/readme.png"]
+                fileURLs: ["/home/test/readme.png"]
             )
             let envelope = makeEnvelope(
                 clips: [clip],

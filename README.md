@@ -8,7 +8,7 @@ Everything stays on your Mac: Muninn is sandboxed, has no network access at all,
 
 Requires macOS 14.0 (Sonoma) or later.
 
-Download the latest notarized build from the [GitHub Releases](../../releases), unzip it, move `Muninn.app` to Applications and open it. Look for the icon in the menu bar. Releases don't update themselves: download a newer one to update. Or build it yourself (see [Building](#building)).
+Download the latest notarized build from the [GitHub Releases](../../releases), unzip it, move `Muninn.app` to Applications and open it. Look for the icon in the menu bar. Releases don't update themselves: download a newer one to update. Or build it yourself (see [Building](#building)). The GitHub build and the Mac App Store build are the same app (same bundle ID, same data), so install only one of them.
 
 ## Features
 
@@ -289,6 +289,10 @@ Notarized release builds are made with `make github-release`; see [DISTRIBUTION.
 | `MuninnTests/` | Unit tests (Swift Testing) for models, stores, services, import/export and view helpers |
 | `project.yml` | XcodeGen spec; `Muninn.xcodeproj` is generated |
 | `design/` | Icon concept art |
+| `listing/` | App Store listing metadata and its checks (`make test-listing` and `make listing-check` need [Deno](https://deno.com)) |
+| `make/` | Makefile fragments for release and App Store tasks (`make menu` needs [fzf](https://github.com/junegunn/fzf)) |
+| `scripts/` | Release and App Store Connect scripts (Deno/TypeScript) |
+| `spec/`, `deltas/` | Historical working documents from the project's recovery and spec clean-up; they are kept for reference and may be out of date |
 | `docs/` | The privacy policy |
 | `SPEC.md`, `CLAUDE.md` | The product spec, and architecture conventions and gotchas (written for AI coding assistants, useful to people too) |
 
@@ -298,6 +302,10 @@ Issues are welcome; outside code contributions aren't accepted. See [CONTRIBUTIN
 
 ## License
 
-The code is GPLv3. See `LICENSE`.
+Copyright (C) 2026 Blue Luci.
+
+The code is licensed under the GNU General Public License, version 3 only. See `LICENSE`.
+
+Muninn uses [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) by Sindre Sorhus, licensed under the MIT License (Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)). The full licence text is in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
 The Muninn name, the Blue Luci name and logo, and the app icon artwork are not covered by the GPL; all rights are reserved. If you fork the project, please use your own name and icon.
