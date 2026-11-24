@@ -68,16 +68,16 @@ build: generate
 .PHONY: screenshots
 ## [Build] Render the App Store screenshots from the real views with fixture data (quits a running Muninn)
 screenshots: build stop
-	@mkdir -p listing/screenshots/en-US
+	@mkdir -p listing/screenshots/ms
 	@rm -f "$(HOME)/Library/Containers/$(BUNDLE_ID)/Data/tmp/shots/"*.png
 	@sleep 2  # LaunchServices needs a moment after the quit
 	@# Launch in screenshot mode, then `open` the running app again so it comes forward: controls only draw in
 	@# their live colors (not dimmed) in an active app.
 	@open -W $(APP_PATH) --args --screenshots & \
 	  sleep 3; open $(APP_PATH); wait
-	@rm -f listing/screenshots/en-US/*.png   # so a renamed or removed scene can't leave a stale file behind
-	@cp "$(HOME)/Library/Containers/$(BUNDLE_ID)/Data/tmp/shots/"*.png listing/screenshots/en-US/
-	@ls -1 listing/screenshots/en-US
+	@rm -f listing/screenshots/ms/*.png   # so a renamed or removed scene can't leave a stale file behind
+	@cp "$(HOME)/Library/Containers/$(BUNDLE_ID)/Data/tmp/shots/"*.png listing/screenshots/ms/
+	@ls -1 listing/screenshots/ms
 
 .PHONY: listing-check
 ## [Build] Validate listing/ (metadata.json, app.json, screenshots) against Apple's limits (offline)

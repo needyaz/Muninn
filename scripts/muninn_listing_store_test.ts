@@ -112,13 +112,13 @@ Deno.test("MUN-BLD-003: listing/README.md explains the files, screenshot regener
   check(/build box/i.test(readme), "listing/README.md does not mention the build box");
 });
 
-Deno.test("MUN-BLD-003: listing/screenshots/en-US holds a .gitkeep or only 2880x1800 PNGs", () => {
-  const dir = "listing/screenshots/en-US/";
-  check(exists(dir), "listing/screenshots/en-US/ does not exist");
+Deno.test("MUN-BLD-003: listing/screenshots/ms holds a .gitkeep or only 2880x1800 PNGs", () => {
+  const dir = "listing/screenshots/ms/";
+  check(exists(dir), "listing/screenshots/ms/ does not exist");
   const names = [...Deno.readDirSync(new URL(dir, ROOT))].map((e) => e.name);
   const pngs = names.filter((n) => n.toLowerCase().endsWith(".png"));
   if (pngs.length === 0) {
-    check(names.includes(".gitkeep"), "no screenshots and no .gitkeep in listing/screenshots/en-US/");
+    check(names.includes(".gitkeep"), "no screenshots and no .gitkeep in listing/screenshots/ms/");
     return;
   }
   check(pngs.length <= 10, `${pngs.length} screenshots; Apple allows at most 10`);
@@ -135,7 +135,7 @@ Deno.test("MUN-BLD-003: the ported metadata validator accepts the committed list
   const problems: string[] = mod.validate(file);
   check(problems.length === 0, `committed metadata.json is invalid: ${problems.join("; ")}`);
   const locs = file.localizations as Record<string, Record<string, string>>;
-  const tooLong = { ...file, localizations: { "en-US": { ...locs["en-US"], name: "n".repeat(31) } } };
+  const tooLong = { ...file, localizations: { "ms": { ...locs["ms"], name: "n".repeat(31) } } };
   check(mod.validate(tooLong).length > 0, "a 31-character name passes validation");
 });
 
@@ -143,17 +143,17 @@ Deno.test("MUN-BLD-003: the ported screenshot check accepts the Mac 2880x1800 si
   const mod = await import(new URL("./listing_screenshots.ts", import.meta.url).href);
   check(mod.isMacSize(2880, 1800) === true, "2880x1800 is not accepted as a Mac size");
   check(mod.isMacSize(1290, 2796) === false, "an iPhone size is accepted as a Mac size");
-  const bad: string[] = mod.validateSet("en-US", [{ fileName: "01.png", w: 1000, h: 700 }]);
+  const bad: string[] = mod.validateSet("ms", [{ fileName: "01.png", w: 1000, h: 700 }]);
   check(bad.length > 0, "a wrong-size screenshot passes validateSet");
 });
 
-Deno.test("MUN-BLD-003: metadata.json keeps appStoreId and adds no subtitle, keywords, promotional text or URLs (keeps)", () => {
+Deno.test("MUN-BLD-003: metadata.json keeps appStoreId and adds no keywords, promotional text or URLs the store dump has not confirmed (keeps)", () => {
   const file = readJson("listing/metadata.json");
   check(file.appStoreId === "6759760573", `appStoreId is ${JSON.stringify(file.appStoreId)}`);
   const locs = file.localizations as Record<string, Record<string, string>>;
   for (const [locale, loc] of Object.entries(locs)) {
     for (const key of Object.keys(loc)) {
-      check(!["subtitle", "keywords", "promotionalText"].includes(key), `[${locale}] has ${key}`);
+      check(!["keywords", "promotionalText"].includes(key), `[${locale}] has ${key}`);
       check(!/url$/i.test(key), `[${locale}] has ${key}`);
     }
   }

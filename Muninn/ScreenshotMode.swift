@@ -5,7 +5,7 @@ import SwiftUI
 /// Renders the App Store screenshots from the real views, with fixture data and a frozen clock.
 ///
 /// Debug builds only. `Muninn --screenshots` writes one PNG per scene into the app's temporary directory and quits;
-/// `make screenshots` runs it and copies the PNGs into `listing/screenshots/en-US/`. It builds its stores from fixture
+/// `make screenshots` runs it and copies the PNGs into `listing/screenshots/ms/`. It builds its stores from fixture
 /// data under a temporary directory and a private UserDefaults suite, and never creates a clipboard or screenshot
 /// monitor, so the real clipboard, history and preferences are never read.
 

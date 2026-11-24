@@ -9,6 +9,11 @@ review contact comes from the build box's environment, not from this folder.
 
 ## Text
 
+The store's listing sits under the single locale `ms` (Malay) with English text, so the file and `screenshots/ms/` use `ms`:
+`listing-apply` then updates that localization instead of creating one (Apple refuses a second one with the same app name). The tools
+never create a locale unless the file adds one on purpose; if the store has exactly one locale and the file names another, they stop
+before any write.
+
 `metadata.json` was seeded from the public App Store listing, which only shows the name and description. The subtitle, keywords,
 promotional text and URLs are not public, so they are left out: they are filled in from App Store Connect on the build box. Run
 `make listing-diff` there to see what the store holds, copy those fields into `metadata.json`, and only then run `make listing-apply`.
@@ -18,7 +23,7 @@ keywords, 170 for promotional text, 4000 for the description. Keywords carry no 
 
 ## Screenshots
 
-`listing/screenshots/en-US/` holds the Mac App Store screenshots: 2880 × 1800 PNGs (16:10, one of the sizes the Mac App Store
+`listing/screenshots/ms/` holds the Mac App Store screenshots: 2880 × 1800 PNGs (16:10, one of the sizes the Mac App Store
 accepts), in file-name order. They are **generated, not drawn**:
 
 ```sh

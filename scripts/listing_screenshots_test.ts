@@ -28,14 +28,14 @@ Deno.test("MUN-BLD-003: Mac sizes are the four Apple lists", () => {
 
 Deno.test("MUN-BLD-003: validateSet flags wrong sizes, mixed sizes and more than ten", () => {
   const ok = { fileName: "a.png", w: 2880, h: 1800 };
-  assertEquals(validateSet("en-US", [ok]), []);
-  assertEquals(validateSet("en-US", [{ ...ok, w: 1000, h: 700 }]).length, 1);
-  assertEquals(validateSet("en-US", [ok, { fileName: "b.png", w: 1440, h: 900 }]).length, 1);
-  assertEquals(validateSet("en-US", Array.from({ length: 11 }, (_, i) => ({ ...ok, fileName: `${i}.png` }))).length, 1);
+  assertEquals(validateSet("ms", [ok]), []);
+  assertEquals(validateSet("ms", [{ ...ok, w: 1000, h: 700 }]).length, 1);
+  assertEquals(validateSet("ms", [ok, { fileName: "b.png", w: 1440, h: 900 }]).length, 1);
+  assertEquals(validateSet("ms", Array.from({ length: 11 }, (_, i) => ({ ...ok, fileName: `${i}.png` }))).length, 1);
 });
 
 Deno.test("MUN-BLD-003: an empty screenshot set has no problems (nothing is rendered yet)", () => {
-  assertEquals(validateSet("en-US", []), []);
+  assertEquals(validateSet("ms", []), []);
 });
 
 Deno.test("MUN-BLD-003: imageSize reads a PNG header", () => {
@@ -48,9 +48,9 @@ Deno.test("MUN-BLD-003: imageSize reads a PNG header", () => {
 });
 
 Deno.test("MUN-BLD-003: the committed screenshots, if any, are all one valid Mac size", async () => {
-  const dir = new URL("../listing/screenshots/en-US/", import.meta.url).pathname;
+  const dir = new URL("../listing/screenshots/ms/", import.meta.url).pathname;
   const names = [...Deno.readDirSync(dir)].filter((e) => e.name.endsWith(".png")).map((e) => e.name).sort();
   const shots = [];
   for (const fileName of names) shots.push({ fileName, ...imageSize(await Deno.readFile(dir + fileName))! });
-  assertEquals(validateSet("en-US", shots), []);
+  assertEquals(validateSet("ms", shots), []);
 });

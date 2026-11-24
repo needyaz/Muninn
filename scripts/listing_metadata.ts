@@ -162,13 +162,31 @@ export function needsEditableVersion(change: Change, localeExistsOnStore: boolea
   return !(change.field === "promotionalText" && localeExistsOnStore);
 }
 
+/**
+ * Stops a write that would create a locale by accident: when the store holds exactly one locale and the file names a
+ * different one, the file is almost certainly misnamed (the store's listing may sit under another locale than the
+ * one expected), and creating a second localization can be refused or duplicate the app name. A locale is only added when
+ * the store has none yet or already has several, i.e. when the file clearly means to add one.
+ */
+export function localeMismatch(storeLocales: string[], desired: Desired): string | null {
+  const have = [...new Set(storeLocales)];
+  if (have.length !== 1) return null;
+  const missing = Object.keys(desired.localizations).filter((l) => !have.includes(l));
+  if (missing.length === 0) return null;
+  return `The store has exactly one locale, ${have[0]}, and listing/metadata.json names ${missing.join(", ")} instead. ` +
+    `Nothing was written. Rename the locale in listing/metadata.json (and listing/screenshots/) to ${have[0]}, ` +
+    `or add ${missing.join(", ")} deliberately in App Store Connect first.`;
+}
+
+const liveLocales = (live: Live) => [...Object.keys(live.versionLocIds), ...Object.keys(live.infoLocIds)];
+
 const clip = (text: string) => JSON.stringify(text.length > 70 ? `${text.slice(0, 67)}…` : text);
 
 // ---------------------------------------------------------------------------
 // Store access
 // ---------------------------------------------------------------------------
 
-interface Live {
+export interface Live {
   appId: string;
   desired: Desired;
   versionId: string;
@@ -183,7 +201,7 @@ interface Live {
   reviewDetailId?: string;
 }
 
-async function read(jwt: string): Promise<Live | null> {
+export async function read(jwt: string): Promise<Live | null> {
   const appId = await findApp(jwt);
   const picked = pickTarget(await macVersions(jwt, appId));
   if (!picked) return null;
@@ -261,7 +279,9 @@ export async function findInfoLocalization(
   return undefined;
 }
 
-async function apply(jwt: string, live: Live, desired: Desired, versionToCreate: string | undefined): Promise<void> {
+export async function apply(jwt: string, live: Live, desired: Desired, versionToCreate: string | undefined): Promise<void> {
+  const mismatch = localeMismatch(liveLocales(live), desired);
+  if (mismatch) throw new Error(mismatch);
   let state = live;
   const plan = versionPlan({ versionString: state.versionString, editable: state.versionEditable, state: state.versionState }, versionToCreate);
   if (plan === "blocked") {
@@ -457,6 +477,8 @@ if (import.meta.main) {
     fail(blockedMessage(live.versionString, live.versionState, wantedVersion!));
     Deno.exit(1);
   }
+  const mismatch = localeMismatch(liveLocales(live), desired);
+  if (mismatch) { fail(mismatch); Deno.exit(1); }
   const changes = computeDiff(live.desired, desired);
   if (changes.length === 0 && versionStep === "none") { pass("The store already matches listing/metadata.json."); Deno.exit(0); }
   if (versionStep !== "none") console.log(`  version: ${live.versionString} → ${wantedVersion} (${versionStep})`);
