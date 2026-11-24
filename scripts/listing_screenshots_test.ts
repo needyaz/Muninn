@@ -60,30 +60,41 @@ Deno.test("MUN-BLD-003: the committed screenshots, if any, are all one valid Mac
 
 import { assetUrl, carryLocale, carryLocales, type CarryApi, planCarry } from "./listing_screenshots.ts";
 
-const shot = (n: string) => ({ attributes: { fileName: n, imageAsset: { templateUrl: `https://cdn/${n}/{w}x{h}.{f}`, width: 2880, height: 1800 } } });
-function fakeApi(editableSets: { id: string; type: string; shots: string[] }[]) {
+type Spec = string | { n: string; state: string; error?: string };
+const shot = (x: Spec) => {
+  const { n, state, error } = typeof x === "string" ? { n: x, state: "COMPLETE", error: undefined } : x;
+  return { id: `s-${n}`, attributes: { fileName: n, assetDeliveryState: { state, errors: error ? [{ description: error }] : [] }, imageAsset: { templateUrl: `https://cdn/${n}/{w}x{h}.{f}`, width: 2880, height: 1800 } } };
+};
+type FakeSet = { id: string; type: string; shots: Spec[] };
+/** `afterCommit` is what the editable side reports once a screenshot has been committed (default: the sets as given). */
+function fakeApi(editableSets: FakeSet[], afterCommit?: FakeSet[]) {
+  let committed = false;
   const calls: { method: string; path: string; body?: Record<string, unknown> }[] = [];
   const uploads: string[] = [];
-  const liveSets = [{ id: "L1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }];
+  const liveSets: FakeSet[] = [{ id: "L1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }];
   const api: CarryApi = {
     asc: (path, init) => {
       const method = init?.method ?? "GET";
       calls.push({ method, path, body: init?.body ? JSON.parse(init.body as string) : undefined });
-      const sets = path.includes("live-loc") ? liveSets : editableSets;
+      const sets = path.includes("live-loc") ? liveSets : committed && afterCommit ? afterCommit : editableSets;
       if (method === "GET" && path.endsWith("/appScreenshotSets?limit=50")) {
         return Promise.resolve({ data: sets.map((s) => ({ id: s.id, attributes: { screenshotDisplayType: s.type } })) });
       }
       const m = /appScreenshotSets\/(.+)\/appScreenshots/.exec(path);
       if (method === "GET" && m) {
-        const all = [...liveSets, ...editableSets].find((s) => s.id === m[1])!;
+        const all = [...liveSets, ...sets].find((s) => s.id === m[1])!;
         return Promise.resolve({ data: all.shots.map(shot) });
       }
       if (method === "POST" && path === "/appScreenshotSets") return Promise.resolve({ data: { id: "NEW" } });
       if (method === "POST" && path === "/appScreenshots") {
         return Promise.resolve({ data: { id: "R", attributes: { uploadOperations: [{ url: "https://up/1", method: "PUT", offset: 0, length: 3, requestHeaders: [{ name: "X", value: "y" }] }] } } });
       }
+      if (method === "PATCH") committed = true;
       return Promise.resolve(null);
     },
+    sleep: () => Promise.resolve(),
+    pollIntervalMs: 1,
+    pollTimeoutMs: 3,
     fetch: (url) => {
       uploads.push(url);
       return Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
@@ -94,11 +105,15 @@ function fakeApi(editableSets: { id: string; type: string; shots: string[] }[]) 
 // the fake keys the live side off "live-loc" in the localization id
 const LIVE = "live-loc";
 
-Deno.test("carry: planCarry skips sets the editable version already has", () => {
+Deno.test("carry: planCarry compares whole sets", () => {
   const live = [{ displayType: "APP_DESKTOP", shots: [{ fileName: "a", downloadUrl: "u" }] }];
+  const have = (...states: string[]) => [{ displayType: "APP_DESKTOP", shots: states.map((state) => ({ fileName: "a", downloadUrl: "u", state })) }];
   assertEquals(planCarry(live, []).length, 1);
-  assertEquals(planCarry(live, [{ displayType: "APP_DESKTOP", count: 1 }]).length, 0);
-  assertEquals(planCarry(live, [{ displayType: "APP_DESKTOP", count: 0 }]).length, 1);
+  assertEquals(planCarry(live, have("COMPLETE")).length, 0);
+  assertEquals(planCarry(live, have()).length, 1);
+  assertEquals(planCarry(live, have("COMPLETE", "COMPLETE")).length, 1);
+  assertEquals(planCarry(live, have("FAILED")).length, 1);
+  assertEquals(planCarry(live, have("AWAITING_UPLOAD")).length, 1);
 });
 
 Deno.test("carry: only locales the repo has no screenshots for", () => {
@@ -137,4 +152,64 @@ Deno.test("carry: dry run writes and downloads nothing", async () => {
   assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
   assertEquals(uploads.length, 0);
   assertEquals(lines.length, 1);
+});
+
+Deno.test("carry: a partial editable set is deleted and replaced by the live set", async () => {
+  const full = [{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }];
+  const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png"] }], full);
+  assertEquals(await carryLocale(api, "ms", LIVE, "edit-loc", false), [{ displayType: "APP_DESKTOP", count: 2 }]);
+  assertEquals(calls.filter((c) => c.method === "DELETE").map((c) => c.path), ["/appScreenshots/s-a.png"]);
+  assertEquals(calls.filter((c) => c.method === "POST" && c.path === "/appScreenshots").length, 2);
+  assertEquals(calls.filter((c) => c.path === "/appScreenshotSets" && c.method === "POST").length, 0);
+});
+
+Deno.test("carry: a FAILED screenshot is replaced; a failure after commit is reported with Apple's error", async () => {
+  const bad = [{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", { n: "b.png", state: "FAILED" }] }];
+  const { api, calls } = fakeApi(bad);
+  let message = "";
+  try {
+    await carryLocale(api, "ms", LIVE, "edit-loc", false);
+  } catch (e) {
+    message = (e as Error).message;
+  }
+  assertEquals(calls.filter((c) => c.method === "DELETE").length, 2);
+  assertEquals(message.includes("b.png failed"), true);
+  const failedAfter = [{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", { n: "b.png", state: "FAILED", error: "bad dimensions" }] }];
+  const second = fakeApi([], failedAfter);
+  let m2 = "";
+  try {
+    await carryLocale(second.api, "ms", LIVE, "edit-loc", false);
+  } catch (e) {
+    m2 = (e as Error).message;
+  }
+  assertEquals(m2.includes("bad dimensions"), true);
+});
+
+Deno.test("carry: a still-processing screenshot times out", async () => {
+  const pending = [{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", { n: "b.png", state: "UPLOAD_COMPLETE" }] }];
+  const { api } = fakeApi([], pending);
+  let message = "";
+  try {
+    await carryLocale(api, "ms", LIVE, "edit-loc", false);
+  } catch (e) {
+    message = (e as Error).message;
+  }
+  assertEquals(message.includes("timed out"), true);
+});
+
+Deno.test("carry: dry run reports live vs editable counts and states, and changes nothing", async () => {
+  const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", { n: "b.png", state: "FAILED" }] }]);
+  const lines: string[] = [];
+  api.log = (m) => lines.push(m);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).length, 1);
+  assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
+  assertEquals(lines, ["  [ms] APP_DESKTOP: live 2 (2 COMPLETE), editable 2 (1 COMPLETE, 1 FAILED) → would delete 2 and copy 2"]);
+});
+
+Deno.test("carry: dry run on a matching set says no change", async () => {
+  const { api } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }]);
+  const lines: string[] = [];
+  api.log = (m) => lines.push(m);
+  assertEquals(await carryLocale(api, "ms", LIVE, "edit-loc", true), []);
+  assertEquals(lines[0].endsWith("→ no change"), true);
 });
