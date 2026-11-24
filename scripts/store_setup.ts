@@ -10,7 +10,7 @@
  *   deno run --allow-net --allow-env --allow-read scripts/store_setup.ts apply
  */
 
-import { asc, ascJwt, fail, findApp, type Json, pass, step } from "./lib/asc.ts";
+import { asc, ascJwt, fail, findApp, type Json, pass, pickEditableInfo, step } from "./lib/asc.ts";
 
 const DESIRED_PATH = new URL("../listing/app.json", import.meta.url).pathname;
 const ROOT = "https://api.appstoreconnect.apple.com";
@@ -53,7 +53,8 @@ export function differences(live: Partial<AppDesired>, want: AppDesired): string
 
 async function read(jwt: string, appId: string, want: AppDesired): Promise<{ live: Partial<AppDesired>; infoId: string; ageId: string }> {
   const app = (await asc(jwt, `/apps/${appId}`)).data;
-  const info = (await asc(jwt, `/apps/${appId}/appInfos`)).data[0];
+  const info = pickEditableInfo<Json>((await asc(jwt, `/apps/${appId}/appInfos`)).data);
+  if (!info) throw new Error("the app has no editable AppInfo (every one is live or with review): run `make listing-apply` first to create the editable version");
   const category = await asc(jwt, `/appInfos/${info.id}/primaryCategory`).catch(() => null);
   const age = (await asc(jwt, `/appInfos/${info.id}/ageRatingDeclaration`)).data;
 

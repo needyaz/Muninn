@@ -16,7 +16,7 @@
  * Needs ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_FILEPATH (build box only).
  */
 
-import { APP_STORE_ID, asc, ascJwt, createVersion, EDITABLE_STATES, fail, findApp, IN_REVIEW_STATES, type Json, macVersions, pass, pickTarget, step } from "./lib/asc.ts";
+import { APP_STORE_ID, asc, ascJwt, createVersion, fail, findApp, IN_REVIEW_STATES, type Json, macVersions, pass, pickEditableInfo, pickTarget, step } from "./lib/asc.ts";
 
 const DESIRED_PATH = new URL("../listing/metadata.json", import.meta.url).pathname;
 
@@ -214,8 +214,7 @@ async function read(jwt: string): Promise<Live | null> {
 
   // An app has one info record per state; the editable one exists next to an editable version.
   const infos = await asc(jwt, `/apps/${appId}/appInfos`);
-  const stateOf = (i: Json) => i.attributes.state ?? i.attributes.appStoreState;
-  const editableInfo = infos.data.find((i: Json) => EDITABLE_STATES.has(stateOf(i)));
+  const editableInfo = pickEditableInfo<Json>(infos.data);
   const info = editableInfo ?? infos.data[0];
   live.editableInfoId = editableInfo?.id;
   if (info) {
@@ -237,8 +236,29 @@ async function read(jwt: string): Promise<Live | null> {
   return live;
 }
 
-function attributesFor(section: Section, loc: Localization): Record<string, string> {
-  return Object.fromEntries(Object.entries(loc).filter(([field]) => FIELDS[field as Field].section === section));
+/** The attributes of one section to send for a locale: only fields that actually differ (an unchanged name is never sent). */
+export function attributesFor(section: Section, loc: Localization, changes: Change[] = [], locale?: string): Record<string, string> {
+  return Object.fromEntries(Object.entries(loc).filter(([field]) =>
+    FIELDS[field as Field].section === section && changes.some((c) => c.locale === locale && c.field === field)));
+}
+
+/**
+ * The id of the existing localization for a locale on an app info record. A freshly created editable app info can lag behind
+ * (its localizations are copied from the live one), so look again before concluding there is none: POSTing a localization
+ * whose name the store already holds fails with "the app name is already being used by another app".
+ */
+export async function findInfoLocalization(
+  list: () => Promise<Json[]>,
+  locale: string,
+  attempts = 4,
+  wait: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+): Promise<Json | undefined> {
+  for (let i = 0; i < attempts; i++) {
+    const found = (await list()).find((l) => l.attributes?.locale === locale);
+    if (found) return found;
+    if (i < attempts - 1) await wait(2000);
+  }
+  return undefined;
 }
 
 async function apply(jwt: string, live: Live, desired: Desired, versionToCreate: string | undefined): Promise<void> {
@@ -279,8 +299,7 @@ async function apply(jwt: string, live: Live, desired: Desired, versionToCreate:
   const locales = Object.keys(desired.localizations);
   for (const locale of locales) {
     const want = desired.localizations[locale];
-    const versionAttributes = attributesFor("version", want);
-    const infoAttributes = attributesFor("info", want);
+    const versionAttributes = attributesFor("version", want, changes, locale);
     const touched = (section: Section) => changes.some((c) => c.locale === locale && c.section === section);
 
     if (touched("version")) {
@@ -297,7 +316,7 @@ async function apply(jwt: string, live: Live, desired: Desired, versionToCreate:
           method: "POST",
           body: JSON.stringify({ data: {
             type: "appStoreVersionLocalizations",
-            attributes: { locale, ...versionAttributes },
+            attributes: { locale, ...Object.fromEntries(Object.entries(want).filter(([f]) => FIELDS[f as Field].section === "version")) },
             relationships: { appStoreVersion: { data: { type: "appStoreVersions", id: state.versionId } } },
           } }),
         });
@@ -309,7 +328,17 @@ async function apply(jwt: string, live: Live, desired: Desired, versionToCreate:
         fail(`[${locale}] name/subtitle/privacy URL need an editable app info record and none exists.`);
         Deno.exit(1);
       }
-      const id = state.infoLocIds[locale];
+      let id = state.infoLocIds[locale];
+      let infoAttributes = attributesFor("info", want, changes, locale);
+      if (!id) {
+        const existing = await findInfoLocalization(
+          async () => (await asc(jwt, `/appInfos/${state.editableInfoId}/appInfoLocalizations`)).data, locale);
+        if (existing) {
+          id = existing.id;
+          // Never resend a value the store already has (an unchanged name is refused as "already used").
+          infoAttributes = Object.fromEntries(Object.entries(infoAttributes).filter(([f, v]) => existing.attributes?.[f] !== v));
+        }
+      }
       if (id) {
         step(`PATCH name and subtitle [${locale}]…`);
         await asc(jwt, `/appInfoLocalizations/${id}`, {
@@ -322,7 +351,7 @@ async function apply(jwt: string, live: Live, desired: Desired, versionToCreate:
           method: "POST",
           body: JSON.stringify({ data: {
             type: "appInfoLocalizations",
-            attributes: { locale, ...infoAttributes },
+            attributes: { locale, ...Object.fromEntries(Object.entries(want).filter(([f]) => FIELDS[f as Field].section === "info")) },
             relationships: { appInfo: { data: { type: "appInfos", id: state.editableInfoId } } },
           } }),
         });

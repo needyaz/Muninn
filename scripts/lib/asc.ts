@@ -23,6 +23,15 @@ export const EDITABLE_STATES = new Set([
 /** States in which a version is with Apple: it can't be edited, and no other version can be created. */
 export const IN_REVIEW_STATES = new Set(["WAITING_FOR_REVIEW", "IN_REVIEW"]);
 
+/**
+ * The app info record that name, category and age rating can be written to: the one tied to the editable version,
+ * never the live one (READY_FOR_SALE), whose age rating declaration answers 409 STATE_ERROR.
+ */
+export function pickEditableInfo<T extends { attributes?: { state?: string; appStoreState?: string } }>(infos: T[]): T | undefined {
+  const stateOf = (i: T) => i.attributes?.state ?? i.attributes?.appStoreState ?? "";
+  return infos.find((i) => EDITABLE_STATES.has(stateOf(i)));
+}
+
 // deno-lint-ignore no-explicit-any
 export type Json = any;
 

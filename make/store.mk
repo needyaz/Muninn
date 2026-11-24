@@ -138,8 +138,8 @@ release:
 	@# Apple allows no new version while one is with App Review: stop before building rather than after the upload.
 	$(LISTING_DENO) scripts/listing_metadata.ts gate --create-version $(VERSION)
 	@$(MAKE) --no-print-directory _testflight
-	@$(MAKE) --no-print-directory store-setup-apply
 	@$(MAKE) --no-print-directory listing-apply
+	@$(MAKE) --no-print-directory store-setup-apply
 	@$(MAKE) --no-print-directory screenshots-apply
 	@$(MAKE) --no-print-directory submit
 	@echo "✓ release $(VERSION) built, uploaded, listed and submitted for App Review"

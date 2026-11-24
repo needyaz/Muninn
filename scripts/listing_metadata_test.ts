@@ -1,5 +1,5 @@
 import { assertEquals } from "./lib/assert.ts";
-import { computeDiff, type Desired, needsEditableVersion, reviewContactFromEnv, validate, validateAppStoreId, versionPlan } from "./listing_metadata.ts";
+import { attributesFor, computeDiff, type Desired, findInfoLocalization, needsEditableVersion, reviewContactFromEnv, validate, validateAppStoreId, versionPlan } from "./listing_metadata.ts";
 
 const desired = (loc: Record<string, string>, review?: Record<string, string>): Desired => ({ localizations: { "en-US": loc }, review });
 
@@ -95,4 +95,20 @@ Deno.test("MUN-BLD-005: a new version is blocked while one is with App Review", 
   assertEquals(versionPlan({ versionString: "1.0.13", editable: false, state: "WAITING_FOR_REVIEW" }, "1.0.13"), "none", "re-running the same release is fine");
   assertEquals(versionPlan({ versionString: "1.0.13", editable: false, state: "READY_FOR_SALE" }, "1.0.17"), "create");
   assertEquals(versionPlan({ versionString: "1.0", editable: true, state: "PREPARE_FOR_SUBMISSION" }, "1.0.17"), "rename");
+});
+
+Deno.test("release: an existing localization is updated, and an unchanged name is left out of the PATCH", () => {
+  const live: Desired = { localizations: { "en-US": { name: "Muninn", subtitle: "old" } } };
+  const want: Desired = { localizations: { "en-US": { name: "Muninn", subtitle: "new" } } };
+  const changes = computeDiff(live, want);
+  assertEquals(attributesFor("info", want.localizations["en-US"], changes, "en-US"), { subtitle: "new" });
+  assertEquals(attributesFor("info", want.localizations["en-US"], computeDiff(want, want), "en-US"), {});
+});
+
+Deno.test("release: an existing en-US app info localization is found (after a lag) instead of being created", async () => {
+  let calls = 0;
+  const list = () => Promise.resolve(++calls < 3 ? [] : [{ id: "loc1", attributes: { locale: "en-US", name: "Muninn" } }]);
+  assertEquals((await findInfoLocalization(list, "en-US", 4, () => Promise.resolve()))?.id, "loc1");
+  assertEquals(calls, 3);
+  assertEquals(await findInfoLocalization(() => Promise.resolve([]), "en-US", 2, () => Promise.resolve()), undefined);
 });

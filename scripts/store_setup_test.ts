@@ -1,5 +1,5 @@
 import { assertEquals } from "./lib/assert.ts";
-import { assertAppId } from "./lib/asc.ts";
+import { assertAppId, pickEditableInfo } from "./lib/asc.ts";
 import { type AppDesired, differences, validate } from "./store_setup.ts";
 
 const want: AppDesired = {
@@ -47,4 +47,23 @@ Deno.test("MUN-BLD-005: the tools refuse an app whose id is not Muninn's", () =>
     message = String(e);
   }
   assertEquals(message.includes("6759760573"), true);
+});
+
+Deno.test("release: the age rating goes to the editable AppInfo, not the live one", () => {
+  const infos = [
+    { id: "live", attributes: { state: "READY_FOR_SALE" } },
+    { id: "next", attributes: { state: "PREPARE_FOR_SUBMISSION" } },
+  ];
+  assertEquals(pickEditableInfo(infos)?.id, "next");
+  assertEquals(pickEditableInfo([...infos].reverse())?.id, "next");
+  assertEquals(pickEditableInfo([{ id: "old", attributes: { appStoreState: "REJECTED" } }, infos[0]])?.id, "old");
+  assertEquals(pickEditableInfo([infos[0]]), undefined);
+});
+
+Deno.test("release: listing-apply runs before store-setup-apply", async () => {
+  const mk = await Deno.readTextFile(new URL("../make/store.mk", import.meta.url).pathname);
+  const release = mk.slice(mk.indexOf("\nrelease:"));
+  const listing = release.indexOf("listing-apply");
+  const setup = release.indexOf("store-setup-apply");
+  assertEquals(listing > 0 && setup > listing, true);
 });
