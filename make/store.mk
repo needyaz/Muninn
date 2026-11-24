@@ -94,6 +94,11 @@ screenshots-diff: _preflight-listing
 screenshots-apply: _preflight-listing
 	$(LISTING_DENO) scripts/listing_screenshots.ts apply
 
+.PHONY: screenshots-carry
+## [Release|box:prod-build] Copy the live version's screenshots into the editable version for locales with none in the repo (DRY=1 to preview)
+screenshots-carry: _preflight-listing
+	$(LISTING_DENO) scripts/listing_screenshots.ts carry $(if $(DRY),--dry-run)
+
 .PHONY: _preflight-listing
 _preflight-listing: listing-check
 	@./scripts/release_preflight.sh git deno
@@ -139,6 +144,7 @@ release:
 	$(LISTING_DENO) scripts/listing_metadata.ts gate --create-version $(VERSION)
 	@$(MAKE) --no-print-directory _testflight
 	@$(MAKE) --no-print-directory listing-apply
+	@$(MAKE) --no-print-directory screenshots-carry
 	@$(MAKE) --no-print-directory store-setup-apply
 	@$(MAKE) --no-print-directory screenshots-apply
 	@$(MAKE) --no-print-directory submit

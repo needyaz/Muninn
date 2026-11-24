@@ -59,6 +59,7 @@ const STORE_TARGETS = [
   "screenshots-dump",
   "screenshots-diff",
   "screenshots-apply",
+  "screenshots-carry",
   "testflight",
   "beta",
   "release",

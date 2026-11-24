@@ -6,7 +6,10 @@
  *   deno run --allow-net --allow-env --allow-read scripts/listing_screenshots.ts dump
  *   deno run --allow-net --allow-env --allow-read scripts/listing_screenshots.ts diff
  *   deno run --allow-net --allow-env --allow-read scripts/listing_screenshots.ts apply
+ *   deno run --allow-net --allow-env --allow-read scripts/listing_screenshots.ts carry [--dry-run]
  *
+ * `carry` is for locales the repo has no screenshots for: it copies every screenshot set of the live (READY_FOR_SALE)
+ * version into the editable version (same display types, same order), skipping sets the editable version already has.
  * Screenshots belong to a version's localization, so they can only change while a version is editable and the locale
  * already exists (run listing_metadata.ts apply first). Order is set by upload order, so any difference replaces the
  * whole set for that locale. A locale with no local PNGs is never touched: its live screenshots are left as they are.
@@ -15,7 +18,9 @@
  */
 
 import { createHash } from "node:crypto";
-import { asc, ascJwt, fail, findApp, type Json, macVersions, pass, pickTarget, step } from "./lib/asc.ts";
+import { asc, ascJwt, EDITABLE_STATES, fail, findApp, type Json, macVersions, pass, pickTarget, step } from "./lib/asc.ts";
+
+export const LIVE_STATE = "READY_FOR_SALE";
 
 const SHOTS_DIR = new URL("../listing/screenshots/", import.meta.url).pathname;
 
@@ -72,6 +77,104 @@ export function validateSet(locale: string, shots: { fileName: string; w: number
 }
 
 // ---------------------------------------------------------------------------
+// Carrying the live version's screenshots over to the editable version
+// ---------------------------------------------------------------------------
+
+export interface CarryShot { fileName: string; downloadUrl: string }
+export interface CarrySet { displayType: string; shots: CarryShot[] }
+
+/** The live sets the editable version does not have yet (a set with at least one screenshot counts as had). */
+export function planCarry(live: CarrySet[], editable: { displayType: string; count: number }[]): CarrySet[] {
+  const have = new Set(editable.filter((s) => s.count > 0).map((s) => s.displayType));
+  return live.filter((s) => s.shots.length > 0 && !have.has(s.displayType));
+}
+
+/** Locales to carry: those of the live version that the repo has no screenshots for and the editable version has. */
+export function carryLocales(liveLocales: string[], editableLocales: string[], localLocales: string[]): string[] {
+  return liveLocales.filter((l) => editableLocales.includes(l) && !localLocales.includes(l)).sort();
+}
+
+/** The download URL of a screenshot's image asset (the template takes width, height and format). */
+export function assetUrl(asset: { templateUrl?: string; width?: number; height?: number } | undefined): string {
+  if (!asset?.templateUrl) return "";
+  return asset.templateUrl.replace("{w}", String(asset.width ?? "")).replace("{h}", String(asset.height ?? "")).replace("{f}", "png");
+}
+
+export interface CarryApi {
+  asc: (path: string, init?: RequestInit) => Promise<Json>;
+  fetch: (url: string, init?: RequestInit) => Promise<Response>;
+  log?: (message: string) => void;
+}
+
+async function readSets(api: CarryApi, localizationId: string): Promise<{ id: string; displayType: string; shots: CarryShot[] }[]> {
+  const sets = await api.asc(`/appStoreVersionLocalizations/${localizationId}/appScreenshotSets?limit=50`);
+  const out = [];
+  for (const set of sets.data) {
+    const list = await api.asc(`/appScreenshotSets/${set.id}/appScreenshots?limit=50`);
+    out.push({
+      id: set.id,
+      displayType: set.attributes.screenshotDisplayType,
+      shots: list.data.map((x: Json) => ({ fileName: x.attributes.fileName, downloadUrl: assetUrl(x.attributes.imageAsset) })),
+    });
+  }
+  return out;
+}
+
+/** Copies the missing sets of one locale from the live localization to the editable one; returns what was (or would be) copied. */
+export async function carryLocale(
+  api: CarryApi,
+  locale: string,
+  liveLocalizationId: string,
+  editableLocalizationId: string,
+  dry: boolean,
+): Promise<{ displayType: string; count: number }[]> {
+  const log = api.log ?? (() => {});
+  const liveSets = await readSets(api, liveLocalizationId);
+  const have = (await readSets(api, editableLocalizationId)).map((s) => ({ displayType: s.displayType, count: s.shots.length }));
+  const copied: { displayType: string; count: number }[] = [];
+  for (const set of planCarry(liveSets, have)) {
+    copied.push({ displayType: set.displayType, count: set.shots.length });
+    if (dry) { log(`  [${locale}] would copy ${set.shots.length} ${set.displayType} screenshot(s)`); continue; }
+    const existing = (await readSets(api, editableLocalizationId)).find((s) => s.displayType === set.displayType);
+    const setId = existing?.id ?? (await api.asc(`/appScreenshotSets`, {
+      method: "POST",
+      body: JSON.stringify({ data: {
+        type: "appScreenshotSets",
+        attributes: { screenshotDisplayType: set.displayType },
+        relationships: { appStoreVersionLocalization: { data: { type: "appStoreVersionLocalizations", id: editableLocalizationId } } },
+      } }),
+    })).data.id;
+    for (const shot of set.shots) {
+      log(`  [${locale}] copying ${set.displayType} ${shot.fileName}`);
+      const download = await api.fetch(shot.downloadUrl);
+      if (!download.ok) throw new Error(`download ${shot.fileName} → ${download.status}`);
+      const bytes = new Uint8Array(await download.arrayBuffer());
+      const reservation = await api.asc(`/appScreenshots`, {
+        method: "POST",
+        body: JSON.stringify({ data: {
+          type: "appScreenshots",
+          attributes: { fileName: shot.fileName, fileSize: bytes.length },
+          relationships: { appScreenshotSet: { data: { type: "appScreenshotSets", id: setId } } },
+        } }),
+      });
+      for (const op of reservation.data.attributes.uploadOperations) {
+        const response = await api.fetch(op.url, {
+          method: op.method,
+          headers: Object.fromEntries(op.requestHeaders.map((h: Json) => [h.name, h.value])),
+          body: bytes.slice(op.offset, op.offset + op.length),
+        });
+        if (!response.ok) throw new Error(`upload part ${op.offset}+${op.length} → ${response.status}: ${await response.text()}`);
+      }
+      await api.asc(`/appScreenshots/${reservation.data.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ data: { type: "appScreenshots", id: reservation.data.id, attributes: { uploaded: true, sourceFileChecksum: createHash("md5").update(bytes).digest("hex") } } }),
+      });
+    }
+  }
+  return copied;
+}
+
+// ---------------------------------------------------------------------------
 // Local folders
 // ---------------------------------------------------------------------------
 
@@ -107,13 +210,35 @@ async function readLocal(): Promise<{ shots: Record<string, LocalShot[]>; proble
 
 if (import.meta.main) {
   const command = Deno.args[0];
-  if (!["check", "dump", "diff", "apply"].includes(command ?? "")) {
-    console.error("usage: listing_screenshots.ts <check|dump|diff|apply>");
+  if (!["check", "dump", "diff", "apply", "carry"].includes(command ?? "")) {
+    console.error("usage: listing_screenshots.ts <check|dump|diff|apply|carry [--dry-run]>");
     Deno.exit(1);
   }
   const { shots: local, problems } = await readLocal();
   if (problems.length > 0) { problems.forEach(fail); Deno.exit(1); }
   const noneRendered = Object.keys(local).length === 0;
+  if (command === "carry") {
+    const dry = Deno.args.includes("--dry-run");
+    const jwt = await ascJwt();
+    const appId = await findApp(jwt);
+    const versions = await macVersions(jwt, appId);
+    const liveVersion = versions.find((v) => v.state === LIVE_STATE);
+    const editableVersion = versions.find((v) => EDITABLE_STATES.has(v.state));
+    if (!liveVersion) { pass(`No ${LIVE_STATE} version, so there is nothing to carry over.`); Deno.exit(0); }
+    if (!editableVersion) { fail("Carrying screenshots needs an EDITABLE version and none exists. Nothing was changed."); Deno.exit(1); }
+    const localizationsOf = async (id: string): Promise<Record<string, string>> =>
+      Object.fromEntries((await asc(jwt, `/appStoreVersions/${id}/appStoreVersionLocalizations?limit=200`)).data.map((l: Json) => [l.attributes.locale, l.id]));
+    const liveLoc = await localizationsOf(liveVersion.id);
+    const editableLoc = await localizationsOf(editableVersion.id);
+    const api: CarryApi = { asc: (path, init) => asc(jwt, path, init), fetch: (url, init) => fetch(url, init), log: (m) => console.log(m) };
+    step(`${dry ? "Dry run: " : ""}carrying screenshots from ${liveVersion.versionString} to ${editableVersion.versionString}…`);
+    let total = 0;
+    for (const locale of carryLocales(Object.keys(liveLoc), Object.keys(editableLoc), Object.keys(local))) {
+      total += (await carryLocale(api, locale, liveLoc[locale], editableLoc[locale], dry)).length;
+    }
+    pass(total === 0 ? "Nothing to carry over: the editable version already has the live version's screenshot sets." : `${dry ? "Would copy" : "Copied"} ${total} screenshot set(s).`);
+    Deno.exit(0);
+  }
   if (command === "check") {
     if (noneRendered) pass("no screenshots in listing/screenshots yet (not rendered: run make screenshots)");
     for (const [locale, list] of Object.entries(local)) pass(`${locale}: ${list.length} screenshot(s), all Mac App Store sizes`);

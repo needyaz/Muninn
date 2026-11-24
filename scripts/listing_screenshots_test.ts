@@ -1,3 +1,4 @@
+import type { Json } from "./lib/asc.ts";
 import { assertEquals } from "./lib/assert.ts";
 import { imageSize, isMacSize, type LiveShot, type LocalShot, planScreenshotSet, validateSet } from "./listing_screenshots.ts";
 
@@ -53,4 +54,87 @@ Deno.test("MUN-BLD-003: the committed screenshots, if any, are all one valid Mac
   const shots = [];
   for (const fileName of names) shots.push({ fileName, ...imageSize(await Deno.readFile(dir + fileName))! });
   assertEquals(validateSet("ms", shots), []);
+});
+
+// ---- carry: recorded responses, no network ----
+
+import { assetUrl, carryLocale, carryLocales, type CarryApi, planCarry } from "./listing_screenshots.ts";
+
+const shot = (n: string) => ({ attributes: { fileName: n, imageAsset: { templateUrl: `https://cdn/${n}/{w}x{h}.{f}`, width: 2880, height: 1800 } } });
+function fakeApi(editableSets: { id: string; type: string; shots: string[] }[]) {
+  const calls: { method: string; path: string; body?: Record<string, unknown> }[] = [];
+  const uploads: string[] = [];
+  const liveSets = [{ id: "L1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }];
+  const api: CarryApi = {
+    asc: (path, init) => {
+      const method = init?.method ?? "GET";
+      calls.push({ method, path, body: init?.body ? JSON.parse(init.body as string) : undefined });
+      const sets = path.includes("live-loc") ? liveSets : editableSets;
+      if (method === "GET" && path.endsWith("/appScreenshotSets?limit=50")) {
+        return Promise.resolve({ data: sets.map((s) => ({ id: s.id, attributes: { screenshotDisplayType: s.type } })) });
+      }
+      const m = /appScreenshotSets\/(.+)\/appScreenshots/.exec(path);
+      if (method === "GET" && m) {
+        const all = [...liveSets, ...editableSets].find((s) => s.id === m[1])!;
+        return Promise.resolve({ data: all.shots.map(shot) });
+      }
+      if (method === "POST" && path === "/appScreenshotSets") return Promise.resolve({ data: { id: "NEW" } });
+      if (method === "POST" && path === "/appScreenshots") {
+        return Promise.resolve({ data: { id: "R", attributes: { uploadOperations: [{ url: "https://up/1", method: "PUT", offset: 0, length: 3, requestHeaders: [{ name: "X", value: "y" }] }] } } });
+      }
+      return Promise.resolve(null);
+    },
+    fetch: (url) => {
+      uploads.push(url);
+      return Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
+    },
+  };
+  return { api, calls, uploads };
+}
+// the fake keys the live side off "live-loc" in the localization id
+const LIVE = "live-loc";
+
+Deno.test("carry: planCarry skips sets the editable version already has", () => {
+  const live = [{ displayType: "APP_DESKTOP", shots: [{ fileName: "a", downloadUrl: "u" }] }];
+  assertEquals(planCarry(live, []).length, 1);
+  assertEquals(planCarry(live, [{ displayType: "APP_DESKTOP", count: 1 }]).length, 0);
+  assertEquals(planCarry(live, [{ displayType: "APP_DESKTOP", count: 0 }]).length, 1);
+});
+
+Deno.test("carry: only locales the repo has no screenshots for", () => {
+  assertEquals(carryLocales(["ms", "en-US", "de"], ["ms", "en-US"], ["de", "ms"]), ["en-US"]);
+});
+
+Deno.test("carry: assetUrl fills the template", () => {
+  assertEquals(assetUrl({ templateUrl: "https://x/{w}x{h}.{f}", width: 2, height: 3 }), "https://x/2x3.png");
+});
+
+Deno.test("carry: live sets are copied into an empty editable version in order", async () => {
+  const { api, calls, uploads } = fakeApi([]);
+  const copied = await carryLocale(api, "ms", LIVE, "edit-loc", false);
+  assertEquals(copied, [{ displayType: "APP_DESKTOP", count: 2 }]);
+  const posts = calls.filter((c) => c.method === "POST" && c.path === "/appScreenshots");
+  assertEquals(posts.map((c) => (c.body as Json).data.attributes.fileName), ["a.png", "b.png"]);
+  assertEquals(uploads, ["https://cdn/a.png/2880x1800.png", "https://up/1", "https://cdn/b.png/2880x1800.png", "https://up/1"]);
+  const commits = calls.filter((c) => c.method === "PATCH");
+  assertEquals(commits.length, 2);
+  assertEquals((commits[0].body as Json).data.attributes.sourceFileChecksum.length, 32);
+  assertEquals(calls.filter((c) => c.path === "/appScreenshotSets").length, 1);
+});
+
+Deno.test("carry: nothing is copied when the editable version already has the set", async () => {
+  const { api, calls, uploads } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }]);
+  assertEquals(await carryLocale(api, "ms", LIVE, "edit-loc", false), []);
+  assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
+  assertEquals(uploads.length, 0);
+});
+
+Deno.test("carry: dry run writes and downloads nothing", async () => {
+  const { api, calls, uploads } = fakeApi([]);
+  const lines: string[] = [];
+  api.log = (m) => lines.push(m);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).length, 1);
+  assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
+  assertEquals(uploads.length, 0);
+  assertEquals(lines.length, 1);
 });

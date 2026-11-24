@@ -64,6 +64,7 @@ version string. `make github-release` is the same on the box as everywhere else;
    nothing about availability, so where the live app is sold never changes.
 4. **`listing-apply`:** the listing text from `listing/metadata.json`, on an editable version named exactly `VERSION`.
 5. **`screenshots-apply`:** the screenshots from `listing/screenshots/`. A locale with no local PNGs is left as it is.
+   `make screenshots-carry` (run right after `listing-apply` in `make release`; `DRY=1` to preview) copies the live version's screenshot sets for such locales into the editable version, skipping sets it already has.
 6. **`submit`:** waits for Apple to finish processing the build, attaches it and sends it to App Review (`DRY=1` previews).
 
 Each step is also a target, and every write target has a read-only twin:
