@@ -107,33 +107,33 @@ Deno.test("MUN-POP-001: no Swift file posts key events or asks for Accessibility
 
 // MARK: - MUN-SENS-007
 
-Deno.test("MUN-SENS-007: CLAUDE.md gives the sensitive preview as \"Sensitive content\"", () => {
-  const claude = read("CLAUDE.md");
-  check(!claude.includes("•"), "CLAUDE.md still describes the sensitive preview as bullets");
+Deno.test("MUN-SENS-007: docs/ARCHITECTURE.md gives the sensitive preview as \"Sensitive content\"", () => {
+  const arch = read("docs/ARCHITECTURE.md");
+  check(!arch.includes("•"), "docs/ARCHITECTURE.md still describes the sensitive preview as bullets");
   check(
-    lines(claude).some((l) => /preview/i.test(l) && l.includes("Sensitive content")),
-    "CLAUDE.md does not say the sensitive preview reads \"Sensitive content\"",
+    lines(arch).some((l) => /preview/i.test(l) && l.includes("Sensitive content")),
+    "docs/ARCHITECTURE.md does not say the sensitive preview reads \"Sensitive content\"",
   );
 });
 
 // MARK: - MUN-EXCL-005
 
-Deno.test("MUN-EXCL-005: CLAUDE.md names excluded_apps.json and excluded_types.json", () => {
-  const claude = read("CLAUDE.md");
-  check(!claude.includes("excludedApps.json"), "CLAUDE.md still names excludedApps.json");
-  check(!claude.includes("excludedTypes.json"), "CLAUDE.md still names excludedTypes.json");
-  check(claude.includes("excluded_apps.json"), "CLAUDE.md does not name excluded_apps.json");
-  check(claude.includes("excluded_types.json"), "CLAUDE.md does not name excluded_types.json");
+Deno.test("MUN-EXCL-005: docs/ARCHITECTURE.md names excluded_apps.json and excluded_types.json", () => {
+  const arch = read("docs/ARCHITECTURE.md");
+  check(!arch.includes("excludedApps.json"), "docs/ARCHITECTURE.md still names excludedApps.json");
+  check(!arch.includes("excludedTypes.json"), "docs/ARCHITECTURE.md still names excludedTypes.json");
+  check(arch.includes("excluded_apps.json"), "docs/ARCHITECTURE.md does not name excluded_apps.json");
+  check(arch.includes("excluded_types.json"), "docs/ARCHITECTURE.md does not name excluded_types.json");
 });
 
 // MARK: - MUN-SHOT-004
 
-Deno.test("MUN-SHOT-004: CLAUDE.md describes the screenshot retry as linear", () => {
-  const claude = read("CLAUDE.md");
-  check(!/exponential/i.test(claude), "CLAUDE.md still calls the screenshot retry exponential");
+Deno.test("MUN-SHOT-004: docs/ARCHITECTURE.md describes the screenshot retry as linear", () => {
+  const arch = read("docs/ARCHITECTURE.md");
+  check(!/exponential/i.test(arch), "docs/ARCHITECTURE.md still calls the screenshot retry exponential");
   check(
-    lines(claude).some((l) => /ScreenshotMonitor/.test(l) && /linear/i.test(l)),
-    "CLAUDE.md does not describe the ScreenshotMonitor retry as a linear backoff",
+    lines(arch).some((l) => /ScreenshotMonitor/.test(l) && /linear/i.test(l)),
+    "docs/ARCHITECTURE.md does not describe the ScreenshotMonitor retry as a linear backoff",
   );
 });
 
@@ -145,13 +145,13 @@ Deno.test("MUN-STOR-006: SPEC.md no longer lists a ~/.config/clipbar migration",
 
 // MARK: - MUN-PORT-018
 
-Deno.test("MUN-PORT-018: CLAUDE.md describes Replace imports as staged, not a bare overwrite", () => {
-  const claude = read("CLAUDE.md");
-  const bare = lines(claude).filter((l) => /Replace\W*full overwrite/i.test(l) && !/stag/i.test(l));
-  check(bare.length === 0, `CLAUDE.md still calls Replace a full overwrite:\n${bare.join("\n")}`);
+Deno.test("MUN-PORT-018: docs/ARCHITECTURE.md describes Replace imports as staged, not a bare overwrite", () => {
+  const arch = read("docs/ARCHITECTURE.md");
+  const bare = lines(arch).filter((l) => /Replace\W*full overwrite/i.test(l) && !/stag/i.test(l));
+  check(bare.length === 0, `docs/ARCHITECTURE.md still calls Replace a full overwrite:\n${bare.join("\n")}`);
   check(
-    lines(claude).some((l) => /Replace/.test(l) && /stag/i.test(l) && /fail/i.test(l)),
-    "CLAUDE.md does not say Replace imports are staged so a failure keeps existing data",
+    lines(arch).some((l) => /Replace/.test(l) && /stag/i.test(l) && /fail/i.test(l)),
+    "docs/ARCHITECTURE.md does not say Replace imports are staged so a failure keeps existing data",
   );
 });
 
@@ -182,22 +182,22 @@ Deno.test("MUN-ONB-003: README says closing the onboarding window marks it as se
   check(/clos/i.test(section), "README's Onboarding section does not say closing the window counts as seen");
 });
 
-Deno.test("MUN-ONB-003: CLAUDE.md says closing the onboarding window marks it as seen", () => {
-  const claude = read("CLAUDE.md");
+Deno.test("MUN-ONB-003: docs/ARCHITECTURE.md says closing the onboarding window marks it as seen", () => {
+  const arch = read("docs/ARCHITECTURE.md");
   check(
-    lines(claude).some((l) => /onboarding/i.test(l) && /clos/i.test(l) && /seen|hasSeenOnboarding/i.test(l)),
-    "CLAUDE.md does not say closing the onboarding window sets hasSeenOnboarding",
+    lines(arch).some((l) => /onboarding/i.test(l) && /clos/i.test(l) && /seen|hasSeenOnboarding/i.test(l)),
+    "docs/ARCHITECTURE.md does not say closing the onboarding window sets hasSeenOnboarding",
   );
 });
 
 // MARK: - MUN-PRIV-004
 
-Deno.test("MUN-PRIV-004: CLAUDE.md gives KeyboardShortcuts as pinned to 2.4.0", () => {
-  const claude = read("CLAUDE.md");
-  const ks = lines(claude).filter((l) => /KeyboardShortcuts/.test(l));
-  check(!ks.some((l) => l.includes(">=")), "CLAUDE.md still gives KeyboardShortcuts a minimum version");
+Deno.test("MUN-PRIV-004: docs/ARCHITECTURE.md gives KeyboardShortcuts as pinned to 2.4.0", () => {
+  const arch = read("docs/ARCHITECTURE.md");
+  const ks = lines(arch).filter((l) => /KeyboardShortcuts/.test(l));
+  check(!ks.some((l) => l.includes(">=")), "docs/ARCHITECTURE.md still gives KeyboardShortcuts a minimum version");
   check(
     ks.some((l) => l.includes("2.4.0") && /pinned/i.test(l)),
-    "CLAUDE.md does not say KeyboardShortcuts is pinned to 2.4.0",
+    "docs/ARCHITECTURE.md does not say KeyboardShortcuts is pinned to 2.4.0",
   );
 });

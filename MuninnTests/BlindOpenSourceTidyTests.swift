@@ -65,9 +65,17 @@ import Foundation
     @Test func gitignoredFilesAreNotScanned() {
         let paths = Self.walkHonouringGitignore().map(\.path)
         #expect(!paths.contains { $0.hasSuffix("/make/local.mk") })
-        #expect(!paths.contains { $0.contains("/.claude/") })
+        #expect(!paths.contains { $0.contains("/DerivedData/") })
         #expect(!paths.contains { $0.hasSuffix(".DS_Store") })
         #expect(!Self.textFiles().contains { $0.path.hasSuffix("/make/local.mk") })
+    }
+
+    @Test func workingFilesAreAbsentAndArchitectureDocExists() {
+        let fm = FileManager.default
+        for gone in ["CLAUDE.md", "spec", "deltas"] {
+            #expect(!fm.fileExists(atPath: Self.root.appendingPathComponent(gone).path), "\(gone) should be absent")
+        }
+        #expect(fm.fileExists(atPath: Self.root.appendingPathComponent("docs/ARCHITECTURE.md").path))
     }
 
     @Test func appStoreUploadPassesTeam() throws {

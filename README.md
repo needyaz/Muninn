@@ -292,9 +292,9 @@ Notarized release builds are made with `make github-release`; see [DISTRIBUTION.
 | `listing/` | App Store listing metadata and its checks (`make test-listing` and `make listing-check` need [Deno](https://deno.com)) |
 | `make/` | Makefile fragments for release and App Store tasks (`make menu` needs [fzf](https://github.com/junegunn/fzf)) |
 | `scripts/` | Release and App Store Connect scripts (Deno/TypeScript) |
-| `spec/`, `deltas/` | Historical working documents from the project's recovery and spec clean-up; they are kept for reference and may be out of date |
 | `docs/` | The privacy policy |
-| `SPEC.md`, `CLAUDE.md` | The product spec, and architecture conventions and gotchas (written for AI coding assistants, useful to people too) |
+| `SPEC.md` | The product spec |
+| `docs/ARCHITECTURE.md` | How it is built: architecture, file tables, storage and gotchas |
 
 ## Contributing
 
