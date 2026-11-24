@@ -7,6 +7,9 @@ APP_NAME  := Muninn
 BUNDLE_ID ?= blue.luci.Muninn
 # Your Apple developer team ID, to sign a copy under your own identity (see README). Empty builds ad-hoc signed.
 TEAM ?=
+# Test builds run a separate dev app so the checks never launch, quit or reset the owner's installed Muninn.
+TEST_APP_NAME  := Muninn Dev
+TEST_BUNDLE_ID := blue.luci.Muninn.dev
 PROJECT   := $(APP_NAME).xcodeproj
 BUILD_DIR := build
 APP_PATH  := $(BUILD_DIR)/Build/Products/Debug/$(APP_NAME).app
@@ -21,6 +24,11 @@ SIGNING := $(if $(TEAM),DEVELOPMENT_TEAM=$(TEAM) -allowProvisioningUpdates,CODE_
 XCODEBUILD := xcodebuild -project $(PROJECT) -scheme $(APP_NAME) -configuration Debug -derivedDataPath $(BUILD_DIR) \
   MUNINN_BUNDLE_ID=$(BUNDLE_ID) $(SIGNING)
 
+# Test builds: dev bundle id (tests: $(TEST_BUNDLE_ID).tests) and product name. Only the app target reads
+# MUNINN_PRODUCT_NAME (project.yml), so the tests bundle keeps its own name and the module stays Muninn.
+TEST_XCODEBUILD := xcodebuild -project $(PROJECT) -scheme $(APP_NAME) -configuration Debug -derivedDataPath $(BUILD_DIR) \
+  MUNINN_BUNDLE_ID=$(TEST_BUNDLE_ID) MUNINN_PRODUCT_NAME="$(TEST_APP_NAME)" $(SIGNING)
+
 .DEFAULT_GOAL := help
 
 # ---------------------------------------------------------------------------
@@ -34,9 +42,14 @@ run: build stop
 	@echo "Muninn is a menu bar app: no Dock icon. Look for the icon at the top right."
 
 .PHONY: stop
-## [Run] Quit a running Muninn
+## [Run] Quit your running Muninn (the real app; run by hand, never part of the tests)
 stop:
 	-@pkill -x $(APP_NAME) && echo "Stopped $(APP_NAME)" || true
+
+.PHONY: stop-dev
+## [Run] Quit the Muninn Dev app that the tests build (leaves your real Muninn alone)
+stop-dev:
+	-@pkill -x "$(TEST_APP_NAME)" && echo "Stopped $(TEST_APP_NAME)" || true
 
 .PHONY: logs
 ## [Run] Stream Muninn's logs (Ctrl-C to stop)
@@ -106,15 +119,15 @@ clean: stop
 # ---------------------------------------------------------------------------
 
 .PHONY: test
-## [Tests] Run the unit tests (quits a running Muninn first)
-test: generate stop
-	$(XCODEBUILD) -quiet test -destination 'platform=macOS'
+## [Tests] Run the unit tests in a separate "Muninn Dev" app (never touches your running Muninn)
+test: generate stop-dev
+	$(TEST_XCODEBUILD) -quiet test -destination 'platform=macOS'
 
 .PHONY: test-listing
 ## [Tests] Store-listing tools (Deno): diff/plan logic, Apple's limits, and a check of listing/ (offline, no credentials)
 test-listing: listing-check
 	@command -v deno >/dev/null 2>&1 || { echo "deno not installed — run: brew install deno"; exit 1; }
-	deno test --allow-read scripts/
+	deno test --allow-read --allow-run=make scripts/
 
 # ---------------------------------------------------------------------------
 # Release
