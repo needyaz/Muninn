@@ -58,7 +58,7 @@ Deno.test("MUN-BLD-003: the committed screenshots, if any, are all one valid Mac
 
 // ---- carry: recorded responses, no network ----
 
-import { assetUrl, carryLocale, carryLocales, type CarryApi, planCarry } from "./listing_screenshots.ts";
+import { assetUrl, carryLocale, carryLocales, type CarryApi, nothingComparedReason, planCarry, planStale } from "./listing_screenshots.ts";
 
 type Spec = string | { n: string; state: string; error?: string };
 const shot = (x: Spec) => {
@@ -126,7 +126,7 @@ Deno.test("carry: assetUrl fills the template", () => {
 
 Deno.test("carry: live sets are copied into an empty editable version in order", async () => {
   const { api, calls, uploads } = fakeApi([]);
-  const copied = await carryLocale(api, "ms", LIVE, "edit-loc", false);
+  const { copied } = await carryLocale(api, "ms", LIVE, "edit-loc", false);
   assertEquals(copied, [{ displayType: "APP_DESKTOP", count: 2 }]);
   const posts = calls.filter((c) => c.method === "POST" && c.path === "/appScreenshots");
   assertEquals(posts.map((c) => (c.body as Json).data.attributes.fileName), ["a.png", "b.png"]);
@@ -139,7 +139,7 @@ Deno.test("carry: live sets are copied into an empty editable version in order",
 
 Deno.test("carry: nothing is copied when the editable version already has the set", async () => {
   const { api, calls, uploads } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }]);
-  assertEquals(await carryLocale(api, "ms", LIVE, "edit-loc", false), []);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", false)).copied, []);
   assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
   assertEquals(uploads.length, 0);
 });
@@ -148,7 +148,7 @@ Deno.test("carry: dry run writes and downloads nothing", async () => {
   const { api, calls, uploads } = fakeApi([]);
   const lines: string[] = [];
   api.log = (m) => lines.push(m);
-  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).length, 1);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).copied.length, 1);
   assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
   assertEquals(uploads.length, 0);
   assertEquals(lines.length, 1);
@@ -157,7 +157,7 @@ Deno.test("carry: dry run writes and downloads nothing", async () => {
 Deno.test("carry: a partial editable set is deleted and replaced by the live set", async () => {
   const full = [{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }];
   const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png"] }], full);
-  assertEquals(await carryLocale(api, "ms", LIVE, "edit-loc", false), [{ displayType: "APP_DESKTOP", count: 2 }]);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", false)).copied, [{ displayType: "APP_DESKTOP", count: 2 }]);
   assertEquals(calls.filter((c) => c.method === "DELETE").map((c) => c.path), ["/appScreenshots/s-a.png"]);
   assertEquals(calls.filter((c) => c.method === "POST" && c.path === "/appScreenshots").length, 2);
   assertEquals(calls.filter((c) => c.path === "/appScreenshotSets" && c.method === "POST").length, 0);
@@ -201,7 +201,7 @@ Deno.test("carry: dry run reports live vs editable counts and states, and change
   const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", { n: "b.png", state: "FAILED" }] }]);
   const lines: string[] = [];
   api.log = (m) => lines.push(m);
-  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).length, 1);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).copied.length, 1);
   assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
   assertEquals(lines, ["  [ms] APP_DESKTOP: live 2 (2 COMPLETE), editable 2 (1 COMPLETE, 1 FAILED) → would delete 2 and copy 2"]);
 });
@@ -210,6 +210,49 @@ Deno.test("carry: dry run on a matching set says no change", async () => {
   const { api } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }]);
   const lines: string[] = [];
   api.log = (m) => lines.push(m);
-  assertEquals(await carryLocale(api, "ms", LIVE, "edit-loc", true), []);
+  assertEquals((await carryLocale(api, "ms", LIVE, "edit-loc", true)).copied, []);
   assertEquals(lines[0].endsWith("→ no change"), true);
+});
+
+const STALE_FAILED = { id: "E2", type: "APP_DESKTOP_OLD", shots: [{ n: "x.png", state: "FAILED" }] as Spec[] };
+
+Deno.test("carry: planStale picks editable sets the live version lacks that hold non-COMPLETE screenshots", () => {
+  const sh = (state: string) => ({ fileName: "x", downloadUrl: "", state });
+  const liveSets = [{ displayType: "APP_DESKTOP", shots: [sh("COMPLETE")] }];
+  const stale = { displayType: "OTHER", shots: [sh("COMPLETE"), sh("FAILED")] };
+  const clean = { displayType: "THIRD", shots: [sh("COMPLETE")] };
+  const shared = { displayType: "APP_DESKTOP", shots: [sh("FAILED")] };
+  assertEquals(planStale(liveSets, [stale, clean, shared]), [stale]);
+});
+
+Deno.test("carry: an editable set of a display type the live version lacks is deleted when it holds a non-COMPLETE screenshot", async () => {
+  const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }, STALE_FAILED]);
+  const r = await carryLocale(api, "ms", LIVE, "edit-loc", false);
+  assertEquals(r.copied, []);
+  assertEquals(r.removed, [{ displayType: "APP_DESKTOP_OLD", count: 1 }]);
+  assertEquals(calls.filter((c) => c.method === "DELETE").map((c) => c.path), ["/appScreenshotSets/E2"]);
+});
+
+Deno.test("carry: dry run reports the stale set and deletes nothing", async () => {
+  const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }, STALE_FAILED]);
+  const lines: string[] = [];
+  api.log = (m) => lines.push(m);
+  const r = await carryLocale(api, "ms", LIVE, "edit-loc", true);
+  assertEquals(r.removed.length, 1);
+  assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
+  assertEquals(lines.some((l) => l.includes("APP_DESKTOP_OLD") && l.includes("would delete")), true);
+});
+
+Deno.test("carry: a COMPLETE set of another display type is left alone", async () => {
+  const { api, calls } = fakeApi([{ id: "E1", type: "APP_DESKTOP", shots: ["a.png", "b.png"] }, { id: "E3", type: "APP_DESKTOP_OLD", shots: ["z.png"] }]);
+  const r = await carryLocale(api, "ms", LIVE, "edit-loc", false);
+  assertEquals(r.removed, []);
+  assertEquals(calls.filter((c) => c.method !== "GET").length, 0);
+});
+
+Deno.test("carry: says why nothing was compared", () => {
+  assertEquals(nothingComparedReason([], ["ms"], []), "the live version has no locales.");
+  assertEquals(nothingComparedReason(["ms"], [], []), "the editable version has no locales.");
+  assertEquals(nothingComparedReason(["de"], ["ms"], []), "the live and editable versions have no locale in common.");
+  assertEquals(nothingComparedReason(["ms"], ["ms"], ["ms"]).startsWith("every shared locale (ms)"), true);
 });

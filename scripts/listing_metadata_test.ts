@@ -1,5 +1,5 @@
 import { assertEquals } from "./lib/assert.ts";
-import { apply, attributesFor, computeDiff, type Desired, findInfoLocalization, type Live, localeMismatch, needsEditableVersion, reviewContactFromEnv, validate, validateAppStoreId, versionPlan } from "./listing_metadata.ts";
+import { apply, attributesFor, computeDiff, type Desired, findInfoLocalization, type Live, localeMismatch, needsEditableVersion, reviewContactFromEnv, validate, validateAppStoreId, versionPlan, whatsNewProblems } from "./listing_metadata.ts";
 
 const desired = (loc: Record<string, string>, review?: Record<string, string>): Desired => ({ localizations: { "ms": loc }, review });
 
@@ -145,4 +145,23 @@ Deno.test("listing: mocked apply against a store with only ms updates ms and cre
   } finally {
     globalThis.fetch = original;
   }
+});
+
+Deno.test("whatsNew: empty or missing is refused once the store has a released version", () => {
+  assertEquals(whatsNewProblems(desired({ name: "x", whatsNew: "" }), true).length, 1);
+  assertEquals(whatsNewProblems(desired({ name: "x" }), true).length, 1);
+  assertEquals(whatsNewProblems(desired({ name: "x", whatsNew: "  " }), true)[0].includes("whatsNew is empty"), true);
+  assertEquals(whatsNewProblems(desired({ name: "x", whatsNew: "Fixes." }), true), []);
+  assertEquals(whatsNewProblems(desired({ name: "x", whatsNew: "" }), false), []);
+});
+
+Deno.test("whatsNew: the committed listing carries What's New text for the released store", async () => {
+  const file = JSON.parse(await Deno.readTextFile(new URL("../listing/metadata.json", import.meta.url).pathname));
+  assertEquals(typeof file.releasedVersion, "string");
+  assertEquals(whatsNewProblems(file, true), []);
+  const lines = file.localizations.ms.whatsNew.split("\n").filter((l: string) => l.trim());
+  assertEquals(lines.length >= 3 && lines.length <= 6, true);
+  // No version header (the version is computed at release) and no generic filler.
+  assertEquals(lines.some((l: string) => /^version\b/i.test(l.trim())), false);
+  assertEquals(/stability improvements|internal improvements/i.test(file.localizations.ms.whatsNew), false);
 });

@@ -55,6 +55,8 @@ export type Review = Partial<Record<ReviewField, string>>;
 export interface Desired {
   /** The App Store Connect id of the app this file is for; the tools refuse any other app. */
   appStoreId?: string;
+  /** The version the store already has released (a store with a released version refuses a submit without "what's new"). */
+  releasedVersion?: string;
   localizations: Record<string, Localization>;
   /** Copyright line and how the version is released; sparse like everything else. */
   version?: Partial<Record<VersionField, string>>;
@@ -95,6 +97,20 @@ export function validate(desired: Desired): string[] {
     else if (field === "notes" && value.length > 4000) problems.push(`review: notes is ${value.length} characters; Apple allows 4000`);
   }
   return problems;
+}
+
+/**
+ * Apple refuses to submit an update without "what's new". Once the store has a released version, every locale in the
+ * file must carry a non-empty whatsNew. `released` says whether the store has one (the file records it, and the online
+ * gate also reads it from the store).
+ */
+export function whatsNewProblems(desired: Desired, released: boolean): string[] {
+  if (!released) return [];
+  return Object.entries(desired.localizations ?? {})
+    .filter(([, loc]) => typeof loc.whatsNew !== "string" || loc.whatsNew.trim().length === 0)
+    .map(([locale]) =>
+      `[${locale}] whatsNew is empty, but the store already has a released version: App Store Connect will refuse the submit. ` +
+      `Write the What's New text in listing/metadata.json.`);
 }
 
 /** The file must name Muninn's own app record: `appStoreId` equal to the string "6759760573". */
@@ -420,7 +436,7 @@ function printChanges(changes: Change[]) {
 async function loadDesired(): Promise<Desired> {
   const desired = JSON.parse(await Deno.readTextFile(DESIRED_PATH)) as Desired;
   desired.review = { ...desired.review, ...reviewContactFromEnv(Deno.env.toObject()) };
-  const problems = [...validateAppStoreId(desired), ...validate(desired)];
+  const problems = [...validateAppStoreId(desired), ...validate(desired), ...whatsNewProblems(desired, !!desired.releasedVersion)];
   if (problems.length > 0) {
     for (const p of problems) fail(p);
     Deno.exit(1);
@@ -462,6 +478,9 @@ if (import.meta.main) {
     // `make release` runs this before building, so a release that can't be applied stops before it starts.
     const gateFlag = rest.indexOf("--create-version");
     const gateVersion = gateFlag >= 0 ? rest[gateFlag + 1] : undefined;
+    const released = (await macVersions(jwt, live.appId)).some((v) => v.state === "READY_FOR_SALE");
+    const missing = whatsNewProblems(desired, released);
+    if (missing.length > 0) { missing.forEach(fail); Deno.exit(1); }
     if (versionPlan({ versionString: live.versionString, editable: live.versionEditable, state: live.versionState }, gateVersion) === "blocked") {
       fail(blockedMessage(live.versionString, live.versionState, gateVersion!));
       Deno.exit(1);

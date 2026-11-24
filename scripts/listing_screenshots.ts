@@ -9,7 +9,8 @@
  *   deno run --allow-net --allow-env --allow-read scripts/listing_screenshots.ts carry [--dry-run]
  *
  * `carry` is for locales the repo has no screenshots for: it copies every screenshot set of the live (READY_FOR_SALE)
- * version into the editable version (same display types, same order), replacing any editable set that differs (missing, partial, failed or still-processing).
+ * version into the editable version (same display types, same order), replacing any editable set that differs (missing, partial, failed or still-processing),
+ * and removing editable sets of a display type the live version lacks when they hold non-COMPLETE screenshots.
  * Screenshots belong to a version's localization, so they can only change while a version is editable and the locale
  * already exists (run listing_metadata.ts apply first). Order is set by upload order, so any difference replaces the
  * whole set for that locale. A locale with no local PNGs is never touched: its live screenshots are left as they are.
@@ -95,6 +96,16 @@ export function planCarry(live: CarrySet[], editable: CarrySet[]): CarrySet[] {
   });
 }
 
+/**
+ * Editable sets whose display type the live version doesn't have, and that hold a screenshot that isn't COMPLETE
+ * (failed, still processing, or stuck). Nothing else compares them, so they would sit there and block the submit.
+ * A set of COMPLETE screenshots of another display type is the repo's own and is left alone.
+ */
+export function planStale<T extends CarrySet>(live: CarrySet[], editable: T[]): T[] {
+  return editable.filter((e) =>
+    !live.some((l) => l.displayType === e.displayType) && e.shots.some((x) => x.state !== "COMPLETE"));
+}
+
 const countStates = (shots: CarryShot[]) => {
   const n = new Map<string, number>();
   for (const x of shots) n.set(x.state || "UNKNOWN", (n.get(x.state || "UNKNOWN") ?? 0) + 1);
@@ -104,6 +115,15 @@ const countStates = (shots: CarryShot[]) => {
 /** Locales to carry: those of the live version that the repo has no screenshots for and the editable version has. */
 export function carryLocales(liveLocales: string[], editableLocales: string[], localLocales: string[]): string[] {
   return liveLocales.filter((l) => editableLocales.includes(l) && !localLocales.includes(l)).sort();
+}
+
+/** Why no locale was compared, for the "Nothing compared: <reason>" line. */
+export function nothingComparedReason(liveLocales: string[], editableLocales: string[], localLocales: string[]): string {
+  if (liveLocales.length === 0) return "the live version has no locales.";
+  if (editableLocales.length === 0) return "the editable version has no locales.";
+  const shared = liveLocales.filter((l) => editableLocales.includes(l));
+  if (shared.length === 0) return "the live and editable versions have no locale in common.";
+  return `every shared locale (${shared.sort().join(", ")}) has screenshots in the repo, so none is carried over.`;
 }
 
 /** The download URL of a screenshot's image asset (the template takes width, height and format). */
@@ -171,12 +191,19 @@ export async function carryLocale(
   liveLocalizationId: string,
   editableLocalizationId: string,
   dry: boolean,
-): Promise<{ displayType: string; count: number }[]> {
+): Promise<{ copied: { displayType: string; count: number }[]; removed: { displayType: string; count: number }[] }> {
   const log = api.log ?? (() => {});
   const liveSets = await readSets(api, liveLocalizationId);
   const have = await readSets(api, editableLocalizationId);
   const plan = planCarry(liveSets, have);
   const copied: { displayType: string; count: number }[] = [];
+  const removed: { displayType: string; count: number }[] = [];
+  for (const set of planStale(liveSets, have)) {
+    removed.push({ displayType: set.displayType, count: set.shots.length });
+    log(`  [${locale}] ${set.displayType}: editable ${set.shots.length} (${countStates(set.shots)}), live has no such set → ${dry ? "would delete" : "deleting"}`);
+    if (dry) continue;
+    await api.asc(`/appScreenshotSets/${set.id}`, { method: "DELETE" });
+  }
   if (dry) {
     for (const set of liveSets) {
       const mine = have.find((h) => h.displayType === set.displayType);
@@ -233,7 +260,7 @@ export async function carryLocale(
     await waitComplete(api, locale, editableLocalizationId, copied.map((c) => c.displayType));
     log(`  [${locale}] all copied screenshots are COMPLETE`);
   }
-  return copied;
+  return { copied, removed };
 }
 
 // ---------------------------------------------------------------------------
@@ -294,11 +321,17 @@ if (import.meta.main) {
     const editableLoc = await localizationsOf(editableVersion.id);
     const api: CarryApi = { asc: (path, init) => asc(jwt, path, init), fetch: (url, init) => fetch(url, init), log: (m) => console.log(m) };
     step(`${dry ? "Dry run: " : ""}carrying screenshots from ${liveVersion.versionString} to ${editableVersion.versionString}…`);
-    let total = 0;
-    for (const locale of carryLocales(Object.keys(liveLoc), Object.keys(editableLoc), Object.keys(local))) {
-      total += (await carryLocale(api, locale, liveLoc[locale], editableLoc[locale], dry)).length;
+    const locales = carryLocales(Object.keys(liveLoc), Object.keys(editableLoc), Object.keys(local));
+    let total = 0, removed = 0;
+    for (const locale of locales) {
+      const r = await carryLocale(api, locale, liveLoc[locale], editableLoc[locale], dry);
+      total += r.copied.length;
+      removed += r.removed.length;
     }
-    pass(total === 0 ? "Nothing to carry over: the editable version's screenshot sets match the live version's, all COMPLETE." : `${dry ? "Would copy" : "Copied"} ${total} screenshot set(s).`);
+    const reason = nothingComparedReason(Object.keys(liveLoc), Object.keys(editableLoc), Object.keys(local));
+    if (locales.length === 0) pass(`Nothing compared: ${reason}`);
+    else if (total === 0 && removed === 0) pass("Nothing to carry over: the editable version's screenshot sets match the live version's, all COMPLETE.");
+    else pass(`${dry ? "Would copy" : "Copied"} ${total} screenshot set(s)${removed > 0 ? `, ${dry ? "would delete" : "deleted"} ${removed} stale set(s)` : ""}.`);
     Deno.exit(0);
   }
   if (command === "check") {
