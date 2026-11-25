@@ -39,11 +39,12 @@ export function validate(desired: AppDesired): string[] {
 }
 
 /** The settings whose live value differs from the desired one, as `name: have → want`. */
-export function differences(live: Partial<AppDesired>, want: AppDesired): string[] {
+export function differences(live: Partial<AppDesired>, want: AppDesired, hasInfo = true): string[] {
   const out: string[] = [];
   if (live.contentRightsDeclaration !== want.contentRightsDeclaration) out.push(`contentRightsDeclaration: ${live.contentRightsDeclaration ?? "unset"} → ${want.contentRightsDeclaration}`);
-  if (live.primaryCategory !== want.primaryCategory) out.push(`primaryCategory: ${live.primaryCategory ?? "unset"} → ${want.primaryCategory}`);
-  for (const [key, value] of Object.entries(want.ageRating)) {
+  // Category and age rating live on the editable AppInfo; without one they cannot be read or written.
+  if (hasInfo && live.primaryCategory !== want.primaryCategory) out.push(`primaryCategory: ${live.primaryCategory ?? "unset"} → ${want.primaryCategory}`);
+  for (const [key, value] of hasInfo ? Object.entries(want.ageRating) : []) {
     if (live.ageRating?.[key] !== value) out.push(`ageRating.${key}: ${live.ageRating?.[key] ?? "unset"} → ${value}`);
   }
   if (want.free && live.free !== true) out.push(`price: ${live.free === undefined ? "unset" : "not free"} → free`);
@@ -51,16 +52,19 @@ export function differences(live: Partial<AppDesired>, want: AppDesired): string
   return out;
 }
 
-async function read(jwt: string, appId: string, want: AppDesired): Promise<{ live: Partial<AppDesired>; infoId: string; ageId: string }> {
-  const app = (await asc(jwt, `/apps/${appId}`)).data;
-  const info = pickEditableInfo<Json>((await asc(jwt, `/apps/${appId}/appInfos`)).data);
-  if (!info) throw new Error("the app has no editable AppInfo (every one is live or with review): run `make listing-apply` first to create the editable version");
-  const category = await asc(jwt, `/appInfos/${info.id}/primaryCategory`).catch(() => null);
-  const age = (await asc(jwt, `/appInfos/${info.id}/ageRatingDeclaration`)).data;
+type Ask = (jwt: string, path: string, init?: RequestInit) => Promise<Json>;
+export interface StoreState { live: Partial<AppDesired>; infoId?: string; ageId?: string }
+
+export async function read(jwt: string, appId: string, want: AppDesired, ask: Ask = asc): Promise<StoreState> {
+  const app = (await ask(jwt, `/apps/${appId}`)).data;
+  const info = pickEditableInfo<Json>((await ask(jwt, `/apps/${appId}/appInfos`)).data);
+  // Between releases there is no editable AppInfo; content rights and price are app-level and still readable.
+  const category = info ? await ask(jwt, `/appInfos/${info.id}/primaryCategory`).catch(() => null) : null;
+  const age = info ? (await ask(jwt, `/appInfos/${info.id}/ageRatingDeclaration`)).data : undefined;
 
   let free: boolean | undefined;
   try {
-    const manual = await asc(jwt, `/appPriceSchedules/${appId}/manualPrices?include=appPricePoint&limit=50`);
+    const manual = await ask(jwt, `/appPriceSchedules/${appId}/manualPrices?include=appPricePoint&limit=50`);
     const points: Json[] = manual.included ?? [];
     free = (manual.data ?? []).length > 0 && points.length > 0 && points.every((p) => p.attributes?.customerPrice === "0.0");
   } catch { /* no schedule yet */ }
@@ -68,38 +72,39 @@ async function read(jwt: string, appId: string, want: AppDesired): Promise<{ liv
   let allTerritories: boolean | undefined;
   if (want.allTerritories) {
     try {
-      await asc(jwt, `/apps/${appId}/appAvailabilityV2`);
+      await ask(jwt, `/apps/${appId}/appAvailabilityV2`);
       allTerritories = true;
     } catch { /* not set yet */ }
   }
 
   return {
-    infoId: info.id,
-    ageId: age.id,
+    infoId: info?.id,
+    ageId: age?.id,
     live: {
       contentRightsDeclaration: app.attributes.contentRightsDeclaration ?? undefined,
       primaryCategory: category?.data?.id,
-      ageRating: Object.fromEntries(Object.keys(want.ageRating).map((k) => [k, age.attributes[k]])),
+      ageRating: age ? Object.fromEntries(Object.keys(want.ageRating).map((k) => [k, age.attributes[k]])) : undefined,
       free,
       allTerritories,
     },
   };
 }
 
-async function apply(jwt: string, appId: string, want: AppDesired, state: { live: Partial<AppDesired>; infoId: string; ageId: string }) {
+async function apply(jwt: string, appId: string, want: AppDesired, state: StoreState) {
   const { live, infoId, ageId } = state;
+  const hasInfo = infoId !== undefined && ageId !== undefined;
   if (live.contentRightsDeclaration !== want.contentRightsDeclaration) {
     step("Content rights…");
     await asc(jwt, `/apps/${appId}`, { method: "PATCH", body: JSON.stringify({ data: { type: "apps", id: appId, attributes: { contentRightsDeclaration: want.contentRightsDeclaration } } }) });
   }
-  if (live.primaryCategory !== want.primaryCategory) {
+  if (hasInfo && live.primaryCategory !== want.primaryCategory) {
     step("Primary category…");
     await asc(jwt, `/appInfos/${infoId}`, {
       method: "PATCH",
       body: JSON.stringify({ data: { type: "appInfos", id: infoId, relationships: { primaryCategory: { data: { type: "appCategories", id: want.primaryCategory } } } } }),
     });
   }
-  if (Object.entries(want.ageRating).some(([k, v]) => live.ageRating?.[k] !== v)) {
+  if (hasInfo && Object.entries(want.ageRating).some(([k, v]) => live.ageRating?.[k] !== v)) {
     step("Age rating…");
     await asc(jwt, `/ageRatingDeclarations/${ageId}`, { method: "PATCH", body: JSON.stringify({ data: { type: "ageRatingDeclarations", id: ageId, attributes: want.ageRating } }) });
   }
@@ -157,14 +162,16 @@ if (import.meta.main) {
   const appId = await findApp(jwt);
   step("Reading the app's store settings…");
   const state = await read(jwt, appId, want);
-  const diff = differences(state.live, want);
+  const hasInfo = state.infoId !== undefined;
+  if (!hasInfo) console.log("  (no editable AppInfo: category and age rating are skipped; run `make listing-apply` to create the editable version)");
+  const diff = differences(state.live, want, hasInfo);
   if (diff.length === 0) { pass("The app's store settings already match listing/app.json."); Deno.exit(0); }
   diff.forEach((d) => console.log(`  ${d}`));
   if (command === "diff") Deno.exit(1);
 
   await apply(jwt, appId, want, state);
   step("Read-back verification…");
-  const after = differences((await read(jwt, appId, want)).live, want);
+  const after = differences((await read(jwt, appId, want)).live, want, hasInfo);
   if (after.length === 0) { pass("Read-back verified: the store matches listing/app.json."); Deno.exit(0); }
   fail("did not stick:");
   after.forEach((d) => console.log(`  ${d}`));

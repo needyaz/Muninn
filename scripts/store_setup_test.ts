@@ -1,6 +1,6 @@
 import { assertEquals } from "./lib/assert.ts";
 import { assertAppId, pickEditableInfo } from "./lib/asc.ts";
-import { type AppDesired, differences, validate } from "./store_setup.ts";
+import { type AppDesired, differences, read, validate } from "./store_setup.ts";
 
 const want: AppDesired = {
   contentRightsDeclaration: "DOES_NOT_USE_THIRD_PARTY_CONTENT",
@@ -66,4 +66,18 @@ Deno.test("release: listing-apply runs before store-setup-apply", async () => {
   const listing = release.indexOf("listing-apply");
   const setup = release.indexOf("store-setup-apply");
   assertEquals(listing > 0 && setup > listing, true);
+});
+
+Deno.test("MUN-BLD-003: without an editable AppInfo, content rights and price are still read and compared", async () => {
+  const ask = (_jwt: string, path: string) => {
+    if (path === "/apps/A") return Promise.resolve({ data: { attributes: { contentRightsDeclaration: "DOES_NOT_USE_THIRD_PARTY_CONTENT" } } });
+    if (path === "/apps/A/appInfos") return Promise.resolve({ data: [{ id: "I", attributes: { state: "READY_FOR_DISTRIBUTION" } }] });
+    if (path.startsWith("/appPriceSchedules/A/manualPrices")) return Promise.resolve({ data: [{}], included: [{ attributes: { customerPrice: "0.0" } }] });
+    return Promise.reject(new Error(`unexpected ${path}`));
+  };
+  const state = await read("jwt", "A", want, ask);
+  assertEquals(state.infoId, undefined);
+  assertEquals(state.live.free, true);
+  assertEquals(differences(state.live, want, false), []);
+  assertEquals(differences({ ...state.live, free: false }, want, false), ["price: not free → free"]);
 });
