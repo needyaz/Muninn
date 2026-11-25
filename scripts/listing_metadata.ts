@@ -195,6 +195,24 @@ export function localeMismatch(storeLocales: string[], desired: Desired): string
     `or add ${missing.join(", ")} deliberately in App Store Connect first.`;
 }
 
+/**
+ * The shape of listing/metadata.json from what the store holds: per locale only the fields that have text (an empty
+ * store field is left out, so the dump validates and a field nobody set is never managed), plus the copyright line.
+ * App Review details are not part of the dump: the contact is kept out of the repository.
+ */
+export function toMetadata(live: Desired, appStoreId: string = APP_STORE_ID): Desired {
+  const localizations: Record<string, Localization> = {};
+  for (const [locale, loc] of Object.entries(live.localizations).sort(([a], [b]) => a.localeCompare(b))) {
+    localizations[locale] = Object.fromEntries(
+      (Object.keys(FIELDS) as Field[]).filter((f) => (loc[f] ?? "").length > 0).map((f) => [f, loc[f]]),
+    ) as Localization;
+  }
+  const out: Desired = { appStoreId, localizations };
+  if (live.releasedVersion) out.releasedVersion = live.releasedVersion;
+  if (live.version?.copyright) out.version = { copyright: live.version.copyright };
+  return out;
+}
+
 const liveLocales = (live: Live) => [...Object.keys(live.versionLocIds), ...Object.keys(live.infoLocIds)];
 
 const clip = (text: string) => JSON.stringify(text.length > 70 ? `${text.slice(0, 67)}…` : text);
@@ -472,7 +490,7 @@ if (import.meta.main) {
   pass(`version ${live.versionString} (${live.versionEditable ? "editable" : `${live.versionState}, read-only`})`);
 
   if (command === "dump") {
-    console.log(JSON.stringify(live.desired, null, 2));
+    console.log(JSON.stringify(toMetadata(live.desired), null, 2));
     Deno.exit(0);
   }
   if (command === "gate") {

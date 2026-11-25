@@ -1,5 +1,5 @@
 {
-  "_seed": "Seeded 2026-11-10 from the public App Store listing (id 6759760573, version 1.0). App Store Connect holds the listing under the single locale ms (Malay) with English text, so the file uses ms: a different locale would be created, and Apple refuses the duplicate app name. Keywords, promotional text, URLs and copyright are not in this file yet: copy them from make listing-dump before any listing-apply.",
+  "_seed": "Seeded 2026-11-10 from the public App Store listing (id 6759760573, version 1.0). App Store Connect holds the listing under the single locale ms (Malay) with English text, so the file uses ms: a different locale would be created, and Apple refuses the duplicate app name. Keywords, promotional text, URLs and copyright are not in this file yet: copy them from make listing-dump before any listing-apply. listing-apply sends them when present.",
   "appStoreId": "6759760573",
   "releasedVersion": "1.0",
   "localizations": {

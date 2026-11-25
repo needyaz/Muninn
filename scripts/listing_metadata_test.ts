@@ -1,5 +1,5 @@
 import { assertEquals } from "./lib/assert.ts";
-import { apply, attributesFor, computeDiff, type Desired, findInfoLocalization, type Live, localeMismatch, needsEditableVersion, reviewContactFromEnv, validate, validateAppStoreId, versionPlan, whatsNewProblems } from "./listing_metadata.ts";
+import { apply, attributesFor, computeDiff, type Desired, findInfoLocalization, type Live, localeMismatch, needsEditableVersion, reviewContactFromEnv, toMetadata, validate, validateAppStoreId, versionPlan, whatsNewProblems } from "./listing_metadata.ts";
 
 const desired = (loc: Record<string, string>, review?: Record<string, string>): Desired => ({ localizations: { "ms": loc }, review });
 
@@ -165,4 +165,33 @@ Deno.test("whatsNew: the committed listing carries What's New text for the relea
   // No version header (the version is computed at release) and no generic filler.
   assertEquals(lines.some((l: string) => /^version\b/i.test(l.trim())), false);
   assertEquals(/stability improvements|internal improvements/i.test(file.localizations.ms.whatsNew), false);
+});
+
+Deno.test("MUN-BLD-003: the dump maps store text to the metadata.json shape, leaving out empty fields", () => {
+  const live: Desired = {
+    localizations: {
+      ms: { name: "Muninn", subtitle: "", description: "d", keywords: "a,b", promotionalText: "", whatsNew: "w",
+        supportUrl: "https://example.com/s", marketingUrl: "", privacyPolicyUrl: "https://example.com/p" },
+    },
+    version: { copyright: "2026 Someone", releaseType: "MANUAL" },
+    review: { notes: "private" },
+  };
+  assertEquals(toMetadata(live), {
+    appStoreId: "6759760573",
+    localizations: { ms: { description: "d", keywords: "a,b", whatsNew: "w", supportUrl: "https://example.com/s", privacyPolicyUrl: "https://example.com/p", name: "Muninn" } },
+    version: { copyright: "2026 Someone" },
+  });
+  assertEquals(validate(toMetadata(live)), []);
+});
+
+Deno.test("MUN-BLD-003: new fields are sent when present, left alone when absent, and limited to Apple's sizes", () => {
+  const want = { name: "Muninn", keywords: "a,b", promotionalText: "p", supportUrl: "https://e.com", marketingUrl: "https://e.com/m", privacyPolicyUrl: "https://e.com/p" };
+  const changes = computeDiff({ localizations: { ms: { name: "Muninn" } } }, { localizations: { ms: want }, version: { copyright: "c" } });
+  assertEquals(changes.map((c) => c.field).sort(), ["copyright", "keywords", "marketingUrl", "privacyPolicyUrl", "promotionalText", "supportUrl"]);
+  assertEquals(Object.keys(attributesFor("version", want, changes, "ms")).sort(), ["keywords", "marketingUrl", "promotionalText", "supportUrl"]);
+  assertEquals(computeDiff({ localizations: { ms: { name: "Muninn", keywords: "x" } } }, desired({ name: "Muninn" })), []);
+  assertEquals(validate(desired({ keywords: "k".repeat(101) })).length, 1);
+  assertEquals(validate(desired({ keywords: "k".repeat(100) })), []);
+  assertEquals(validate(desired({ promotionalText: "p".repeat(171) })).length, 1);
+  assertEquals(validate(desired({ promotionalText: "p".repeat(170) })), []);
 });

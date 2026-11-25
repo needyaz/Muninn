@@ -148,16 +148,19 @@ Deno.test("MUN-BLD-003: the ported screenshot check accepts the Mac 2880x1800 si
   check(bad.length > 0, "a wrong-size screenshot passes validateSet");
 });
 
-Deno.test("MUN-BLD-003: metadata.json keeps appStoreId and adds no keywords, promotional text or URLs the store dump has not confirmed (keeps)", () => {
+Deno.test("MUN-BLD-003: metadata.json keeps appStoreId and may carry keywords, promotional text, URLs and copyright within Apple's limits (keeps)", () => {
   const file = readJson("listing/metadata.json");
   check(file.appStoreId === "6759760573", `appStoreId is ${JSON.stringify(file.appStoreId)}`);
   const locs = file.localizations as Record<string, Record<string, string>>;
+  const limits: Record<string, number> = { keywords: 100, promotionalText: 170, supportUrl: 255, marketingUrl: 255, privacyPolicyUrl: 255 };
   for (const [locale, loc] of Object.entries(locs)) {
-    for (const key of Object.keys(loc)) {
-      check(!["keywords", "promotionalText"].includes(key), `[${locale}] has ${key}`);
-      check(!/url$/i.test(key), `[${locale}] has ${key}`);
+    for (const [key, value] of Object.entries(loc)) {
+      if (key in limits) check([...value].length <= limits[key], `[${locale}] ${key} is over ${limits[key]} characters`);
+      if (/url$/i.test(key)) check(/^https:\/\/\S+$/.test(value), `[${locale}] ${key} is not an https URL`);
     }
   }
+  const copyright = (file.version as Record<string, string> | undefined)?.copyright;
+  if (copyright !== undefined) check(copyright.length > 0, "copyright is empty");
 });
 
 // MARK: - MUN-BLD-005
