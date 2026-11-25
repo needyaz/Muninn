@@ -189,6 +189,7 @@ export function localeMismatch(storeLocales: string[], desired: Desired): string
   if (have.length !== 1) return null;
   const missing = Object.keys(desired.localizations).filter((l) => !have.includes(l));
   if (missing.length === 0) return null;
+  if (Object.keys(desired.localizations).includes(have[0])) return null; // the file keeps the store's locale: a deliberate addition
   return `The store has exactly one locale, ${have[0]}, and listing/metadata.json names ${missing.join(", ")} instead. ` +
     `Nothing was written. Rename the locale in listing/metadata.json (and listing/screenshots/) to ${have[0]}, ` +
     `or add ${missing.join(", ")} deliberately in App Store Connect first.`;

@@ -116,6 +116,7 @@ Deno.test("release: an existing ms app info localization is found (after a lag) 
 Deno.test("listing: a store with only ms and a file naming another locale is refused; the same locale or a deliberate addition is not", () => {
   assertEquals(localeMismatch(["ms", "ms"], desired({ name: "x" })), null);
   assertEquals(localeMismatch(["ms"], { localizations: { "en-US": { name: "x" } } })?.includes("exactly one locale, ms"), true);
+  assertEquals(localeMismatch(["ms"], { localizations: { ms: { name: "x" }, "en-GB": { name: "y" } } }), null);
   assertEquals(localeMismatch([], { localizations: { "en-US": { name: "x" } } }), null);
   assertEquals(localeMismatch(["ms", "de-DE"], { localizations: { "en-US": { name: "x" } } }), null);
 });
