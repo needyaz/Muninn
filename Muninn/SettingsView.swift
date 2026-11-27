@@ -399,11 +399,7 @@ private struct AboutTab: View {
     @Environment(SettingsStore.self) private var settingsStore
     @Environment(\.openWindow) private var openWindow
 
-    private var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        return "Version \(version) (\(build))"
-    }
+    private var appVersion: String { AboutLinks.versionLine() }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -445,6 +441,23 @@ private struct AboutTab: View {
             Divider()
                 .padding(.horizontal, 80)
 
+            // Feedback and website links
+            VStack(spacing: 8) {
+                Text("About")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                HStack(spacing: 8) {
+                    Button("Report a Problem") { AboutLinks.open(.reportProblem) }
+                    Button("Suggest an Idea") { AboutLinks.open(.suggestIdea) }
+                    Button("luci.blue") { AboutLinks.open(.website) }
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding(.vertical, 16)
+
+            Divider()
+                .padding(.horizontal, 80)
+
             // Blue Luci branding. The name and logo are not covered by the GPL (see README > License).
             VStack(spacing: 6) {
                 Text("Made by")
@@ -465,7 +478,7 @@ private struct AboutTab: View {
 
             Spacer()
         }
-        .frame(width: 500, height: 420)
+        .frame(width: 500, height: 520)
     }
 }
 

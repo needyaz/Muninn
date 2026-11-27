@@ -103,6 +103,7 @@ Named for Odin's raven of memory.
 | Excluded content types (per-type toggles) | ✅ Done |
 | Global keyboard shortcuts (via KeyboardShortcuts library) | ✅ Done |
 | About tab (Blue Luci branding, app version, tagline, welcome tour) | ✅ Done |
+| About links (report a problem, suggest an idea, website) | ✅ Done |
 
 ### Statistics
 
