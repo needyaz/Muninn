@@ -274,6 +274,7 @@ Requires Xcode 26 and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew i
 make menu       # pick a target (or `make` to list them)
 make run        # build and launch
 make test       # run the unit tests
+make build-for-testing   # compile the app and its tests only, unsigned (runs nothing)
 make install    # build a Release app and copy it to /Applications
 ```
 

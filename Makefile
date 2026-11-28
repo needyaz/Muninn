@@ -129,6 +129,11 @@ test-listing: listing-check
 	@command -v deno >/dev/null 2>&1 || { echo "deno not installed — run: brew install deno"; exit 1; }
 	deno test --allow-read --allow-run=make scripts/
 
+.PHONY: build-for-testing
+## [Tests] Compile the app and its unit-test target without running anything (unsigned, no launch, no simulator)
+build-for-testing: generate
+	$(TEST_XCODEBUILD) CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=- -destination 'platform=macOS' build-for-testing
+
 # ---------------------------------------------------------------------------
 # Release
 # ---------------------------------------------------------------------------
