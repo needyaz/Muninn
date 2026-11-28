@@ -1,5 +1,5 @@
 import { assertEquals } from "./lib/assert.ts";
-import { apply, attributesFor, computeDiff, type Desired, findInfoLocalization, type Live, localeMismatch, needsEditableVersion, reviewContactFromEnv, toMetadata, validate, validateAppStoreId, versionPlan, whatsNewProblems } from "./listing_metadata.ts";
+import { apply, attributesFor, computeDiff, type Desired, findInfoLocalization, type Live, localeMismatch, needsEditableVersion, reviewContactFromEnv, toMetadata, validate, validateAppStoreId, versionPlan, whatsNewProblems, withReleaseWhatsNew } from "./listing_metadata.ts";
 
 const desired = (loc: Record<string, string>, review?: Record<string, string>): Desired => ({ localizations: { "ms": loc }, review });
 
@@ -194,4 +194,41 @@ Deno.test("MUN-BLD-003: new fields are sent when present, left alone when absent
   assertEquals(validate(desired({ keywords: "k".repeat(100) })), []);
   assertEquals(validate(desired({ promotionalText: "p".repeat(171) })).length, 1);
   assertEquals(validate(desired({ promotionalText: "p".repeat(170) })), []);
+});
+
+Deno.test("MUN-BLD-006: RELEASE_WHATS_NEW overrides the primary locale's whatsNew and is what apply sends", async () => {
+  const file = desired({ name: "Muninn", whatsNew: "from the file" });
+  const out = withReleaseWhatsNew(file, { RELEASE_WHATS_NEW: "Fresh notes\nline two" });
+  assertEquals(out.localizations["ms"].whatsNew, "Fresh notes\nline two");
+  assertEquals(file.localizations["ms"].whatsNew, "from the file");
+  assertEquals(whatsNewProblems(withReleaseWhatsNew(desired({ name: "Muninn" }), { RELEASE_WHATS_NEW: "x" }), true), []);
+
+  const sent: unknown[] = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = ((_url: string, init?: RequestInit) => {
+    sent.push(JSON.parse(String(init?.body ?? "{}")));
+    return Promise.resolve(new Response(JSON.stringify({ data: {} }), { status: 200, headers: { "content-type": "application/json" } }));
+  }) as typeof fetch;
+  try {
+    const live: Live = {
+      appId: "6759760573", desired: { localizations: { ms: { name: "Muninn", whatsNew: "old" } } },
+      versionId: "v1", versionString: "1.0.1", versionState: "PREPARE_FOR_SUBMISSION", versionEditable: true,
+      versionLocIds: { ms: "vl1" }, editableInfoId: "i1", infoLocIds: { ms: "il1" },
+    };
+    await apply("jwt", live, out, undefined);
+  } finally {
+    globalThis.fetch = original;
+  }
+  // deno-lint-ignore no-explicit-any
+  assertEquals((sent[0] as any).data.attributes.whatsNew, "Fresh notes\nline two");
+});
+
+Deno.test("MUN-BLD-006: unset or blank RELEASE_WHATS_NEW keeps the file's text; over 4000 characters is refused", () => {
+  const file = desired({ name: "Muninn", whatsNew: "from the file" });
+  assertEquals(withReleaseWhatsNew(file, {}), file);
+  assertEquals(withReleaseWhatsNew(file, { RELEASE_WHATS_NEW: "  \n" }), file);
+  assertEquals(withReleaseWhatsNew(file, { RELEASE_WHATS_NEW: "w".repeat(4000) }).localizations["ms"].whatsNew?.length, 4000);
+  let message = "";
+  try { withReleaseWhatsNew(file, { RELEASE_WHATS_NEW: "w".repeat(4001) }); } catch (e) { message = (e as Error).message; }
+  assertEquals(message.includes("RELEASE_WHATS_NEW is 4001 characters"), true);
 });

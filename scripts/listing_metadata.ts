@@ -110,7 +110,7 @@ export function whatsNewProblems(desired: Desired, released: boolean): string[] 
     .filter(([, loc]) => typeof loc.whatsNew !== "string" || loc.whatsNew.trim().length === 0)
     .map(([locale]) =>
       `[${locale}] whatsNew is empty, but the store already has a released version: App Store Connect will refuse the submit. ` +
-      `Write the What's New text in listing/metadata.json.`);
+      `Write the What's New text in listing/metadata.json or set RELEASE_WHATS_NEW.`);
 }
 
 /** The file must name Muninn's own app record: `appStoreId` equal to the string "6759760573". */
@@ -142,6 +142,23 @@ export function computeDiff(live: Desired, desired: Desired): Change[] {
     if (from !== to) changes.push({ section: "review", field, from, to });
   }
   return changes;
+}
+
+/**
+ * The release command may export RELEASE_WHATS_NEW (the public What's New text). When it is set and not blank it
+ * replaces the primary locale's whatsNew (the first locale in the file); unset or blank leaves the file's text.
+ * The file itself is never rewritten. Throws when the text is over Apple's limit, before anything is sent.
+ */
+export function withReleaseWhatsNew(desired: Desired, env: Record<string, string | undefined>): Desired {
+  const text = env.RELEASE_WHATS_NEW;
+  if (text === undefined || text.trim().length === 0) return desired;
+  const length = [...text].length;
+  if (length > FIELDS.whatsNew.limit) {
+    throw new Error(`RELEASE_WHATS_NEW is ${length} characters; Apple allows ${FIELDS.whatsNew.limit} for What's New. Nothing was sent.`);
+  }
+  const primary = Object.keys(desired.localizations ?? {})[0];
+  if (!primary) return desired;
+  return { ...desired, localizations: { ...desired.localizations, [primary]: { ...desired.localizations[primary], whatsNew: text } } };
 }
 
 /** The App Review contact comes from the build box's environment, so a name and phone number never sit in a public repo. */
@@ -453,8 +470,14 @@ function printChanges(changes: Change[]) {
 // ---------------------------------------------------------------------------
 
 async function loadDesired(): Promise<Desired> {
-  const desired = JSON.parse(await Deno.readTextFile(DESIRED_PATH)) as Desired;
+  let desired = JSON.parse(await Deno.readTextFile(DESIRED_PATH)) as Desired;
   desired.review = { ...desired.review, ...reviewContactFromEnv(Deno.env.toObject()) };
+  try {
+    desired = withReleaseWhatsNew(desired, Deno.env.toObject());
+  } catch (e) {
+    fail((e as Error).message);
+    Deno.exit(1);
+  }
   const problems = [...validateAppStoreId(desired), ...validate(desired), ...whatsNewProblems(desired, !!desired.releasedVersion)];
   if (problems.length > 0) {
     for (const p of problems) fail(p);
